@@ -6,13 +6,13 @@ A personal cookbook system built with [Cooklang](https://cooklang.org/) that gen
 
 ## Features
 
-- 📝 **Plain Text Recipes** - Store recipes in Cooklang format, making them portable and version-controllable
-- 🌐 **Static Website** - Beautiful, responsive website with Schema.org markup for recipe discoverability
-- 📄 **PDF Cookbook** - Professionally typeset PDF using LaTeX with elegant typography
-- 🍸 **Dual Format Support** - Separate handling for food recipes and cocktails
-- 🔍 **Multiple Browse Options** - Filter by category, cuisine, tags, and spirit base
-- 🎨 **Customizable** - Easy configuration via `.env` file and Markdown content
-- 📱 **Responsive Design** - Mobile-friendly website with print-optimized recipe pages
+- **Plain Text Recipes** - Store recipes in Cooklang format, making them portable and version-controllable
+- **Static Website** - Beautiful, responsive website with Schema.org markup for recipe discoverability
+- **PDF Cookbook** - Professionally typeset PDF using LaTeX with elegant typography
+- **Dual Format Support** - Separate handling for food recipes and cocktails
+- **Multiple Browse Options** - Filter by category, cuisine, tags, and spirit base
+- **Customizable** - Easy configuration via `.env` file and Markdown content
+- **Responsive Design** - Mobile-friendly website with print-optimized recipe pages
 
 ## Quick Start
 
