@@ -13,11 +13,13 @@ Usage:
 
 import sys
 import argparse
+import shutil
 from pathlib import Path
 
 from recipe_parser import RecipeCollection
 from site_generator import generate_site
 from pdf_generator import generate_pdf
+import config
 
 
 def validate_recipes():
@@ -71,6 +73,24 @@ def build_pdf():
         return False
 
 
+def copy_pdf_to_site():
+    """Copy generated PDF to site directory for download."""
+    pdf_source = Path(config.OUTPUT_DIR) / "cookbook.pdf"
+    pdf_dest = Path(config.DOCS_DIR) / "cookbook.pdf"
+
+    if pdf_source.exists():
+        try:
+            shutil.copy2(pdf_source, pdf_dest)
+            print(f"  PDF copied to {pdf_dest}")
+            return True
+        except Exception as e:
+            print(f"✗ Error copying PDF: {e}")
+            return False
+    else:
+        print(f"⚠ PDF not found at {pdf_source}, skipping copy")
+        return False
+
+
 def build_all(base_url: str = None):
     """Generate both website and PDF."""
     print("=" * 60)
@@ -84,15 +104,23 @@ def build_all(base_url: str = None):
     pdf_success = build_pdf()
     print()
 
+    pdf_copy_success = False
+    if pdf_success:
+        print("Copying PDF to site...")
+        pdf_copy_success = copy_pdf_to_site()
+        print()
+
     print("=" * 60)
     if site_success and pdf_success:
         print("✓ Build completed successfully!")
+        if pdf_copy_success:
+            print("  PDF is available for download on the site")
     else:
         print("✗ Build completed with errors")
-        if not site_success:
-            print("  - Site generation failed")
         if not pdf_success:
             print("  - PDF generation failed")
+        if not site_success:
+            print("  - Site generation failed")
     print("=" * 60)
 
     return site_success and pdf_success
@@ -145,6 +173,10 @@ Examples:
         success = build_site(base_url)
     elif args.command == 'pdf':
         success = build_pdf()
+        if success:
+            print()
+            print("Copying PDF to site...")
+            copy_pdf_to_site()
     elif args.command == 'all':
         success = build_all(base_url)
     else:

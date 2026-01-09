@@ -164,6 +164,11 @@ code {
     width: 100%;
 }
 
+.site-nav .pdf-download {
+    color: var(--color-accent);
+    font-weight: 500;
+}
+
 /* ==================== */
 /* Footer               */
 /* ==================== */
