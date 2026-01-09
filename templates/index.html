@@ -3,8 +3,7 @@
 {% block content %}
 <div class="container">
     <section class="hero">
-        <h2 class="hero-title">It's a cookbook!</h2>
-        <p class="hero-subtitle">A personal collection of recipes worth keeping</p>
+        {{ hero_content|safe }}
     </section>
 
     <section class="recipes-grid">

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}To Serve Man{% endblock %}</title>
-    <meta name="description" content="{% block description %}A personal cookbook using Cooklang{% endblock %}">
+    <title>{% block title %}{{ site_title }}{% endblock %}</title>
+    <meta name="description" content="{% block description %}{{ site_description }}{% endblock %}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,7 +20,7 @@
     <header class="site-header">
         <div class="container">
             <h1 class="site-title">
-                <a href="{{ base_url }}/">To Serve Man</a>
+                <a href="{{ base_url }}/">{{ site_title }}</a>
             </h1>
             <nav class="site-nav">
                 <a href="{{ base_url }}/">Home</a>

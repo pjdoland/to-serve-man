@@ -11,27 +11,41 @@ from pathlib import Path
 from typing import Dict, List
 from jinja2 import Environment, FileSystemLoader
 from slugify import slugify
+import markdown
 
 from recipe_parser import RecipeCollection, Recipe
+import config
 
 
 class SiteGenerator:
     """Generates static website from recipes."""
 
-    def __init__(self, recipes_dir: str = "recipes", output_dir: str = "docs", base_url: str = ""):
-        self.recipes_dir = Path(recipes_dir)
-        self.output_dir = Path(output_dir)
-        self.base_url = base_url.rstrip('/')
+    def __init__(self, recipes_dir: str = None, output_dir: str = None, base_url: str = None):
+        self.recipes_dir = Path(recipes_dir or config.RECIPES_DIR)
+        self.output_dir = Path(output_dir or config.DOCS_DIR)
+        self.base_url = (base_url if base_url is not None else config.BASE_URL).rstrip('/')
+        self.content_dir = Path(config.CONTENT_DIR)
 
         # Set up Jinja2 environment
         self.jinja_env = Environment(
-            loader=FileSystemLoader('templates'),
+            loader=FileSystemLoader(config.TEMPLATES_DIR),
             autoescape=True
         )
+
+        # Markdown processor
+        self.md = markdown.Markdown(extensions=['extra', 'nl2br'])
 
         # Load recipes
         self.collection = RecipeCollection(self.recipes_dir)
         self.collection.load_recipes(use_cooklang_parser=False)
+
+    def load_markdown_content(self, filename: str) -> str:
+        """Load and convert markdown content to HTML."""
+        filepath = self.content_dir / filename
+        if filepath.exists():
+            with open(filepath, 'r', encoding='utf-8') as f:
+                return self.md.convert(f.read())
+        return ""
 
     def clean_output_dir(self):
         """Remove and recreate output directory."""
@@ -58,8 +72,12 @@ class SiteGenerator:
         """Render a Jinja2 template and write to file."""
         template = self.jinja_env.get_template(template_name)
 
-        # Add base_url to all contexts
+        # Add site configuration to all contexts
         context['base_url'] = self.base_url
+        context['site_title'] = config.COOKBOOK_TITLE
+        context['site_description'] = config.COOKBOOK_DESCRIPTION
+        context['site_author'] = config.COOKBOOK_AUTHOR
+        context['site_url'] = config.SITE_URL
 
         html = template.render(**context)
 
@@ -182,12 +200,15 @@ class SiteGenerator:
 
     def generate_homepage(self):
         """Generate homepage."""
+        hero_content = self.load_markdown_content('hero.md')
+
         context = {
             'recipes': self.collection.recipes,
             'categories': self.collection.get_by_category(),
             'tags': self.collection.get_by_tag(),
             'cuisines': self.collection.get_by_cuisine(),
             'spirits': self.collection.get_by_spirit(),
+            'hero_content': hero_content,
         }
 
         output_path = self.output_dir / "index.html"
@@ -241,7 +262,11 @@ class SiteGenerator:
 
     def generate_about_page(self):
         """Generate about page."""
-        context = {}
+        about_content = self.load_markdown_content('about.md')
+
+        context = {
+            'about_content': about_content,
+        }
         output_path = self.output_dir / "about" / "index.html"
         self.render_template('about.html', context, output_path)
 

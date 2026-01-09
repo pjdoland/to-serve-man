@@ -9,6 +9,10 @@ dist/
 build/
 venv/
 env/
+.venv/
+
+# Environment
+.env
 
 # LaTeX auxiliary files
 *.aux

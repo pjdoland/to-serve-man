@@ -11,15 +11,18 @@ from pathlib import Path
 from typing import Dict, List
 
 from recipe_parser import RecipeCollection, Recipe
+import config
 
 
 class PDFGenerator:
     """Generates PDF cookbook from recipes."""
 
-    def __init__(self, recipes_dir: str = "recipes", output_dir: str = "output"):
-        self.recipes_dir = Path(recipes_dir)
-        self.output_dir = Path(output_dir)
-        self.latex_dir = Path("latex")
+    def __init__(self, recipes_dir: str = None, output_dir: str = None):
+        self.recipes_dir = Path(recipes_dir or config.RECIPES_DIR)
+        self.output_dir = Path(output_dir or config.OUTPUT_DIR)
+        self.latex_dir = Path(config.LATEX_DIR)
+        self.pdf_title = config.PDF_TITLE
+        self.pdf_author = config.PDF_AUTHOR
 
         # Load recipes
         self.collection = RecipeCollection(self.recipes_dir)
@@ -233,10 +236,22 @@ class PDFGenerator:
         """
         latex_parts = []
 
-        # Read preamble
+        # Read preamble and replace placeholders
         preamble_file = self.latex_dir / "preamble.tex"
         with open(preamble_file, 'r', encoding='utf-8') as f:
-            latex_parts.append(f.read())
+            preamble = f.read()
+
+        # Replace title placeholder
+        preamble = preamble.replace('{{COOKBOOK_TITLE}}', self.escape_latex(self.pdf_title))
+
+        # Replace author placeholder - only add author line if author is set
+        if self.pdf_author:
+            author_line = f'{{\\large {self.escape_latex(self.pdf_author)}}}\\\\[1em]\n'
+        else:
+            author_line = ''
+        preamble = preamble.replace('{{COOKBOOK_AUTHOR_LINE}}', author_line)
+
+        latex_parts.append(preamble)
 
         # Part I: Food Recipes
         food_recipes = self.collection.food_recipes
