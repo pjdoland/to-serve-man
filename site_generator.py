@@ -1,0 +1,323 @@
+"""
+Static site generator for To Serve Man cookbook.
+
+Generates a complete static website from Cooklang recipes.
+"""
+
+import os
+import re
+import shutil
+from pathlib import Path
+from typing import Dict, List
+from jinja2 import Environment, FileSystemLoader
+from slugify import slugify
+
+from recipe_parser import RecipeCollection, Recipe
+
+
+class SiteGenerator:
+    """Generates static website from recipes."""
+
+    def __init__(self, recipes_dir: str = "recipes", output_dir: str = "docs", base_url: str = ""):
+        self.recipes_dir = Path(recipes_dir)
+        self.output_dir = Path(output_dir)
+        self.base_url = base_url.rstrip('/')
+
+        # Set up Jinja2 environment
+        self.jinja_env = Environment(
+            loader=FileSystemLoader('templates'),
+            autoescape=True
+        )
+
+        # Load recipes
+        self.collection = RecipeCollection(self.recipes_dir)
+        self.collection.load_recipes(use_cooklang_parser=False)
+
+    def clean_output_dir(self):
+        """Remove and recreate output directory."""
+        if self.output_dir.exists():
+            shutil.rmtree(self.output_dir)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
+    def copy_static_files(self):
+        """Copy static assets to output directory."""
+        static_src = Path("static")
+        static_dest = self.output_dir / "static"
+
+        if static_src.exists():
+            shutil.copytree(static_src, static_dest, dirs_exist_ok=True)
+
+        # Copy images if they exist
+        images_src = Path("images")
+        images_dest = self.output_dir / "images"
+
+        if images_src.exists():
+            shutil.copytree(images_src, images_dest, dirs_exist_ok=True)
+
+    def render_template(self, template_name: str, context: Dict, output_path: Path):
+        """Render a Jinja2 template and write to file."""
+        template = self.jinja_env.get_template(template_name)
+
+        # Add base_url to all contexts
+        context['base_url'] = self.base_url
+
+        html = template.render(**context)
+
+        # Ensure output directory exists
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Write file
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(html)
+
+    def parse_recipe_content(self, recipe: Recipe) -> tuple:
+        """
+        Parse recipe content into HTML-ready ingredients and instructions.
+
+        Returns:
+            Tuple of (ingredients_html, instructions_html)
+        """
+        # Extract content after frontmatter
+        content = re.sub(r'^---\s*\n.*?\n---\s*\n', '', recipe.raw_content, flags=re.DOTALL)
+
+        # Split into lines
+        lines = content.strip().split('\n')
+
+        ingredients = []
+        instructions = []
+        current_section = None
+
+        for line in lines:
+            line = line.strip()
+
+            # Skip empty lines and comments
+            if not line or line.startswith('--'):
+                continue
+
+            # Check for section headers
+            if line.startswith('>>'):
+                current_section = line[2:].strip()
+                instructions.append(f'<h3 class="section-header">{current_section}</h3>')
+                continue
+
+            # Extract ingredients from the line using proper patterns
+            ingredient_pattern = r'@([^{@#~\s]+(?:\s+[^{@#~\s]+)*)\{([^}]*)\}'
+            cookware_pattern = r'#(\w+)(?:\{([^}]*)\})?'
+            timer_pattern = r'~\{([^}]+)\}'
+
+            # This is an instruction line - process Cooklang syntax
+            instruction_html = line
+
+            # Replace ingredients: @ingredient{quantity} -> <span>ingredient</span>
+            def replace_ingredient(match):
+                return f'<span class="ingredient">{match.group(1)}</span>'
+            instruction_html = re.sub(
+                r'@([^{@#~\s]+(?:\s+[^{@#~\s]+)*)(?:\{[^}]*\})?',
+                replace_ingredient,
+                instruction_html
+            )
+
+            # Replace cookware: #item or #item{} -> <span>item</span>
+            def replace_cookware(match):
+                return f'<span class="cookware">{match.group(1)}</span>'
+            instruction_html = re.sub(
+                r'#(\w+)(?:\{[^}]*\})?',
+                replace_cookware,
+                instruction_html
+            )
+
+            # Replace timers: ~{time} -> <span>time</span> (with % replaced by space)
+            def replace_timer(match):
+                time_value = match.group(1).replace('%', ' ')
+                return f'<span class="timer">{time_value}</span>'
+            instruction_html = re.sub(
+                timer_pattern,
+                replace_timer,
+                instruction_html
+            )
+
+            instructions.append(instruction_html)
+
+            # Extract ingredients for ingredients list
+            for match in re.finditer(ingredient_pattern, line):
+                ingredient_name = match.group(1).strip()
+                ingredient_quantity = match.group(2).strip() if match.group(2) else ''
+
+                if ingredient_quantity:
+                    # Replace % with space in quantities
+                    qty_clean = ingredient_quantity.replace('%', ' ')
+                    ingredients.append(f"{ingredient_name} ({qty_clean})")
+                else:
+                    ingredients.append(ingredient_name)
+
+        # Remove duplicates from ingredients while preserving order
+        seen = set()
+        unique_ingredients = []
+        for ing in ingredients:
+            # Normalize for comparison
+            ing_base = re.sub(r'\([^)]*\)', '', ing).strip().lower()
+            if ing_base not in seen:
+                seen.add(ing_base)
+                unique_ingredients.append(ing)
+
+        # Format as HTML
+        ingredients_html = '<ul>\n' + '\n'.join(f'<li>{ing}</li>' for ing in unique_ingredients) + '\n</ul>'
+        instructions_html = '<ol>\n' + '\n'.join(f'<li>{inst}</li>' for inst in instructions if inst) + '\n</ol>'
+
+        return ingredients_html, instructions_html
+
+    def generate_recipe_page(self, recipe: Recipe):
+        """Generate individual recipe page."""
+        # Parse recipe content
+        ingredients_html, instructions_html = self.parse_recipe_content(recipe)
+
+        context = {
+            'recipe': recipe,
+            'ingredients_html': ingredients_html,
+            'instructions_html': instructions_html,
+        }
+
+        output_path = self.output_dir / "recipes" / recipe.slug / "index.html"
+        self.render_template('recipe.html', context, output_path)
+
+    def generate_homepage(self):
+        """Generate homepage."""
+        context = {
+            'recipes': self.collection.recipes,
+            'categories': self.collection.get_by_category(),
+            'tags': self.collection.get_by_tag(),
+            'cuisines': self.collection.get_by_cuisine(),
+            'spirits': self.collection.get_by_spirit(),
+        }
+
+        output_path = self.output_dir / "index.html"
+        self.render_template('index.html', context, output_path)
+
+    def generate_list_page(self, title: str, recipes: List[Recipe], output_path: Path, subtitle: str = None):
+        """Generate a list page (category, tag, etc.)."""
+        context = {
+            'title': title,
+            'subtitle': subtitle,
+            'recipes': recipes,
+        }
+
+        self.render_template('list.html', context, output_path)
+
+    def generate_category_pages(self):
+        """Generate pages for each category."""
+        categories = self.collection.get_by_category()
+
+        for category, recipes in categories.items():
+            title = category.replace('-', ' ').title()
+            output_path = self.output_dir / category / "index.html"
+            self.generate_list_page(title, recipes, output_path)
+
+    def generate_tag_pages(self):
+        """Generate pages for each tag."""
+        tags = self.collection.get_by_tag()
+
+        for tag, recipes in tags.items():
+            slug = slugify(tag)
+            output_path = self.output_dir / "tags" / slug / "index.html"
+            self.generate_list_page(f"#{tag}", recipes, output_path)
+
+    def generate_cuisine_pages(self):
+        """Generate pages for each cuisine."""
+        cuisines = self.collection.get_by_cuisine()
+
+        for cuisine, recipes in cuisines.items():
+            slug = slugify(cuisine)
+            output_path = self.output_dir / "cuisine" / slug / "index.html"
+            self.generate_list_page(cuisine, recipes, output_path, subtitle="Food recipes")
+
+    def generate_spirit_pages(self):
+        """Generate pages for each spirit."""
+        spirits = self.collection.get_by_spirit()
+
+        for spirit, recipes in spirits.items():
+            slug = slugify(spirit)
+            output_path = self.output_dir / "spirit" / slug / "index.html"
+            self.generate_list_page(f"{spirit.title()} Cocktails", recipes, output_path)
+
+    def generate_about_page(self):
+        """Generate about page."""
+        context = {}
+        output_path = self.output_dir / "about" / "index.html"
+        self.render_template('about.html', context, output_path)
+
+    def generate_food_page(self):
+        """Generate main food page."""
+        recipes = self.collection.food_recipes
+        output_path = self.output_dir / "food" / "index.html"
+        self.generate_list_page("Food", recipes, output_path, subtitle="All food recipes")
+
+    def generate_cocktails_page(self):
+        """Generate main cocktails page."""
+        recipes = self.collection.cocktail_recipes
+        output_path = self.output_dir / "cocktails" / "index.html"
+        self.generate_list_page("Cocktails", recipes, output_path, subtitle="All cocktail recipes")
+
+    def generate_all(self):
+        """Generate complete static site."""
+        print("Generating site...")
+
+        # Clean and prepare output directory
+        print("  Cleaning output directory...")
+        self.clean_output_dir()
+
+        # Copy static files
+        print("  Copying static files...")
+        self.copy_static_files()
+
+        # Generate homepage
+        print("  Generating homepage...")
+        self.generate_homepage()
+
+        # Generate recipe pages
+        print(f"  Generating {len(self.collection.recipes)} recipe pages...")
+        for recipe in self.collection.recipes:
+            self.generate_recipe_page(recipe)
+
+        # Generate category pages
+        print("  Generating category pages...")
+        self.generate_category_pages()
+
+        # Generate tag pages
+        print("  Generating tag pages...")
+        self.generate_tag_pages()
+
+        # Generate cuisine pages
+        print("  Generating cuisine pages...")
+        self.generate_cuisine_pages()
+
+        # Generate spirit pages
+        print("  Generating spirit pages...")
+        self.generate_spirit_pages()
+
+        # Generate about page
+        print("  Generating about page...")
+        self.generate_about_page()
+
+        # Generate food and cocktails pages
+        print("  Generating food and cocktails pages...")
+        self.generate_food_page()
+        self.generate_cocktails_page()
+
+        print(f"✓ Site generated successfully in {self.output_dir}/")
+
+
+def generate_site(recipes_dir: str = "recipes", output_dir: str = "docs", base_url: str = ""):
+    """
+    Convenience function to generate site.
+
+    Args:
+        recipes_dir: Path to recipes directory
+        output_dir: Path to output directory
+        base_url: Base URL for the site (e.g., "/to-serve-man" for GitHub Pages)
+    """
+    generator = SiteGenerator(recipes_dir, output_dir, base_url)
+    generator.generate_all()
+
+
+if __name__ == "__main__":
+    generate_site()

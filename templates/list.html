@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} — To Serve Man{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header class="page-header">
+        <h1 class="page-title">{{ title }}</h1>
+        {% if subtitle %}
+        <p class="page-subtitle">{{ subtitle }}</p>
+        {% endif %}
+    </header>
+
+    <section class="recipes-list">
+        {% if recipes %}
+        <div class="recipe-cards">
+            {% for recipe in recipes %}
+            <article class="recipe-card">
+                <a href="{{ base_url }}/recipes/{{ recipe.slug }}/" class="recipe-card-link">
+                    <h3 class="recipe-card-title">{{ recipe.title }}</h3>
+                    <p class="recipe-card-meta">
+                        {% if recipe.is_cocktail %}
+                            {{ recipe.glass|title if recipe.glass else 'Cocktail' }}
+                            {% if recipe.spirit_base %}• {{ recipe.spirit_base|title }}{% endif %}
+                        {% else %}
+                            {{ recipe.cuisine if recipe.cuisine else recipe.category|title }}
+                            {% if recipe.servings %}• {{ recipe.servings }} servings{% endif %}
+                        {% endif %}
+                    </p>
+                    {% if recipe.description %}
+                    <p class="recipe-card-description">{{ recipe.description }}</p>
+                    {% endif %}
+                </a>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="no-recipes">No recipes found in this category.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recipe.title }} — To Serve Man{% endblock %}
+{% block description %}{{ recipe.description if recipe.description else recipe.title }}{% endblock %}
+
+{% block head_extra %}
+<!-- Schema.org Recipe markup for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Recipe",
+  "name": "{{ recipe.title }}",
+  {% if recipe.description %}"description": "{{ recipe.description }}",{% endif %}
+  {% if recipe.metadata.author %}"author": {
+    "@type": "Person",
+    "name": "{{ recipe.metadata.author }}"
+  },{% endif %}
+  {% if recipe.prep_time or recipe.cook_time %}
+  {% if recipe.prep_time %}"prepTime": "{{ recipe.prep_time }}",{% endif %}
+  {% if recipe.cook_time %}"cookTime": "{{ recipe.cook_time }}",{% endif %}
+  {% endif %}
+  {% if recipe.servings %}"recipeYield": "{{ recipe.servings }} servings",{% endif %}
+  "recipeCategory": "{{ recipe.category|title }}"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<article class="recipe-detail">
+    <div class="container">
+        <header class="recipe-header">
+            <h1 class="recipe-title">{{ recipe.title }}</h1>
+
+            <div class="recipe-meta">
+                {% if recipe.is_cocktail %}
+                    {% if recipe.glass %}<span class="meta-item">{{ recipe.glass|title }}</span>{% endif %}
+                    {% if recipe.spirit_base %}<span class="meta-item">{{ recipe.spirit_base|title }}</span>{% endif %}
+                    {% if recipe.difficulty %}<span class="meta-item">{{ recipe.difficulty|title }}</span>{% endif %}
+                {% else %}
+                    {% if recipe.cuisine %}<span class="meta-item">{{ recipe.cuisine }}</span>{% endif %}
+                    {% if recipe.servings %}<span class="meta-item">{{ recipe.servings }} servings</span>{% endif %}
+                    {% if recipe.prep_time %}<span class="meta-item">{{ recipe.prep_time }} prep</span>{% endif %}
+                    {% if recipe.cook_time %}<span class="meta-item">{{ recipe.cook_time }} cook</span>{% endif %}
+                    {% if recipe.difficulty %}<span class="meta-item">{{ recipe.difficulty|title }}</span>{% endif %}
+                {% endif %}
+            </div>
+
+            {% if recipe.description %}
+            <p class="recipe-description">{{ recipe.description }}</p>
+            {% endif %}
+
+            {% if recipe.tags %}
+            <div class="recipe-tags">
+                {% for tag in recipe.tags %}
+                <a href="{{ base_url }}/tags/{{ tag|lower|replace(' ', '-') }}/" class="tag">{{ tag }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </header>
+
+        <div class="recipe-content">
+            <section class="recipe-ingredients">
+                <h2>Ingredients</h2>
+                <div class="ingredients-list">
+                    {{ ingredients_html|safe }}
+                </div>
+            </section>
+
+            <section class="recipe-instructions">
+                <h2>Instructions</h2>
+                <div class="instructions-list">
+                    {{ instructions_html|safe }}
+                </div>
+            </section>
+        </div>
+
+        <footer class="recipe-footer">
+            {% if recipe.metadata.source or recipe.metadata.author %}
+            <div class="recipe-attribution">
+                {% if recipe.metadata.author %}
+                <p>Recipe by {{ recipe.metadata.author }}{% if recipe.metadata.adapted_by %}, adapted by {{ recipe.metadata.adapted_by }}{% endif %}</p>
+                {% endif %}
+                {% if recipe.metadata.source %}
+                <p><a href="{{ recipe.metadata.source }}" target="_blank" rel="noopener">Original recipe</a></p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="recipe-actions">
+                <button onclick="window.print()" class="print-button">Print Recipe</button>
+            </div>
+        </footer>
+    </div>
+</article>
+{% endblock %}

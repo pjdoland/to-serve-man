@@ -1,0 +1,195 @@
+% To Serve Man — LaTeX Preamble
+% Beautiful cookbook typography
+
+\documentclass[11pt,twoside,openright]{book}
+
+% Page geometry with elegant proportions
+\usepackage[
+    paperwidth=8.5in,
+    paperheight=11in,
+    top=1.25in,
+    bottom=1.25in,
+    inner=1.5in,
+    outer=1in
+]{geometry}
+
+% Font configuration
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{microtype} % Improved typography
+
+% Use Palatino for body text and Helvetica for sans-serif
+\usepackage{palatino}
+\usepackage{helvet}
+
+% Better line spacing
+\usepackage{setspace}
+\setstretch{1.15}
+
+% Section formatting
+\usepackage{titlesec}
+
+% Part formatting - elegant, simple
+\titleformat{\part}[display]
+    {\normalfont\Huge\filcenter}
+    {\partname\ \thepart}
+    {20pt}
+    {\Huge\scshape}
+
+% Chapter formatting - recipe category
+\titleformat{\chapter}[display]
+    {\normalfont\huge\filcenter}
+    {}
+    {0pt}
+    {\huge\scshape}
+
+% Section formatting - recipe title
+\titleformat{\section}
+    {\normalfont\LARGE\bfseries}
+    {}
+    {0pt}
+    {}
+
+% Subsection - recipe section headers (e.g., "Make the sauce")
+\titleformat{\subsection}
+    {\normalfont\large\itshape}
+    {}
+    {0pt}
+    {}
+
+% Lists
+\usepackage{enumitem}
+
+% Ingredients list - clean, simple
+\newlist{ingredients}{itemize}{1}
+\setlist[ingredients]{
+    label=—,
+    leftmargin=1.5em,
+    itemsep=0.5em,
+    parsep=0pt
+}
+
+% Instructions list - numbered elegantly
+\setlist[enumerate]{
+    leftmargin=2em,
+    itemsep=0.75em,
+    parsep=0pt
+}
+
+% Headers and footers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\itshape\nouppercase{\leftmark}}
+\fancyhead[RO]{\small\itshape\nouppercase{\rightmark}}
+\fancyfoot[LE,RO]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+% Chapter page style (no header)
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyfoot[C]{\thepage}
+    \renewcommand{\headrulewidth}{0pt}
+}
+
+% Hyperlinks (for digital PDF)
+\usepackage[
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=black,
+    citecolor=black,
+    bookmarks=true,
+    bookmarksnumbered=false,
+    pdfborder={0 0 0}
+]{hyperref}
+
+% Better tables
+\usepackage{booktabs}
+
+% Graphics (if needed for images)
+\usepackage{graphicx}
+
+% Better quotes
+\usepackage{csquotes}
+
+% Widow and orphan control
+\widowpenalty=10000
+\clubpenalty=10000
+
+% Table of contents formatting
+\usepackage{tocloft}
+\renewcommand{\cftchapfont}{\normalfont}
+\renewcommand{\cftchappagefont}{\normalfont}
+\setlength{\cftbeforechapskip}{0.5em}
+
+% Custom commands for recipe metadata
+\newcommand{\recipemeta}[1]{%
+    \begin{center}
+    \small\itshape #1
+    \end{center}
+    \vspace{1em}
+}
+
+\newcommand{\recipedescription}[1]{%
+    \begin{center}
+    \begin{minipage}{0.8\textwidth}
+    \itshape #1
+    \end{minipage}
+    \end{center}
+    \vspace{1.5em}
+}
+
+\newcommand{\recipeattribution}[1]{%
+    \vspace{1em}
+    \begin{flushright}
+    \small\textsc{#1}
+    \end{flushright}
+}
+
+% Spacing adjustments
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+% Start of document content
+\begin{document}
+
+% Front matter
+\frontmatter
+
+% Half-title page
+\begin{titlepage}
+\centering
+\vspace*{3in}
+{\Huge\scshape To Serve Man}
+\end{titlepage}
+
+\cleardoublepage
+
+% Title page
+\begin{titlepage}
+\centering
+\vspace*{2in}
+{\Huge\scshape To Serve Man}\\[1.5em]
+{\Large A Personal Cookbook}\\[3em]
+{\large Generated \today}
+\end{titlepage}
+
+\cleardoublepage
+
+% Epigraph
+\thispagestyle{empty}
+\vspace*{3in}
+\begin{center}
+\large\itshape
+``It's a cookbook!''
+\end{center}
+
+\cleardoublepage
+
+% Table of contents
+\tableofcontents
+
+\cleardoublepage
+
+% Main matter
+\mainmatter

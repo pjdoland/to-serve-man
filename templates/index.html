@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <section class="hero">
+        <h2 class="hero-title">It's a cookbook!</h2>
+        <p class="hero-subtitle">A personal collection of recipes worth keeping</p>
+    </section>
+
+    <section class="recipes-grid">
+        <h3 class="section-title">Recent Recipes</h3>
+        <div class="recipe-cards">
+            {% for recipe in recipes[:12] %}
+            <article class="recipe-card">
+                <a href="{{ base_url }}/recipes/{{ recipe.slug }}/" class="recipe-card-link">
+                    <h4 class="recipe-card-title">{{ recipe.title }}</h4>
+                    <p class="recipe-card-meta">
+                        {% if recipe.is_cocktail %}
+                            {{ recipe.glass|title if recipe.glass else 'Cocktail' }}
+                            {% if recipe.spirit_base %}• {{ recipe.spirit_base|title }}{% endif %}
+                        {% else %}
+                            {{ recipe.cuisine if recipe.cuisine else recipe.category|title }}
+                            {% if recipe.servings %}• {{ recipe.servings }} servings{% endif %}
+                        {% endif %}
+                    </p>
+                    {% if recipe.description %}
+                    <p class="recipe-card-description">{{ recipe.description }}</p>
+                    {% endif %}
+                </a>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="browse-links">
+        <h3 class="section-title">Browse</h3>
+        <div class="browse-grid">
+            <div class="browse-category">
+                <h4>By Category</h4>
+                <ul>
+                    {% for category, recipes in categories.items() %}
+                    <li><a href="{{ base_url }}/{{ category }}/">{{ category|title }}</a> <span class="count">({{ recipes|length }})</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="browse-category">
+                <h4>By Cuisine</h4>
+                <ul>
+                    {% for cuisine, recipes in cuisines.items() %}
+                    <li><a href="{{ base_url }}/cuisine/{{ cuisine|lower|replace(' ', '-') }}/">{{ cuisine }}</a> <span class="count">({{ recipes|length }})</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="browse-category">
+                <h4>By Spirit</h4>
+                <ul>
+                    {% for spirit, recipes in spirits.items() %}
+                    <li><a href="{{ base_url }}/spirit/{{ spirit|lower|replace(' ', '-') }}/">{{ spirit|title }}</a> <span class="count">({{ recipes|length }})</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="browse-category">
+                <h4>Popular Tags</h4>
+                <ul>
+                    {% for tag, recipes in tags.items() %}
+                    {% if loop.index <= 10 %}
+                    <li><a href="{{ base_url }}/tags/{{ tag|lower|replace(' ', '-') }}/">{{ tag }}</a> <span class="count">({{ recipes|length }})</span></li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

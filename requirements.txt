@@ -1,0 +1,10 @@
+# Core dependencies
+Jinja2>=3.1.0
+PyYAML>=6.0
+python-slugify>=8.0.0
+
+# Cooklang parser - installed from GitHub
+git+https://github.com/cooklang/cooklang-py.git
+
+# Optional: web serving for local development
+# python-http-server is built-in, no need to install
