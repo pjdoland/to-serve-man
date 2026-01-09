@@ -47,10 +47,10 @@ def validate_recipes():
     return False
 
 
-def build_site(base_url: str = ""):
+def build_site(base_url: str = None):
     """Generate static website."""
     try:
-        generate_site(recipes_dir="recipes", output_dir="docs", base_url=base_url)
+        generate_site(base_url=base_url)
         return True
     except Exception as e:
         print(f"✗ Error generating site: {e}")
@@ -62,7 +62,7 @@ def build_site(base_url: str = ""):
 def build_pdf():
     """Generate PDF cookbook."""
     try:
-        generate_pdf(recipes_dir="recipes", output_dir="output")
+        generate_pdf()
         return True
     except Exception as e:
         print(f"✗ Error generating PDF: {e}")
@@ -71,7 +71,7 @@ def build_pdf():
         return False
 
 
-def build_all(base_url: str = ""):
+def build_all(base_url: str = None):
     """Generate both website and PDF."""
     print("=" * 60)
     print("Building everything...")
@@ -129,21 +129,24 @@ Examples:
 
     parser.add_argument(
         '--base-url',
-        default='',
-        help='Base URL for the website (e.g., /to-serve-man for GitHub Pages)'
+        default=None,
+        help='Base URL for the website (e.g., /to-serve-man for GitHub Pages). If not specified, uses value from .env'
     )
 
     args = parser.parse_args()
+
+    # Convert empty string to None for base_url
+    base_url = args.base_url if args.base_url else None
 
     # Run the appropriate command
     if args.command == 'validate':
         success = validate_recipes()
     elif args.command == 'site':
-        success = build_site(args.base_url)
+        success = build_site(base_url)
     elif args.command == 'pdf':
         success = build_pdf()
     elif args.command == 'all':
-        success = build_all(args.base_url)
+        success = build_all(base_url)
     else:
         parser.print_help()
         sys.exit(1)

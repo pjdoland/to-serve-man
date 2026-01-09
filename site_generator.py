@@ -178,9 +178,36 @@ class SiteGenerator:
                 seen.add(ing_base)
                 unique_ingredients.append(ing)
 
-        # Format as HTML
+        # Format ingredients as HTML
         ingredients_html = '<ul>\n' + '\n'.join(f'<li>{ing}</li>' for ing in unique_ingredients) + '\n</ul>'
-        instructions_html = '<ol>\n' + '\n'.join(f'<li>{inst}</li>' for inst in instructions if inst) + '\n</ol>'
+
+        # Format instructions as HTML with proper section handling
+        instructions_parts = []
+        current_section_steps = []
+
+        for item in instructions:
+            if item.startswith('<h3'):
+                # This is a section header
+                # Close previous section if exists
+                if current_section_steps:
+                    instructions_parts.append('<ol>')
+                    instructions_parts.extend(f'<li>{step}</li>' for step in current_section_steps)
+                    instructions_parts.append('</ol>')
+                    current_section_steps = []
+
+                # Add section header
+                instructions_parts.append(item)
+            else:
+                # This is a regular step
+                current_section_steps.append(item)
+
+        # Close final section
+        if current_section_steps:
+            instructions_parts.append('<ol>')
+            instructions_parts.extend(f'<li>{step}</li>' for step in current_section_steps)
+            instructions_parts.append('</ol>')
+
+        instructions_html = '\n'.join(instructions_parts)
 
         return ingredients_html, instructions_html
 
@@ -331,14 +358,14 @@ class SiteGenerator:
         print(f"✓ Site generated successfully in {self.output_dir}/")
 
 
-def generate_site(recipes_dir: str = "recipes", output_dir: str = "docs", base_url: str = ""):
+def generate_site(recipes_dir: str = None, output_dir: str = None, base_url: str = None):
     """
     Convenience function to generate site.
 
     Args:
-        recipes_dir: Path to recipes directory
-        output_dir: Path to output directory
-        base_url: Base URL for the site (e.g., "/to-serve-man" for GitHub Pages)
+        recipes_dir: Path to recipes directory (default: from config)
+        output_dir: Path to output directory (default: from config)
+        base_url: Base URL for the site (default: from config)
     """
     generator = SiteGenerator(recipes_dir, output_dir, base_url)
     generator.generate_all()

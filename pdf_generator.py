@@ -371,13 +371,13 @@ class PDFGenerator:
             print("✗ PDF compilation failed. LaTeX source is available at:", tex_file)
 
 
-def generate_pdf(recipes_dir: str = "recipes", output_dir: str = "output"):
+def generate_pdf(recipes_dir: str = None, output_dir: str = None):
     """
     Convenience function to generate PDF.
 
     Args:
-        recipes_dir: Path to recipes directory
-        output_dir: Path to output directory
+        recipes_dir: Path to recipes directory (default: from config)
+        output_dir: Path to output directory (default: from config)
     """
     generator = PDFGenerator(recipes_dir, output_dir)
     generator.generate_all()
