@@ -82,7 +82,7 @@ class RecipeSearch {
     }
     calculateScore(recipe, query) {
         let score = 0;
-        // Title matching
+        // Title matching (substring is OK for titles)
         const titleLower = recipe.title.toLowerCase();
         if (titleLower.includes(query)) {
             score += titleLower === query ? 20 : 10;
@@ -91,23 +91,37 @@ class RecipeSearch {
                 score += 5;
             }
         }
-        // Tag matching
+        // Tag matching (substring is OK for tags)
         recipe.tags.forEach(tag => {
             const tagLower = tag.toLowerCase();
             if (tagLower.includes(query)) {
                 score += tagLower === query ? 16 : 8;
             }
         });
-        // Description matching
-        if (recipe.description && recipe.description.toLowerCase().includes(query)) {
-            score += 5;
+        // Description matching (word boundary to avoid false positives like "gin" in "original")
+        if (recipe.description) {
+            const descLower = recipe.description.toLowerCase();
+            // Use word boundary regex to match whole words
+            const wordBoundaryRegex = new RegExp(`\\b${this.escapeRegex(query)}`, 'i');
+            if (wordBoundaryRegex.test(descLower)) {
+                score += 5;
+            }
         }
-        // Cuisine/Spirit matching
+        // Cuisine/Spirit matching (exact match preferred)
         const category = recipe.is_cocktail ? recipe.spirit_base : recipe.cuisine;
-        if (category && category.toLowerCase().includes(query)) {
-            score += 3;
+        if (category) {
+            const categoryLower = category.toLowerCase();
+            if (categoryLower === query) {
+                score += 8; // Higher score for exact match
+            }
+            else if (categoryLower.includes(query)) {
+                score += 3; // Lower score for partial match
+            }
         }
         return score;
+    }
+    escapeRegex(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
     displayResults(results, query) {
         if (!this.resultsContainer)
