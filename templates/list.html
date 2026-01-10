@@ -1,39 +1,19 @@
 {% extends "base.html" %}
+{% from "macros.html" import recipe_card, page_header %}
 
 {% block title %}{{ title }} — To Serve Man{% endblock %}
 
 {% block content %}
 <div class="max-w-cookbook mx-auto px-8">
     <!-- Page Header -->
-    <header class="text-center py-16 mb-16">
-        <h1 class="font-serif text-5xl mb-4">{{ title }}</h1>
-        {% if subtitle %}
-        <p class="text-lg font-light text-cookbook-light">{{ subtitle }}</p>
-        {% endif %}
-    </header>
+    {{ page_header(title, subtitle) }}
 
     <!-- Recipes List -->
     <section class="mb-24">
         {% if recipes %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
             {% for recipe in recipes %}
-            <article class="border-t border-cookbook-border pt-8">
-                <a href="{{ base_url }}/recipes/{{ recipe.slug }}/" class="block no-underline border-none group">
-                    <h3 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">{{ recipe.title }}</h3>
-                    <p class="text-sm text-cookbook-light mb-4">
-                        {% if recipe.is_cocktail %}
-                            {{ recipe.glass|title if recipe.glass else 'Cocktail' }}
-                            {% if recipe.spirit_base %}• {{ recipe.spirit_base|title }}{% endif %}
-                        {% else %}
-                            {{ recipe.cuisine if recipe.cuisine else recipe.category|title }}
-                            {% if recipe.servings %}• {{ recipe.servings }} servings{% endif %}
-                        {% endif %}
-                    </p>
-                    {% if recipe.description %}
-                    <p class="text-base italic text-cookbook-light">{{ recipe.description }}</p>
-                    {% endif %}
-                </a>
-            </article>
+            {{ recipe_card(recipe, base_url) }}
             {% endfor %}
         </div>
         {% else %}

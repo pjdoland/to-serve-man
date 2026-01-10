@@ -1,3 +1,2 @@
-# It's a cookbook!
-
-A personal collection of recipes worth keeping
+<h1 class="font-serif text-5xl md:text-6xl mb-4">It's a cookbook!</h1>
+<p class="text-xl font-light text-cookbook-light italic">A personal collection of recipes worth keeping</p>

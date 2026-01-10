@@ -100,27 +100,15 @@
   content: '';
 }
 
-/* Prose styling for about page */
-.prose h2 {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 2rem;
-  font-weight: 600;
-  margin-top: 4rem;
-  margin-bottom: 2rem;
-}
-
-.prose p {
-  margin-bottom: 2rem;
-}
-
-.prose a {
+/* About page link styling */
+article a {
   color: #1a1816;
   border-bottom: 1px solid #e8e4df;
   text-decoration: none;
   transition: border-color 0.2s ease;
 }
 
-.prose a:hover {
+article a:hover {
   border-color: #8b6f47;
 }
 

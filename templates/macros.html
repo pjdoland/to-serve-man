@@ -1,0 +1,30 @@
+{# Reusable recipe card component #}
+{% macro recipe_card(recipe, base_url) %}
+<article class="border-t border-cookbook-border pt-8">
+    <a href="{{ base_url }}/recipes/{{ recipe.slug }}/" class="block no-underline border-none group">
+        <h4 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">{{ recipe.title }}</h4>
+        <p class="text-sm text-cookbook-light mb-4">
+            {% if recipe.is_cocktail %}
+                {{ recipe.glass|title if recipe.glass else 'Cocktail' }}
+                {% if recipe.spirit_base %}• {{ recipe.spirit_base|title }}{% endif %}
+            {% else %}
+                {{ recipe.cuisine if recipe.cuisine else recipe.category|title }}
+                {% if recipe.servings %}• {{ recipe.servings }} servings{% endif %}
+            {% endif %}
+        </p>
+        {% if recipe.description %}
+        <p class="text-base italic text-cookbook-light">{{ recipe.description }}</p>
+        {% endif %}
+    </a>
+</article>
+{% endmacro %}
+
+{# Page header component #}
+{% macro page_header(title, subtitle=none) %}
+<header class="text-center py-16 mb-16">
+    <h1 class="font-serif text-5xl mb-4">{{ title }}</h1>
+    {% if subtitle %}
+    <p class="text-lg font-light text-cookbook-light">{{ subtitle }}</p>
+    {% endif %}
+</header>
+{% endmacro %}
