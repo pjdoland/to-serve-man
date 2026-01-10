@@ -1,7 +1,7 @@
 % To Serve Man — LaTeX Preamble
 % Beautiful cookbook typography
 
-\documentclass[12pt,twoside,openright]{book}
+\documentclass[10pt,twoside,openright]{book}
 
 % Page geometry with elegant proportions
 \usepackage[
@@ -31,37 +31,35 @@
 % Section formatting
 \usepackage{titlesec}
 
-% Part formatting - elegant, simple
+% Part formatting - elegant, simple (no small caps)
 \titleformat{\part}[display]
     {\normalfont\Huge\filcenter}
     {\partname\ \thepart}
     {20pt}
-    {\Huge\scshape}
+    {\Huge}
 
-% Chapter formatting - recipe category
+% Chapter formatting - recipe category (no small caps)
 \titleformat{\chapter}[display]
     {\normalfont\huge\filcenter}
     {}
     {0pt}
-    {\huge\scshape}
+    {\huge}
 
-% Section formatting - recipe title (match website h1: 3rem = 48px)
-% Using semibold (600) instead of bold to match website
+% Section formatting - recipe title (proportionally smaller: 30pt instead of 36pt)
+% Using semibold (600) to match website
 \titleformat{\section}
-    {\normalfont\fontsize{36}{43}\selectfont\fontseries{sb}\selectfont}
+    {\normalfont\fontsize{30}{36}\selectfont\fontseries{sb}\selectfont}
     {}
     {0pt}
     {}
 
-% Large text for "Ingredients" and "Instructions" labels
-% Match website: text-2xl = 1.5rem = 24px
-\newcommand{\ingredientsheading}{\fontsize{18}{22}\selectfont\fontseries{sb}\selectfont}
-\newcommand{\instructionsheading}{\fontsize{18}{22}\selectfont\fontseries{sb}\selectfont}
+% Large text for "Ingredients" and "Instructions" labels (15pt instead of 18pt)
+\newcommand{\ingredientsheading}{\fontsize{15}{18}\selectfont\fontseries{sb}\selectfont}
+\newcommand{\instructionsheading}{\fontsize{15}{18}\selectfont\fontseries{sb}\selectfont}
 
-% Subsection - recipe section headers (e.g., "Make the sauce")
-% Match website h3: 1.25rem = 20px, font-weight 600
+% Subsection - recipe section headers (12pt instead of 15pt)
 \titleformat{\subsection}
-    {\normalfont\fontsize{15}{18}\selectfont\fontseries{sb}\selectfont}
+    {\normalfont\fontsize{12}{15}\selectfont\fontseries{sb}\selectfont}
     {}
     {0pt}
     {}
@@ -82,10 +80,9 @@
     parsep=0pt
 }
 
-% Instructions list - numbered with large semibold numbers
-% Match website: 1.5rem = 24px = 18pt, semibold, accent color
+% Instructions list - numbered with large semibold numbers (15pt instead of 18pt)
 \setlist[enumerate]{
-    label={\fontsize{18}{22}\fontseries{sb}\selectfont\color{accentcolor}\arabic*},
+    label={\fontsize{15}{18}\fontseries{sb}\selectfont\color{accentcolor}\arabic*},
     leftmargin=4em,
     itemsep=2em,
     parsep=0pt
@@ -160,7 +157,7 @@
 \newcommand{\recipeattribution}[1]{%
     \vspace{1em}
     \begin{flushright}
-    {\small\color{lighttext}\textsc{#1}}
+    {\small\color{lighttext}#1}
     \end{flushright}
 }
 
@@ -178,7 +175,7 @@
 \begin{titlepage}
 \centering
 \vspace*{3in}
-{\Huge\scshape {{COOKBOOK_TITLE}}}
+{\Huge {{COOKBOOK_TITLE}}}
 \end{titlepage}
 
 \cleardoublepage
@@ -187,7 +184,7 @@
 \begin{titlepage}
 \centering
 \vspace*{2in}
-{\Huge\scshape {{COOKBOOK_TITLE}}}\\[1.5em]
+{\Huge {{COOKBOOK_TITLE}}}\\[1.5em]
 {\Large A Personal Cookbook}\\[3em]
 {{COOKBOOK_AUTHOR_LINE}}
 {\large Generated \today}
