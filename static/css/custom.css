@@ -60,7 +60,7 @@
   content: counter(step-counter);
   position: absolute;
   left: 0;
-  font-family: 'Cormorant Garamond', 'Palatino', 'Georgia', serif;
+  font-family: 'EB Garamond', 'Palatino', 'Georgia', serif;
   font-size: 1.5rem;
   font-weight: 600;
   color: #8b6f47;
@@ -68,7 +68,7 @@
 
 /* Section headers in instructions */
 .instructions-list h3 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'EB Garamond', serif;
   font-size: 1.25rem;
   font-weight: 600;
   margin-top: 2rem;
@@ -113,14 +113,14 @@ article a:hover {
 }
 
 article h1 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'EB Garamond', serif;
   font-size: 3rem;
   margin-bottom: 4rem;
   text-align: center;
 }
 
 article h2 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'EB Garamond', serif;
   font-size: 1.5rem;
   font-weight: 600;
   margin-top: 4rem;
