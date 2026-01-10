@@ -15,7 +15,7 @@
   left: 0;
   width: 0;
   height: 1px;
-  background-color: #8b6f47;
+  background-color: #c1121f;
   transition: width 0.2s ease;
 }
 
@@ -39,7 +39,7 @@
   content: '—';
   position: absolute;
   left: 0;
-  color: #8b6f47;
+  color: #c1121f;
 }
 
 /* Instruction list numbering */
@@ -63,7 +63,7 @@
   font-family: 'EB Garamond', 'Palatino', 'Georgia', serif;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #8b6f47;
+  color: #c1121f;
 }
 
 /* Section headers in instructions */
@@ -83,7 +83,7 @@
 
 .timer {
   font-weight: 400;
-  color: #8b6f47;
+  color: #c1121f;
 }
 
 .cookware {
@@ -109,7 +109,7 @@ article a {
 }
 
 article a:hover {
-  border-color: #8b6f47;
+  border-color: #c1121f;
 }
 
 article h1 {
@@ -172,7 +172,7 @@ article em {
 }
 
 .search-input:focus {
-  border-color: #8b6f47;
+  border-color: #c1121f;
   box-shadow: 0 0 0 3px rgba(139, 111, 71, 0.1);
 }
 
@@ -236,7 +236,7 @@ article em {
 
 .search-result-item:hover .search-result-title,
 .search-result-item.selected .search-result-title {
-  color: #8b6f47;
+  color: #c1121f;
 }
 
 /* Result title */
