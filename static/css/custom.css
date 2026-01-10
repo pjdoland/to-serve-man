@@ -39,7 +39,7 @@
   content: '—';
   position: absolute;
   left: 0;
-  color: #c1121f;
+  color: #1a1816;
 }
 
 /* Instruction list numbering */
@@ -63,7 +63,7 @@
   font-family: 'EB Garamond', 'Palatino', 'Georgia', serif;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #c1121f;
+  color: #1a1816;
 }
 
 /* Section headers in instructions */
