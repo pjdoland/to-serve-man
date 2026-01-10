@@ -179,7 +179,7 @@ class PDFGenerator:
 
         # Ingredients
         if ingredients:
-            latex.append("\\textbf{\\large Ingredients}")
+            latex.append("{\\ingredientsheading Ingredients}\\par")
             latex.append("\\begin{ingredients}")
             for ingredient in ingredients:
                 latex.append(f"\\item {ingredient}")
@@ -188,7 +188,7 @@ class PDFGenerator:
 
         # Instructions
         if instructions:
-            latex.append("\\textbf{\\large Instructions}")
+            latex.append("{\\instructionsheading Instructions}\\par")
 
             # Group by sections
             current_section_items = []

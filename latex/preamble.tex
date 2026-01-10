@@ -1,7 +1,7 @@
 % To Serve Man — LaTeX Preamble
 % Beautiful cookbook typography
 
-\documentclass[11pt,twoside,openright]{book}
+\documentclass[12pt,twoside,openright]{book}
 
 % Page geometry with elegant proportions
 \usepackage[
@@ -24,9 +24,9 @@
 % Use Helvetica for sans-serif
 \usepackage{helvet}
 
-% Better line spacing
+% Better line spacing (match website's leading-relaxed = 1.625)
 \usepackage{setspace}
-\setstretch{1.15}
+\setstretch{1.625}
 
 % Section formatting
 \usepackage{titlesec}
@@ -45,36 +45,49 @@
     {0pt}
     {\huge\scshape}
 
-% Section formatting - recipe title
+% Section formatting - recipe title (match website h1: 3rem = 48px)
+% Using semibold (600) instead of bold to match website
 \titleformat{\section}
-    {\normalfont\LARGE\bfseries}
+    {\normalfont\fontsize{36}{43}\selectfont\fontseries{sb}\selectfont}
     {}
     {0pt}
     {}
 
+% Large text for "Ingredients" and "Instructions" labels
+% Match website: text-2xl = 1.5rem = 24px
+\newcommand{\ingredientsheading}{\fontsize{18}{22}\selectfont\fontseries{sb}\selectfont}
+\newcommand{\instructionsheading}{\fontsize{18}{22}\selectfont\fontseries{sb}\selectfont}
+
 % Subsection - recipe section headers (e.g., "Make the sauce")
+% Match website h3: 1.25rem = 20px, font-weight 600
 \titleformat{\subsection}
-    {\normalfont\large\itshape}
+    {\normalfont\fontsize{15}{18}\selectfont\fontseries{sb}\selectfont}
     {}
     {0pt}
     {}
 
 % Lists
 \usepackage{enumitem}
+\usepackage{xcolor}
 
-% Ingredients list - clean, simple
+% Define accent color (matches website's cookbook-accent: #8b6f47)
+\definecolor{accentcolor}{HTML}{8b6f47}
+
+% Ingredients list - clean, simple (em-dash bullets)
 \newlist{ingredients}{itemize}{1}
 \setlist[ingredients]{
-    label=—,
-    leftmargin=1.5em,
-    itemsep=0.5em,
+    label={\color{accentcolor}—},
+    leftmargin=2em,
+    itemsep=1em,
     parsep=0pt
 }
 
-% Instructions list - numbered elegantly
+% Instructions list - numbered with large semibold numbers
+% Match website: 1.5rem = 24px = 18pt, semibold, accent color
 \setlist[enumerate]{
-    leftmargin=2em,
-    itemsep=0.75em,
+    label={\fontsize{18}{22}\fontseries{sb}\selectfont\color{accentcolor}\arabic*},
+    leftmargin=4em,
+    itemsep=2em,
     parsep=0pt
 }
 
@@ -124,10 +137,13 @@
 \renewcommand{\cftchappagefont}{\normalfont}
 \setlength{\cftbeforechapskip}{0.5em}
 
+% Define light text color (matches website's cookbook-light: #6b6560)
+\definecolor{lighttext}{HTML}{6b6560}
+
 % Custom commands for recipe metadata
 \newcommand{\recipemeta}[1]{%
     \begin{center}
-    \small\itshape #1
+    {\small\color{lighttext}\itshape #1}
     \end{center}
     \vspace{1em}
 }
@@ -135,7 +151,7 @@
 \newcommand{\recipedescription}[1]{%
     \begin{center}
     \begin{minipage}{0.8\textwidth}
-    \itshape #1
+    {\normalsize\color{lighttext}\itshape #1}
     \end{minipage}
     \end{center}
     \vspace{1.5em}
@@ -144,7 +160,7 @@
 \newcommand{\recipeattribution}[1]{%
     \vspace{1em}
     \begin{flushright}
-    \small\textsc{#1}
+    {\small\color{lighttext}\textsc{#1}}
     \end{flushright}
 }
 
