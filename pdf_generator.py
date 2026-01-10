@@ -177,17 +177,18 @@ class PDFGenerator:
         # Parse content
         ingredients, instructions = self.parse_recipe_content(recipe)
 
-        # Ingredients
+        # Ingredients section with proper spacing
         if ingredients:
+            latex.append("\\vspace{1.5em}")  # Consistent space before section
             latex.append("{\\ingredientsheading Ingredients}\\par")
             latex.append("\\begin{ingredients}")
             for ingredient in ingredients:
                 latex.append(f"\\item {ingredient}")
             latex.append("\\end{ingredients}")
-            latex.append("\\vspace{1em}")
 
-        # Instructions
+        # Instructions section with proper spacing
         if instructions:
+            latex.append("\\vspace{1.5em}")  # Consistent space before section
             latex.append("{\\instructionsheading Instructions}\\par")
 
             # Group by sections
