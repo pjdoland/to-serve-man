@@ -26,12 +26,14 @@
 {% endblock %}
 
 {% block content %}
-<article class="recipe-detail">
-    <div class="container">
-        <header class="recipe-header">
-            <h1 class="recipe-title">{{ recipe.title }}</h1>
+<article class="pb-24">
+    <div class="max-w-cookbook mx-auto px-8">
+        <!-- Recipe Header -->
+        <header class="text-center py-16 mb-16 border-b border-cookbook-border">
+            <h1 class="recipe-title font-serif text-5xl md:text-6xl mb-8">{{ recipe.title }}</h1>
 
-            <div class="recipe-meta">
+            <!-- Recipe Meta -->
+            <div class="flex justify-center gap-8 flex-wrap text-sm text-cookbook-light mb-8">
                 {% if recipe.is_cocktail %}
                     {% if recipe.glass %}<span class="meta-item">{{ recipe.glass|title }}</span>{% endif %}
                     {% if recipe.spirit_base %}<span class="meta-item">{{ recipe.spirit_base|title }}</span>{% endif %}
@@ -46,48 +48,58 @@
             </div>
 
             {% if recipe.description %}
-            <p class="recipe-description">{{ recipe.description }}</p>
+            <p class="text-lg italic text-cookbook-light max-w-2xl mx-auto my-8">{{ recipe.description }}</p>
             {% endif %}
 
             {% if recipe.tags %}
-            <div class="recipe-tags">
+            <div class="flex justify-center gap-4 flex-wrap mt-8 no-print">
                 {% for tag in recipe.tags %}
-                <a href="{{ base_url }}/tags/{{ tag|lower|replace(' ', '-') }}/" class="tag">{{ tag }}</a>
+                <a href="{{ base_url }}/tags/{{ tag|lower|replace(' ', '-') }}/"
+                   class="text-sm py-1 px-3 bg-transparent border border-cookbook-border rounded-full transition-all duration-200 hover:border-cookbook-accent hover:bg-cookbook-accent hover:text-cookbook-bg no-underline">
+                    {{ tag }}
+                </a>
                 {% endfor %}
             </div>
             {% endif %}
         </header>
 
-        <div class="recipe-content">
-            <section class="recipe-ingredients">
-                <h2>Ingredients</h2>
+        <!-- Recipe Content: 2-column on desktop, stacked on mobile -->
+        <div class="recipe-content grid grid-cols-1 lg:grid-cols-3 gap-16 mb-16">
+            <!-- Ingredients (1 column width) -->
+            <section class="recipe-ingredients lg:col-span-1">
+                <h2 class="font-serif text-2xl mb-8">Ingredients</h2>
                 <div class="ingredients-list">
                     {{ ingredients_html|safe }}
                 </div>
             </section>
 
-            <section class="recipe-instructions">
-                <h2>Instructions</h2>
+            <!-- Instructions (2 columns width) -->
+            <section class="recipe-instructions lg:col-span-2">
+                <h2 class="font-serif text-2xl mb-8">Instructions</h2>
                 <div class="instructions-list">
                     {{ instructions_html|safe }}
                 </div>
             </section>
         </div>
 
-        <footer class="recipe-footer">
+        <!-- Recipe Footer -->
+        <footer class="mt-16 pt-16 border-t border-cookbook-border">
             {% if recipe.metadata.source or recipe.metadata.author %}
-            <div class="recipe-attribution">
+            <div class="recipe-attribution text-cookbook-light text-sm mb-8">
                 {% if recipe.metadata.author %}
-                <p>Recipe by {{ recipe.metadata.author }}{% if recipe.metadata.adapted_by %}, adapted by {{ recipe.metadata.adapted_by }}{% endif %}</p>
+                <p class="mb-4">Recipe by {{ recipe.metadata.author }}{% if recipe.metadata.adapted_by %}, adapted by {{ recipe.metadata.adapted_by }}{% endif %}</p>
                 {% endif %}
                 {% if recipe.metadata.source %}
-                <p><a href="{{ recipe.metadata.source }}" target="_blank" rel="noopener">Original recipe</a></p>
+                <p><a href="{{ recipe.metadata.source }}" target="_blank" rel="noopener" class="text-cookbook-light border-b border-cookbook-border hover:border-cookbook-accent transition-colors duration-200 no-underline">Original recipe</a></p>
                 {% endif %}
             </div>
             {% endif %}
 
-            <div class="recipe-actions">
-                <button onclick="window.print()" class="print-button">Print Recipe</button>
+            <div class="flex gap-4 no-print">
+                <button onclick="window.print()"
+                        class="font-sans text-sm py-2 px-6 bg-transparent border border-cookbook-border cursor-pointer transition-all duration-200 hover:border-cookbook-accent hover:bg-cookbook-accent hover:text-cookbook-bg">
+                    Print Recipe
+                </button>
             </div>
         </footer>
     </div>

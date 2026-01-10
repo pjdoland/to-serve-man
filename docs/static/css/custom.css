@@ -1,0 +1,176 @@
+/* ==========================================
+   Custom CSS for "To Serve Man" Cookbook
+   Elements that cannot use Tailwind utilities
+   ========================================== */
+
+/* Navigation animated underline */
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: #8b6f47;
+  transition: width 0.2s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Ingredient list bullets */
+.ingredients-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.ingredients-list li {
+  margin-bottom: 1rem;
+  padding-left: 2rem;
+  position: relative;
+}
+
+.ingredients-list li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: #8b6f47;
+}
+
+/* Instruction list numbering */
+.instructions-list ol {
+  list-style: none;
+  counter-reset: step-counter;
+  padding: 0;
+}
+
+.instructions-list li {
+  counter-increment: step-counter;
+  margin-bottom: 2rem;
+  padding-left: 4rem;
+  position: relative;
+}
+
+.instructions-list li::before {
+  content: counter(step-counter);
+  position: absolute;
+  left: 0;
+  font-family: 'Cormorant Garamond', 'Palatino', 'Georgia', serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #8b6f47;
+}
+
+/* Section headers in instructions */
+.instructions-list h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-left: 0;
+}
+
+/* Ingredient/cookware/timer highlighting in instructions */
+.ingredient {
+  font-weight: 400;
+}
+
+.timer {
+  font-weight: 400;
+  color: #8b6f47;
+}
+
+.cookware {
+  font-style: italic;
+}
+
+/* Meta item bullets (recipe detail) */
+.meta-item::after {
+  content: '•';
+  margin-left: 2rem;
+}
+
+.meta-item:last-child::after {
+  content: '';
+}
+
+/* Prose styling for about page */
+.prose h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-top: 4rem;
+  margin-bottom: 2rem;
+}
+
+.prose p {
+  margin-bottom: 2rem;
+}
+
+.prose a {
+  color: #1a1816;
+  border-bottom: 1px solid #e8e4df;
+  text-decoration: none;
+  transition: border-color 0.2s ease;
+}
+
+.prose a:hover {
+  border-color: #8b6f47;
+}
+
+/* ==========================================
+   Print Styles
+   ========================================== */
+
+@media print {
+  @page {
+    margin: 2cm;
+  }
+
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .recipe-title {
+    font-size: 24pt;
+    margin-bottom: 12pt;
+  }
+
+  .recipe-content {
+    display: block !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .recipe-ingredients,
+  .recipe-instructions {
+    margin-bottom: 24pt;
+  }
+
+  .recipe-ingredients h2,
+  .recipe-instructions h2 {
+    font-size: 14pt;
+    margin-bottom: 12pt;
+  }
+
+  a {
+    color: #1a1816;
+    text-decoration: none;
+    border: none;
+  }
+
+  .recipe-attribution a::after {
+    content: " (" attr(href) ")";
+    font-size: 10pt;
+  }
+}

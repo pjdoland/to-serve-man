@@ -11,215 +11,272 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="/to-serve-man/static/css/style.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'cookbook-bg': '#fdfcfb',
+              'cookbook-text': '#1a1816',
+              'cookbook-light': '#6b6560',
+              'cookbook-accent': '#8b6f47',
+              'cookbook-border': '#e8e4df',
+            },
+            fontFamily: {
+              'serif': ['Cormorant Garamond', 'Palatino', 'Georgia', 'serif'],
+              'sans': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            },
+            maxWidth: {
+              'cookbook': '1200px',
+              'cookbook-narrow': '800px',
+            },
+          }
+        }
+      }
+    </script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/to-serve-man/static/css/custom.css">
 
     
 </head>
-<body>
-    <header class="site-header">
-        <div class="container">
-            <h1 class="site-title">
-                <a href="/to-serve-man/">To Serve Man</a>
-            </h1>
-            <nav class="site-nav">
-                <a href="/to-serve-man/">Home</a>
-                <a href="/to-serve-man/food/">Food</a>
-                <a href="/to-serve-man/cocktails/">Cocktails</a>
-                <a href="/to-serve-man/about/">About</a>
-                <a href="/to-serve-man/cookbook.pdf" class="pdf-download" download>Download PDF</a>
+<body class="font-sans font-light text-cookbook-text bg-cookbook-bg antialiased text-lg leading-relaxed">
+    <!-- Header with desktop/mobile nav -->
+    <header class="border-b border-cookbook-border mb-16 no-print">
+        <div class="max-w-cookbook mx-auto px-8 py-8">
+            <!-- Desktop header: flex row -->
+            <div class="flex items-center justify-between">
+                <!-- Site title -->
+                <h1 class="font-serif font-semibold text-3xl m-0">
+                    <a href="/to-serve-man/" class="no-underline border-none text-cookbook-text">To Serve Man</a>
+                </h1>
+
+                <!-- Hamburger button (mobile only) -->
+                <button
+                    id="mobile-menu-toggle"
+                    class="md:hidden p-2 text-cookbook-text hover:text-cookbook-accent transition-colors duration-200"
+                    aria-label="Toggle menu"
+                    aria-expanded="false"
+                >
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path id="hamburger-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        <path id="close-icon" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+
+                <!-- Desktop nav (hidden on mobile) -->
+                <nav class="hidden md:flex gap-8">
+                    <a href="/to-serve-man/" class="nav-link font-normal border-none text-cookbook-text">Home</a>
+                    <a href="/to-serve-man/food/" class="nav-link font-normal border-none text-cookbook-text">Food</a>
+                    <a href="/to-serve-man/cocktails/" class="nav-link font-normal border-none text-cookbook-text">Cocktails</a>
+                    <a href="/to-serve-man/about/" class="nav-link font-normal border-none text-cookbook-text">About</a>
+                    <a href="/to-serve-man/cookbook.pdf" class="nav-link font-medium text-cookbook-accent border-none" download>Download PDF</a>
+                </nav>
+            </div>
+
+            <!-- Mobile nav (hidden by default) -->
+            <nav id="mobile-menu" class="hidden md:hidden mt-4 pb-4 flex flex-col gap-4">
+                <a href="/to-serve-man/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Home</a>
+                <a href="/to-serve-man/food/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Food</a>
+                <a href="/to-serve-man/cocktails/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Cocktails</a>
+                <a href="/to-serve-man/about/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">About</a>
+                <a href="/to-serve-man/cookbook.pdf" class="py-2 text-cookbook-accent font-medium no-underline" download>Download PDF</a>
             </nav>
         </div>
     </header>
 
-    <main class="site-main">
+    <main>
         
-<div class="container">
-    <section class="hero">
+<div class="max-w-cookbook mx-auto px-8">
+    <!-- Hero Section -->
+    <section class="text-center py-16 mb-16">
         <h1>It's a cookbook!</h1>
 <p>A personal collection of recipes worth keeping</p>
     </section>
 
-    <section class="recipes-grid">
-        <h3 class="section-title">Recent Recipes</h3>
-        <div class="recipe-cards">
+    <!-- Recent Recipes -->
+    <section class="mb-24">
+        <h3 class="font-serif text-2xl mb-8 text-center">Recent Recipes</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/crispy-roasted-brussels-sprouts/" class="recipe-card-link">
-                    <h4 class="recipe-card-title">Crispy Roasted Brussels Sprouts</h4>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/crispy-roasted-brussels-sprouts/" class="block no-underline border-none group">
+                    <h4 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Crispy Roasted Brussels Sprouts</h4>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             American
                             • 4 servings
                         
                     </p>
                     
-                    <p class="recipe-card-description">Perfectly crispy on the outside, tender on the inside. The secret is high heat and patience.</p>
+                    <p class="text-base italic text-cookbook-light">Perfectly crispy on the outside, tender on the inside. The secret is high heat and patience.</p>
                     
                 </a>
             </article>
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/banana-banana-bread/" class="recipe-card-link">
-                    <h4 class="recipe-card-title">Banana Banana Bread</h4>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/banana-banana-bread/" class="block no-underline border-none group">
+                    <h4 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Banana Banana Bread</h4>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             American
                             • 12 servings
                         
                     </p>
                     
-                    <p class="recipe-card-description">The most delicious, moist loaf with loads of banana flavor. This classic banana bread recipe creates a tender, perfectly sweet treat that&#39;s wonderful toasted.</p>
+                    <p class="text-base italic text-cookbook-light">The most delicious, moist loaf with loads of banana flavor. This classic banana bread recipe creates a tender, perfectly sweet treat that&#39;s wonderful toasted.</p>
                     
                 </a>
             </article>
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/brown-butter-chocolate-chip-cookies/" class="recipe-card-link">
-                    <h4 class="recipe-card-title">Brown Butter Chocolate Chip Cookies</h4>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/brown-butter-chocolate-chip-cookies/" class="block no-underline border-none group">
+                    <h4 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Brown Butter Chocolate Chip Cookies</h4>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             American
                             • 24 servings
                         
                     </p>
                     
-                    <p class="recipe-card-description">Crispy edges, chewy centers, and complex nutty flavor from brown butter. Worth the extra step.</p>
+                    <p class="text-base italic text-cookbook-light">Crispy edges, chewy centers, and complex nutty flavor from brown butter. Worth the extra step.</p>
                     
                 </a>
             </article>
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/daiquiri-no-1/" class="recipe-card-link">
-                    <h4 class="recipe-card-title">Daiquiri No. 1</h4>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/daiquiri-no-1/" class="block no-underline border-none group">
+                    <h4 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Daiquiri No. 1</h4>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             Coupe
                             • Rum
                         
                     </p>
                     
-                    <p class="recipe-card-description">The most elegant, simple, and famous of all Cuban cocktails. The Daiquiri and its variants were set in stone by legendary barman Constantino Ribalaigua of the famous Florida bar in Havana.</p>
+                    <p class="text-base italic text-cookbook-light">The most elegant, simple, and famous of all Cuban cocktails. The Daiquiri and its variants were set in stone by legendary barman Constantino Ribalaigua of the famous Florida bar in Havana.</p>
                     
                 </a>
             </article>
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/classic-margarita/" class="recipe-card-link">
-                    <h4 class="recipe-card-title">Classic Margarita</h4>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/classic-margarita/" class="block no-underline border-none group">
+                    <h4 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Classic Margarita</h4>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             Rocks
                             • Tequila
                         
                     </p>
                     
-                    <p class="recipe-card-description">The definitive margarita. Fresh lime juice, quality tequila, properly balanced. No mix needed.</p>
+                    <p class="text-base italic text-cookbook-light">The definitive margarita. Fresh lime juice, quality tequila, properly balanced. No mix needed.</p>
                     
                 </a>
             </article>
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/paper-plane/" class="recipe-card-link">
-                    <h4 class="recipe-card-title">Paper Plane</h4>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/paper-plane/" class="block no-underline border-none group">
+                    <h4 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Paper Plane</h4>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             Coupe
                             • Bourbon
                         
                     </p>
                     
-                    <p class="recipe-card-description">A perfectly balanced modern classic—equal parts everything, impossibly good.</p>
+                    <p class="text-base italic text-cookbook-light">A perfectly balanced modern classic—equal parts everything, impossibly good.</p>
                     
                 </a>
             </article>
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/mai-tai/" class="recipe-card-link">
-                    <h4 class="recipe-card-title">Mai Tai</h4>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/mai-tai/" class="block no-underline border-none group">
+                    <h4 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Mai Tai</h4>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             Double Rocks
                             • Rum
                         
                     </p>
                     
-                    <p class="recipe-card-description">The original Mai Tai created by Victor Bergeron in 1944. Not overly sweet, the Mai Tai is a beautifully balanced drink that showcases aged rum with lime, orgeat, and orange curaçao.</p>
+                    <p class="text-base italic text-cookbook-light">The original Mai Tai created by Victor Bergeron in 1944. Not overly sweet, the Mai Tai is a beautifully balanced drink that showcases aged rum with lime, orgeat, and orange curaçao.</p>
                     
                 </a>
             </article>
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/saturn/" class="recipe-card-link">
-                    <h4 class="recipe-card-title">Saturn</h4>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/saturn/" class="block no-underline border-none group">
+                    <h4 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Saturn</h4>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             Coupe
                             • Gin
                         
                     </p>
                     
-                    <p class="recipe-card-description">A winning combination of gin, lemon, passion fruit, falernum, and orgeat. Created for the 1967 World Championship, this drink represents the rings of Saturn.</p>
+                    <p class="text-base italic text-cookbook-light">A winning combination of gin, lemon, passion fruit, falernum, and orgeat. Created for the 1967 World Championship, this drink represents the rings of Saturn.</p>
                     
                 </a>
             </article>
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/negroni/" class="recipe-card-link">
-                    <h4 class="recipe-card-title">Negroni</h4>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/negroni/" class="block no-underline border-none group">
+                    <h4 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Negroni</h4>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             Rocks
                             • Gin
                         
                     </p>
                     
-                    <p class="recipe-card-description">The iconic Italian aperitif. Bold, bitter, beautiful. Equal parts gin, Campari, and sweet vermouth.</p>
+                    <p class="text-base italic text-cookbook-light">The iconic Italian aperitif. Bold, bitter, beautiful. Equal parts gin, Campari, and sweet vermouth.</p>
                     
                 </a>
             </article>
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/jungle-bird/" class="recipe-card-link">
-                    <h4 class="recipe-card-title">Jungle Bird</h4>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/jungle-bird/" class="block no-underline border-none group">
+                    <h4 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Jungle Bird</h4>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             Double Rocks
                             • Rum
                         
                     </p>
                     
-                    <p class="recipe-card-description">A drink from the post-tiki era that has found great popularity coast to coast in cocktails of all stripes. Adapted by Smuggler&#39;s Cove.</p>
+                    <p class="text-base italic text-cookbook-light">A drink from the post-tiki era that has found great popularity coast to coast in cocktails of all stripes. Adapted by Smuggler&#39;s Cove.</p>
                     
                 </a>
             </article>
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/chicken-tikka-masala/" class="recipe-card-link">
-                    <h4 class="recipe-card-title">Chicken Tikka Masala</h4>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/chicken-tikka-masala/" class="block no-underline border-none group">
+                    <h4 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Chicken Tikka Masala</h4>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             Indian
                             • 6 servings
                         
                     </p>
                     
-                    <p class="recipe-card-description">Rich, creamy tomato curry with spiced yogurt-marinated chicken. Restaurant quality at home.</p>
+                    <p class="text-base italic text-cookbook-light">Rich, creamy tomato curry with spiced yogurt-marinated chicken. Restaurant quality at home.</p>
                     
                 </a>
             </article>
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/neo-neapolitan-pizza-dough/" class="recipe-card-link">
-                    <h4 class="recipe-card-title">Neo-Neapolitan Pizza Dough</h4>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/neo-neapolitan-pizza-dough/" class="block no-underline border-none group">
+                    <h4 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Neo-Neapolitan Pizza Dough</h4>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             Italian-American
                             • 4 servings
                         
                     </p>
                     
-                    <p class="recipe-card-description">This is the dough for making New Haven-style pizzas and pizzas in the style of Lombardi&#39;s, Totonno&#39;s, John&#39;s, Grimaldi&#39;s, and Tacconelli&#39;s. It makes a thin, crisp crust with airy pockets in the crown. This dough stays crisp better than Napoletana dough, which softens under the toppings.</p>
+                    <p class="text-base italic text-cookbook-light">This is the dough for making New Haven-style pizzas and pizzas in the style of Lombardi&#39;s, Totonno&#39;s, John&#39;s, Grimaldi&#39;s, and Tacconelli&#39;s. It makes a thin, crisp crust with airy pockets in the crown. This dough stays crisp better than Napoletana dough, which softens under the toppings.</p>
                     
                 </a>
             </article>
@@ -227,100 +284,173 @@
         </div>
     </section>
 
-    <section class="browse-links">
-        <h3 class="section-title">Browse</h3>
-        <div class="browse-grid">
-            <div class="browse-category">
-                <h4>By Category</h4>
-                <ul>
+    <!-- Browse Links -->
+    <section class="mb-24">
+        <h3 class="font-serif text-2xl mb-8 text-center">Browse</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16">
+            <div>
+                <h4 class="font-serif text-xl mb-4">By Category</h4>
+                <ul class="list-none pl-0">
                     
-                    <li><a href="/to-serve-man/sides/">Sides</a> <span class="count">(1)</span></li>
+                    <li class="mb-2">
+                        <a href="/to-serve-man/sides/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">Sides</a>
+                        <span class="text-cookbook-light text-sm">(1)</span>
+                    </li>
                     
-                    <li><a href="/to-serve-man/desserts/">Desserts</a> <span class="count">(2)</span></li>
+                    <li class="mb-2">
+                        <a href="/to-serve-man/desserts/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">Desserts</a>
+                        <span class="text-cookbook-light text-sm">(2)</span>
+                    </li>
                     
-                    <li><a href="/to-serve-man/cocktails/">Cocktails</a> <span class="count">(7)</span></li>
+                    <li class="mb-2">
+                        <a href="/to-serve-man/cocktails/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">Cocktails</a>
+                        <span class="text-cookbook-light text-sm">(7)</span>
+                    </li>
                     
-                    <li><a href="/to-serve-man/mains/">Mains</a> <span class="count">(4)</span></li>
+                    <li class="mb-2">
+                        <a href="/to-serve-man/mains/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">Mains</a>
+                        <span class="text-cookbook-light text-sm">(4)</span>
+                    </li>
                     
-                    <li><a href="/to-serve-man/breakfast/">Breakfast</a> <span class="count">(1)</span></li>
-                    
-                </ul>
-            </div>
-
-            <div class="browse-category">
-                <h4>By Cuisine</h4>
-                <ul>
-                    
-                    <li><a href="/to-serve-man/cuisine/american/">American</a> <span class="count">(4)</span></li>
-                    
-                    <li><a href="/to-serve-man/cuisine/indian/">Indian</a> <span class="count">(1)</span></li>
-                    
-                    <li><a href="/to-serve-man/cuisine/italian-american/">Italian-American</a> <span class="count">(1)</span></li>
-                    
-                    <li><a href="/to-serve-man/cuisine/irish/">Irish</a> <span class="count">(1)</span></li>
-                    
-                    <li><a href="/to-serve-man/cuisine/italian/">Italian</a> <span class="count">(1)</span></li>
-                    
-                </ul>
-            </div>
-
-            <div class="browse-category">
-                <h4>By Spirit</h4>
-                <ul>
-                    
-                    <li><a href="/to-serve-man/spirit/rum/">Rum</a> <span class="count">(3)</span></li>
-                    
-                    <li><a href="/to-serve-man/spirit/tequila/">Tequila</a> <span class="count">(1)</span></li>
-                    
-                    <li><a href="/to-serve-man/spirit/bourbon/">Bourbon</a> <span class="count">(1)</span></li>
-                    
-                    <li><a href="/to-serve-man/spirit/gin/">Gin</a> <span class="count">(2)</span></li>
+                    <li class="mb-2">
+                        <a href="/to-serve-man/breakfast/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">Breakfast</a>
+                        <span class="text-cookbook-light text-sm">(1)</span>
+                    </li>
                     
                 </ul>
             </div>
 
-            <div class="browse-category">
-                <h4>Popular Tags</h4>
-                <ul>
+            <div>
+                <h4 class="font-serif text-xl mb-4">By Cuisine</h4>
+                <ul class="list-none pl-0">
+                    
+                    <li class="mb-2">
+                        <a href="/to-serve-man/cuisine/american/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">American</a>
+                        <span class="text-cookbook-light text-sm">(4)</span>
+                    </li>
+                    
+                    <li class="mb-2">
+                        <a href="/to-serve-man/cuisine/indian/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">Indian</a>
+                        <span class="text-cookbook-light text-sm">(1)</span>
+                    </li>
+                    
+                    <li class="mb-2">
+                        <a href="/to-serve-man/cuisine/italian-american/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">Italian-American</a>
+                        <span class="text-cookbook-light text-sm">(1)</span>
+                    </li>
+                    
+                    <li class="mb-2">
+                        <a href="/to-serve-man/cuisine/irish/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">Irish</a>
+                        <span class="text-cookbook-light text-sm">(1)</span>
+                    </li>
+                    
+                    <li class="mb-2">
+                        <a href="/to-serve-man/cuisine/italian/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">Italian</a>
+                        <span class="text-cookbook-light text-sm">(1)</span>
+                    </li>
+                    
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-serif text-xl mb-4">By Spirit</h4>
+                <ul class="list-none pl-0">
+                    
+                    <li class="mb-2">
+                        <a href="/to-serve-man/spirit/rum/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">Rum</a>
+                        <span class="text-cookbook-light text-sm">(3)</span>
+                    </li>
+                    
+                    <li class="mb-2">
+                        <a href="/to-serve-man/spirit/tequila/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">Tequila</a>
+                        <span class="text-cookbook-light text-sm">(1)</span>
+                    </li>
+                    
+                    <li class="mb-2">
+                        <a href="/to-serve-man/spirit/bourbon/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">Bourbon</a>
+                        <span class="text-cookbook-light text-sm">(1)</span>
+                    </li>
+                    
+                    <li class="mb-2">
+                        <a href="/to-serve-man/spirit/gin/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">Gin</a>
+                        <span class="text-cookbook-light text-sm">(2)</span>
+                    </li>
+                    
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-serif text-xl mb-4">Popular Tags</h4>
+                <ul class="list-none pl-0">
                     
                     
-                    <li><a href="/to-serve-man/tags/vegetables/">vegetables</a> <span class="count">(1)</span></li>
+                    <li class="mb-2">
+                        <a href="/to-serve-man/tags/vegetables/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">vegetables</a>
+                        <span class="text-cookbook-light text-sm">(1)</span>
+                    </li>
                     
                     
                     
-                    <li><a href="/to-serve-man/tags/vegetarian/">vegetarian</a> <span class="count">(2)</span></li>
+                    <li class="mb-2">
+                        <a href="/to-serve-man/tags/vegetarian/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">vegetarian</a>
+                        <span class="text-cookbook-light text-sm">(2)</span>
+                    </li>
                     
                     
                     
-                    <li><a href="/to-serve-man/tags/vegan/">vegan</a> <span class="count">(1)</span></li>
+                    <li class="mb-2">
+                        <a href="/to-serve-man/tags/vegan/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">vegan</a>
+                        <span class="text-cookbook-light text-sm">(1)</span>
+                    </li>
                     
                     
                     
-                    <li><a href="/to-serve-man/tags/healthy/">healthy</a> <span class="count">(1)</span></li>
+                    <li class="mb-2">
+                        <a href="/to-serve-man/tags/healthy/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">healthy</a>
+                        <span class="text-cookbook-light text-sm">(1)</span>
+                    </li>
                     
                     
                     
-                    <li><a href="/to-serve-man/tags/side-dish/">side-dish</a> <span class="count">(1)</span></li>
+                    <li class="mb-2">
+                        <a href="/to-serve-man/tags/side-dish/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">side-dish</a>
+                        <span class="text-cookbook-light text-sm">(1)</span>
+                    </li>
                     
                     
                     
-                    <li><a href="/to-serve-man/tags/baking/">baking</a> <span class="count">(2)</span></li>
+                    <li class="mb-2">
+                        <a href="/to-serve-man/tags/baking/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">baking</a>
+                        <span class="text-cookbook-light text-sm">(2)</span>
+                    </li>
                     
                     
                     
-                    <li><a href="/to-serve-man/tags/bread/">bread</a> <span class="count">(2)</span></li>
+                    <li class="mb-2">
+                        <a href="/to-serve-man/tags/bread/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">bread</a>
+                        <span class="text-cookbook-light text-sm">(2)</span>
+                    </li>
                     
                     
                     
-                    <li><a href="/to-serve-man/tags/breakfast/">breakfast</a> <span class="count">(2)</span></li>
+                    <li class="mb-2">
+                        <a href="/to-serve-man/tags/breakfast/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">breakfast</a>
+                        <span class="text-cookbook-light text-sm">(2)</span>
+                    </li>
                     
                     
                     
-                    <li><a href="/to-serve-man/tags/dessert/">dessert</a> <span class="count">(2)</span></li>
+                    <li class="mb-2">
+                        <a href="/to-serve-man/tags/dessert/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">dessert</a>
+                        <span class="text-cookbook-light text-sm">(2)</span>
+                    </li>
                     
                     
                     
-                    <li><a href="/to-serve-man/tags/banana/">banana</a> <span class="count">(1)</span></li>
+                    <li class="mb-2">
+                        <a href="/to-serve-man/tags/banana/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">banana</a>
+                        <span class="text-cookbook-light text-sm">(1)</span>
+                    </li>
                     
                     
                     
@@ -413,10 +543,53 @@
 
     </main>
 
-    <footer class="site-footer">
-        <div class="container">
-            <p>Generated with <a href="https://cooklang.org/">Cooklang</a></p>
+    <footer class="mt-24 py-8 border-t border-cookbook-border text-cookbook-light text-sm no-print">
+        <div class="max-w-cookbook mx-auto px-8">
+            <p class="mb-4">Generated with <a href="https://cooklang.org/" class="text-cookbook-light border-b border-cookbook-border hover:border-cookbook-accent transition-colors duration-200 no-underline">Cooklang</a></p>
         </div>
     </footer>
+
+    <!-- Mobile menu toggle script -->
+    <script>
+        (function() {
+            'use strict';
+
+            const toggle = document.getElementById('mobile-menu-toggle');
+            const menu = document.getElementById('mobile-menu');
+            const hamburgerIcon = document.getElementById('hamburger-icon');
+            const closeIcon = document.getElementById('close-icon');
+
+            if (!toggle || !menu || !hamburgerIcon || !closeIcon) {
+                return;
+            }
+
+            function toggleMenu() {
+                const isHidden = menu.classList.contains('hidden');
+
+                menu.classList.toggle('hidden');
+                hamburgerIcon.classList.toggle('hidden');
+                closeIcon.classList.toggle('hidden');
+                toggle.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+            }
+
+            toggle.addEventListener('click', toggleMenu);
+
+            const menuLinks = menu.querySelectorAll('a');
+            menuLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    if (!menu.classList.contains('hidden')) {
+                        toggleMenu();
+                    }
+                });
+            });
+
+            document.addEventListener('click', function(event) {
+                const isClickInside = toggle.contains(event.target) || menu.contains(event.target);
+                if (!isClickInside && !menu.classList.contains('hidden')) {
+                    toggleMenu();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

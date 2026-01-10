@@ -11,8 +11,34 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="/to-serve-man/static/css/style.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'cookbook-bg': '#fdfcfb',
+              'cookbook-text': '#1a1816',
+              'cookbook-light': '#6b6560',
+              'cookbook-accent': '#8b6f47',
+              'cookbook-border': '#e8e4df',
+            },
+            fontFamily: {
+              'serif': ['Cormorant Garamond', 'Palatino', 'Georgia', 'serif'],
+              'sans': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            },
+            maxWidth: {
+              'cookbook': '1200px',
+              'cookbook-narrow': '800px',
+            },
+          }
+        }
+      }
+    </script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/to-serve-man/static/css/custom.css">
 
     
 <!-- Schema.org Recipe markup for SEO -->
@@ -36,30 +62,61 @@
 </script>
 
 </head>
-<body>
-    <header class="site-header">
-        <div class="container">
-            <h1 class="site-title">
-                <a href="/to-serve-man/">To Serve Man</a>
-            </h1>
-            <nav class="site-nav">
-                <a href="/to-serve-man/">Home</a>
-                <a href="/to-serve-man/food/">Food</a>
-                <a href="/to-serve-man/cocktails/">Cocktails</a>
-                <a href="/to-serve-man/about/">About</a>
-                <a href="/to-serve-man/cookbook.pdf" class="pdf-download" download>Download PDF</a>
+<body class="font-sans font-light text-cookbook-text bg-cookbook-bg antialiased text-lg leading-relaxed">
+    <!-- Header with desktop/mobile nav -->
+    <header class="border-b border-cookbook-border mb-16 no-print">
+        <div class="max-w-cookbook mx-auto px-8 py-8">
+            <!-- Desktop header: flex row -->
+            <div class="flex items-center justify-between">
+                <!-- Site title -->
+                <h1 class="font-serif font-semibold text-3xl m-0">
+                    <a href="/to-serve-man/" class="no-underline border-none text-cookbook-text">To Serve Man</a>
+                </h1>
+
+                <!-- Hamburger button (mobile only) -->
+                <button
+                    id="mobile-menu-toggle"
+                    class="md:hidden p-2 text-cookbook-text hover:text-cookbook-accent transition-colors duration-200"
+                    aria-label="Toggle menu"
+                    aria-expanded="false"
+                >
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path id="hamburger-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        <path id="close-icon" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+
+                <!-- Desktop nav (hidden on mobile) -->
+                <nav class="hidden md:flex gap-8">
+                    <a href="/to-serve-man/" class="nav-link font-normal border-none text-cookbook-text">Home</a>
+                    <a href="/to-serve-man/food/" class="nav-link font-normal border-none text-cookbook-text">Food</a>
+                    <a href="/to-serve-man/cocktails/" class="nav-link font-normal border-none text-cookbook-text">Cocktails</a>
+                    <a href="/to-serve-man/about/" class="nav-link font-normal border-none text-cookbook-text">About</a>
+                    <a href="/to-serve-man/cookbook.pdf" class="nav-link font-medium text-cookbook-accent border-none" download>Download PDF</a>
+                </nav>
+            </div>
+
+            <!-- Mobile nav (hidden by default) -->
+            <nav id="mobile-menu" class="hidden md:hidden mt-4 pb-4 flex flex-col gap-4">
+                <a href="/to-serve-man/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Home</a>
+                <a href="/to-serve-man/food/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Food</a>
+                <a href="/to-serve-man/cocktails/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Cocktails</a>
+                <a href="/to-serve-man/about/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">About</a>
+                <a href="/to-serve-man/cookbook.pdf" class="py-2 text-cookbook-accent font-medium no-underline" download>Download PDF</a>
             </nav>
         </div>
     </header>
 
-    <main class="site-main">
+    <main>
         
-<article class="recipe-detail">
-    <div class="container">
-        <header class="recipe-header">
-            <h1 class="recipe-title">Neo-Neapolitan Pizza Dough</h1>
+<article class="pb-24">
+    <div class="max-w-cookbook mx-auto px-8">
+        <!-- Recipe Header -->
+        <header class="text-center py-16 mb-16 border-b border-cookbook-border">
+            <h1 class="recipe-title font-serif text-5xl md:text-6xl mb-8">Neo-Neapolitan Pizza Dough</h1>
 
-            <div class="recipe-meta">
+            <!-- Recipe Meta -->
+            <div class="flex justify-center gap-8 flex-wrap text-sm text-cookbook-light mb-8">
                 
                     <span class="meta-item">Italian-American</span>
                     <span class="meta-item">4 servings</span>
@@ -70,29 +127,46 @@
             </div>
 
             
-            <p class="recipe-description">This is the dough for making New Haven-style pizzas and pizzas in the style of Lombardi&#39;s, Totonno&#39;s, John&#39;s, Grimaldi&#39;s, and Tacconelli&#39;s. It makes a thin, crisp crust with airy pockets in the crown. This dough stays crisp better than Napoletana dough, which softens under the toppings.</p>
+            <p class="text-lg italic text-cookbook-light max-w-2xl mx-auto my-8">This is the dough for making New Haven-style pizzas and pizzas in the style of Lombardi&#39;s, Totonno&#39;s, John&#39;s, Grimaldi&#39;s, and Tacconelli&#39;s. It makes a thin, crisp crust with airy pockets in the crown. This dough stays crisp better than Napoletana dough, which softens under the toppings.</p>
             
 
             
-            <div class="recipe-tags">
+            <div class="flex justify-center gap-4 flex-wrap mt-8 no-print">
                 
-                <a href="/to-serve-man/tags/pizza/" class="tag">pizza</a>
+                <a href="/to-serve-man/tags/pizza/"
+                   class="text-sm py-1 px-3 bg-transparent border border-cookbook-border rounded-full transition-all duration-200 hover:border-cookbook-accent hover:bg-cookbook-accent hover:text-cookbook-bg no-underline">
+                    pizza
+                </a>
                 
-                <a href="/to-serve-man/tags/dough/" class="tag">dough</a>
+                <a href="/to-serve-man/tags/dough/"
+                   class="text-sm py-1 px-3 bg-transparent border border-cookbook-border rounded-full transition-all duration-200 hover:border-cookbook-accent hover:bg-cookbook-accent hover:text-cookbook-bg no-underline">
+                    dough
+                </a>
                 
-                <a href="/to-serve-man/tags/new-haven-style/" class="tag">new-haven-style</a>
+                <a href="/to-serve-man/tags/new-haven-style/"
+                   class="text-sm py-1 px-3 bg-transparent border border-cookbook-border rounded-full transition-all duration-200 hover:border-cookbook-accent hover:bg-cookbook-accent hover:text-cookbook-bg no-underline">
+                    new-haven-style
+                </a>
                 
-                <a href="/to-serve-man/tags/italian-american/" class="tag">italian-american</a>
+                <a href="/to-serve-man/tags/italian-american/"
+                   class="text-sm py-1 px-3 bg-transparent border border-cookbook-border rounded-full transition-all duration-200 hover:border-cookbook-accent hover:bg-cookbook-accent hover:text-cookbook-bg no-underline">
+                    italian-american
+                </a>
                 
-                <a href="/to-serve-man/tags/bread/" class="tag">bread</a>
+                <a href="/to-serve-man/tags/bread/"
+                   class="text-sm py-1 px-3 bg-transparent border border-cookbook-border rounded-full transition-all duration-200 hover:border-cookbook-accent hover:bg-cookbook-accent hover:text-cookbook-bg no-underline">
+                    bread
+                </a>
                 
             </div>
             
         </header>
 
-        <div class="recipe-content">
-            <section class="recipe-ingredients">
-                <h2>Ingredients</h2>
+        <!-- Recipe Content: 2-column on desktop, stacked on mobile -->
+        <div class="recipe-content grid grid-cols-1 lg:grid-cols-3 gap-16 mb-16">
+            <!-- Ingredients (1 column width) -->
+            <section class="recipe-ingredients lg:col-span-1">
+                <h2 class="font-serif text-2xl mb-8">Ingredients</h2>
                 <div class="ingredients-list">
                     <ul>
 <li>unbleached high-gluten or bread flour (5 cups, 22 1/2 oz)</li>
@@ -109,8 +183,9 @@
                 </div>
             </section>
 
-            <section class="recipe-instructions">
-                <h2>Instructions</h2>
+            <!-- Instructions (2 columns width) -->
+            <section class="recipe-instructions lg:col-span-2">
+                <h2 class="font-serif text-2xl mb-8">Instructions</h2>
                 <div class="instructions-list">
                     <h3 class="section-header">Mix the dough</h3>
 <ol>
@@ -136,20 +211,24 @@
             </section>
         </div>
 
-        <footer class="recipe-footer">
+        <!-- Recipe Footer -->
+        <footer class="mt-16 pt-16 border-t border-cookbook-border">
             
-            <div class="recipe-attribution">
+            <div class="recipe-attribution text-cookbook-light text-sm mb-8">
                 
-                <p>Recipe by Peter Reinhart</p>
+                <p class="mb-4">Recipe by Peter Reinhart</p>
                 
                 
-                <p><a href="American Pie by Peter Reinhart" target="_blank" rel="noopener">Original recipe</a></p>
+                <p><a href="American Pie by Peter Reinhart" target="_blank" rel="noopener" class="text-cookbook-light border-b border-cookbook-border hover:border-cookbook-accent transition-colors duration-200 no-underline">Original recipe</a></p>
                 
             </div>
             
 
-            <div class="recipe-actions">
-                <button onclick="window.print()" class="print-button">Print Recipe</button>
+            <div class="flex gap-4 no-print">
+                <button onclick="window.print()"
+                        class="font-sans text-sm py-2 px-6 bg-transparent border border-cookbook-border cursor-pointer transition-all duration-200 hover:border-cookbook-accent hover:bg-cookbook-accent hover:text-cookbook-bg">
+                    Print Recipe
+                </button>
             </div>
         </footer>
     </div>
@@ -157,10 +236,53 @@
 
     </main>
 
-    <footer class="site-footer">
-        <div class="container">
-            <p>Generated with <a href="https://cooklang.org/">Cooklang</a></p>
+    <footer class="mt-24 py-8 border-t border-cookbook-border text-cookbook-light text-sm no-print">
+        <div class="max-w-cookbook mx-auto px-8">
+            <p class="mb-4">Generated with <a href="https://cooklang.org/" class="text-cookbook-light border-b border-cookbook-border hover:border-cookbook-accent transition-colors duration-200 no-underline">Cooklang</a></p>
         </div>
     </footer>
+
+    <!-- Mobile menu toggle script -->
+    <script>
+        (function() {
+            'use strict';
+
+            const toggle = document.getElementById('mobile-menu-toggle');
+            const menu = document.getElementById('mobile-menu');
+            const hamburgerIcon = document.getElementById('hamburger-icon');
+            const closeIcon = document.getElementById('close-icon');
+
+            if (!toggle || !menu || !hamburgerIcon || !closeIcon) {
+                return;
+            }
+
+            function toggleMenu() {
+                const isHidden = menu.classList.contains('hidden');
+
+                menu.classList.toggle('hidden');
+                hamburgerIcon.classList.toggle('hidden');
+                closeIcon.classList.toggle('hidden');
+                toggle.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+            }
+
+            toggle.addEventListener('click', toggleMenu);
+
+            const menuLinks = menu.querySelectorAll('a');
+            menuLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    if (!menu.classList.contains('hidden')) {
+                        toggleMenu();
+                    }
+                });
+            });
+
+            document.addEventListener('click', function(event) {
+                const isClickInside = toggle.contains(event.target) || menu.contains(event.target);
+                if (!isClickInside && !menu.classList.contains('hidden')) {
+                    toggleMenu();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

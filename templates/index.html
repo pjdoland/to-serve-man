@@ -1,19 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
-    <section class="hero">
+<div class="max-w-cookbook mx-auto px-8">
+    <!-- Hero Section -->
+    <section class="text-center py-16 mb-16">
         {{ hero_content|safe }}
     </section>
 
-    <section class="recipes-grid">
-        <h3 class="section-title">Recent Recipes</h3>
-        <div class="recipe-cards">
+    <!-- Recent Recipes -->
+    <section class="mb-24">
+        <h3 class="font-serif text-2xl mb-8 text-center">Recent Recipes</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
             {% for recipe in recipes[:12] %}
-            <article class="recipe-card">
-                <a href="{{ base_url }}/recipes/{{ recipe.slug }}/" class="recipe-card-link">
-                    <h4 class="recipe-card-title">{{ recipe.title }}</h4>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="{{ base_url }}/recipes/{{ recipe.slug }}/" class="block no-underline border-none group">
+                    <h4 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">{{ recipe.title }}</h4>
+                    <p class="text-sm text-cookbook-light mb-4">
                         {% if recipe.is_cocktail %}
                             {{ recipe.glass|title if recipe.glass else 'Cocktail' }}
                             {% if recipe.spirit_base %}• {{ recipe.spirit_base|title }}{% endif %}
@@ -23,7 +25,7 @@
                         {% endif %}
                     </p>
                     {% if recipe.description %}
-                    <p class="recipe-card-description">{{ recipe.description }}</p>
+                    <p class="text-base italic text-cookbook-light">{{ recipe.description }}</p>
                     {% endif %}
                 </a>
             </article>
@@ -31,42 +33,55 @@
         </div>
     </section>
 
-    <section class="browse-links">
-        <h3 class="section-title">Browse</h3>
-        <div class="browse-grid">
-            <div class="browse-category">
-                <h4>By Category</h4>
-                <ul>
+    <!-- Browse Links -->
+    <section class="mb-24">
+        <h3 class="font-serif text-2xl mb-8 text-center">Browse</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16">
+            <div>
+                <h4 class="font-serif text-xl mb-4">By Category</h4>
+                <ul class="list-none pl-0">
                     {% for category, recipes in categories.items() %}
-                    <li><a href="{{ base_url }}/{{ category }}/">{{ category|title }}</a> <span class="count">({{ recipes|length }})</span></li>
+                    <li class="mb-2">
+                        <a href="{{ base_url }}/{{ category }}/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">{{ category|title }}</a>
+                        <span class="text-cookbook-light text-sm">({{ recipes|length }})</span>
+                    </li>
                     {% endfor %}
                 </ul>
             </div>
 
-            <div class="browse-category">
-                <h4>By Cuisine</h4>
-                <ul>
+            <div>
+                <h4 class="font-serif text-xl mb-4">By Cuisine</h4>
+                <ul class="list-none pl-0">
                     {% for cuisine, recipes in cuisines.items() %}
-                    <li><a href="{{ base_url }}/cuisine/{{ cuisine|lower|replace(' ', '-') }}/">{{ cuisine }}</a> <span class="count">({{ recipes|length }})</span></li>
+                    <li class="mb-2">
+                        <a href="{{ base_url }}/cuisine/{{ cuisine|lower|replace(' ', '-') }}/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">{{ cuisine }}</a>
+                        <span class="text-cookbook-light text-sm">({{ recipes|length }})</span>
+                    </li>
                     {% endfor %}
                 </ul>
             </div>
 
-            <div class="browse-category">
-                <h4>By Spirit</h4>
-                <ul>
+            <div>
+                <h4 class="font-serif text-xl mb-4">By Spirit</h4>
+                <ul class="list-none pl-0">
                     {% for spirit, recipes in spirits.items() %}
-                    <li><a href="{{ base_url }}/spirit/{{ spirit|lower|replace(' ', '-') }}/">{{ spirit|title }}</a> <span class="count">({{ recipes|length }})</span></li>
+                    <li class="mb-2">
+                        <a href="{{ base_url }}/spirit/{{ spirit|lower|replace(' ', '-') }}/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">{{ spirit|title }}</a>
+                        <span class="text-cookbook-light text-sm">({{ recipes|length }})</span>
+                    </li>
                     {% endfor %}
                 </ul>
             </div>
 
-            <div class="browse-category">
-                <h4>Popular Tags</h4>
-                <ul>
+            <div>
+                <h4 class="font-serif text-xl mb-4">Popular Tags</h4>
+                <ul class="list-none pl-0">
                     {% for tag, recipes in tags.items() %}
                     {% if loop.index <= 10 %}
-                    <li><a href="{{ base_url }}/tags/{{ tag|lower|replace(' ', '-') }}/">{{ tag }}</a> <span class="count">({{ recipes|length }})</span></li>
+                    <li class="mb-2">
+                        <a href="{{ base_url }}/tags/{{ tag|lower|replace(' ', '-') }}/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">{{ tag }}</a>
+                        <span class="text-cookbook-light text-sm">({{ recipes|length }})</span>
+                    </li>
                     {% endif %}
                     {% endfor %}
                 </ul>

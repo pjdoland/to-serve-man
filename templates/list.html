@@ -3,22 +3,24 @@
 {% block title %}{{ title }} — To Serve Man{% endblock %}
 
 {% block content %}
-<div class="container">
-    <header class="page-header">
-        <h1 class="page-title">{{ title }}</h1>
+<div class="max-w-cookbook mx-auto px-8">
+    <!-- Page Header -->
+    <header class="text-center py-16 mb-16">
+        <h1 class="font-serif text-5xl mb-4">{{ title }}</h1>
         {% if subtitle %}
-        <p class="page-subtitle">{{ subtitle }}</p>
+        <p class="text-lg font-light text-cookbook-light">{{ subtitle }}</p>
         {% endif %}
     </header>
 
-    <section class="recipes-list">
+    <!-- Recipes List -->
+    <section class="mb-24">
         {% if recipes %}
-        <div class="recipe-cards">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
             {% for recipe in recipes %}
-            <article class="recipe-card">
-                <a href="{{ base_url }}/recipes/{{ recipe.slug }}/" class="recipe-card-link">
-                    <h3 class="recipe-card-title">{{ recipe.title }}</h3>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="{{ base_url }}/recipes/{{ recipe.slug }}/" class="block no-underline border-none group">
+                    <h3 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">{{ recipe.title }}</h3>
+                    <p class="text-sm text-cookbook-light mb-4">
                         {% if recipe.is_cocktail %}
                             {{ recipe.glass|title if recipe.glass else 'Cocktail' }}
                             {% if recipe.spirit_base %}• {{ recipe.spirit_base|title }}{% endif %}
@@ -28,14 +30,14 @@
                         {% endif %}
                     </p>
                     {% if recipe.description %}
-                    <p class="recipe-card-description">{{ recipe.description }}</p>
+                    <p class="text-base italic text-cookbook-light">{{ recipe.description }}</p>
                     {% endif %}
                 </a>
             </article>
             {% endfor %}
         </div>
         {% else %}
-        <p class="no-recipes">No recipes found in this category.</p>
+        <p class="text-center text-cookbook-light">No recipes found in this category.</p>
         {% endif %}
     </section>
 </div>

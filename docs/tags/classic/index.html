@@ -11,95 +11,152 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="/to-serve-man/static/css/style.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'cookbook-bg': '#fdfcfb',
+              'cookbook-text': '#1a1816',
+              'cookbook-light': '#6b6560',
+              'cookbook-accent': '#8b6f47',
+              'cookbook-border': '#e8e4df',
+            },
+            fontFamily: {
+              'serif': ['Cormorant Garamond', 'Palatino', 'Georgia', 'serif'],
+              'sans': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            },
+            maxWidth: {
+              'cookbook': '1200px',
+              'cookbook-narrow': '800px',
+            },
+          }
+        }
+      }
+    </script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/to-serve-man/static/css/custom.css">
 
     
 </head>
-<body>
-    <header class="site-header">
-        <div class="container">
-            <h1 class="site-title">
-                <a href="/to-serve-man/">To Serve Man</a>
-            </h1>
-            <nav class="site-nav">
-                <a href="/to-serve-man/">Home</a>
-                <a href="/to-serve-man/food/">Food</a>
-                <a href="/to-serve-man/cocktails/">Cocktails</a>
-                <a href="/to-serve-man/about/">About</a>
-                <a href="/to-serve-man/cookbook.pdf" class="pdf-download" download>Download PDF</a>
+<body class="font-sans font-light text-cookbook-text bg-cookbook-bg antialiased text-lg leading-relaxed">
+    <!-- Header with desktop/mobile nav -->
+    <header class="border-b border-cookbook-border mb-16 no-print">
+        <div class="max-w-cookbook mx-auto px-8 py-8">
+            <!-- Desktop header: flex row -->
+            <div class="flex items-center justify-between">
+                <!-- Site title -->
+                <h1 class="font-serif font-semibold text-3xl m-0">
+                    <a href="/to-serve-man/" class="no-underline border-none text-cookbook-text">To Serve Man</a>
+                </h1>
+
+                <!-- Hamburger button (mobile only) -->
+                <button
+                    id="mobile-menu-toggle"
+                    class="md:hidden p-2 text-cookbook-text hover:text-cookbook-accent transition-colors duration-200"
+                    aria-label="Toggle menu"
+                    aria-expanded="false"
+                >
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path id="hamburger-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        <path id="close-icon" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+
+                <!-- Desktop nav (hidden on mobile) -->
+                <nav class="hidden md:flex gap-8">
+                    <a href="/to-serve-man/" class="nav-link font-normal border-none text-cookbook-text">Home</a>
+                    <a href="/to-serve-man/food/" class="nav-link font-normal border-none text-cookbook-text">Food</a>
+                    <a href="/to-serve-man/cocktails/" class="nav-link font-normal border-none text-cookbook-text">Cocktails</a>
+                    <a href="/to-serve-man/about/" class="nav-link font-normal border-none text-cookbook-text">About</a>
+                    <a href="/to-serve-man/cookbook.pdf" class="nav-link font-medium text-cookbook-accent border-none" download>Download PDF</a>
+                </nav>
+            </div>
+
+            <!-- Mobile nav (hidden by default) -->
+            <nav id="mobile-menu" class="hidden md:hidden mt-4 pb-4 flex flex-col gap-4">
+                <a href="/to-serve-man/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Home</a>
+                <a href="/to-serve-man/food/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Food</a>
+                <a href="/to-serve-man/cocktails/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Cocktails</a>
+                <a href="/to-serve-man/about/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">About</a>
+                <a href="/to-serve-man/cookbook.pdf" class="py-2 text-cookbook-accent font-medium no-underline" download>Download PDF</a>
             </nav>
         </div>
     </header>
 
-    <main class="site-main">
+    <main>
         
-<div class="container">
-    <header class="page-header">
-        <h1 class="page-title">#classic</h1>
+<div class="max-w-cookbook mx-auto px-8">
+    <!-- Page Header -->
+    <header class="text-center py-16 mb-16">
+        <h1 class="font-serif text-5xl mb-4">#classic</h1>
         
     </header>
 
-    <section class="recipes-list">
+    <!-- Recipes List -->
+    <section class="mb-24">
         
-        <div class="recipe-cards">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/daiquiri-no-1/" class="recipe-card-link">
-                    <h3 class="recipe-card-title">Daiquiri No. 1</h3>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/daiquiri-no-1/" class="block no-underline border-none group">
+                    <h3 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Daiquiri No. 1</h3>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             Coupe
                             • Rum
                         
                     </p>
                     
-                    <p class="recipe-card-description">The most elegant, simple, and famous of all Cuban cocktails. The Daiquiri and its variants were set in stone by legendary barman Constantino Ribalaigua of the famous Florida bar in Havana.</p>
+                    <p class="text-base italic text-cookbook-light">The most elegant, simple, and famous of all Cuban cocktails. The Daiquiri and its variants were set in stone by legendary barman Constantino Ribalaigua of the famous Florida bar in Havana.</p>
                     
                 </a>
             </article>
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/classic-margarita/" class="recipe-card-link">
-                    <h3 class="recipe-card-title">Classic Margarita</h3>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/classic-margarita/" class="block no-underline border-none group">
+                    <h3 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Classic Margarita</h3>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             Rocks
                             • Tequila
                         
                     </p>
                     
-                    <p class="recipe-card-description">The definitive margarita. Fresh lime juice, quality tequila, properly balanced. No mix needed.</p>
+                    <p class="text-base italic text-cookbook-light">The definitive margarita. Fresh lime juice, quality tequila, properly balanced. No mix needed.</p>
                     
                 </a>
             </article>
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/mai-tai/" class="recipe-card-link">
-                    <h3 class="recipe-card-title">Mai Tai</h3>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/mai-tai/" class="block no-underline border-none group">
+                    <h3 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Mai Tai</h3>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             Double Rocks
                             • Rum
                         
                     </p>
                     
-                    <p class="recipe-card-description">The original Mai Tai created by Victor Bergeron in 1944. Not overly sweet, the Mai Tai is a beautifully balanced drink that showcases aged rum with lime, orgeat, and orange curaçao.</p>
+                    <p class="text-base italic text-cookbook-light">The original Mai Tai created by Victor Bergeron in 1944. Not overly sweet, the Mai Tai is a beautifully balanced drink that showcases aged rum with lime, orgeat, and orange curaçao.</p>
                     
                 </a>
             </article>
             
-            <article class="recipe-card">
-                <a href="/to-serve-man/recipes/negroni/" class="recipe-card-link">
-                    <h3 class="recipe-card-title">Negroni</h3>
-                    <p class="recipe-card-meta">
+            <article class="border-t border-cookbook-border pt-8">
+                <a href="/to-serve-man/recipes/negroni/" class="block no-underline border-none group">
+                    <h3 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">Negroni</h3>
+                    <p class="text-sm text-cookbook-light mb-4">
                         
                             Rocks
                             • Gin
                         
                     </p>
                     
-                    <p class="recipe-card-description">The iconic Italian aperitif. Bold, bitter, beautiful. Equal parts gin, Campari, and sweet vermouth.</p>
+                    <p class="text-base italic text-cookbook-light">The iconic Italian aperitif. Bold, bitter, beautiful. Equal parts gin, Campari, and sweet vermouth.</p>
                     
                 </a>
             </article>
@@ -111,10 +168,53 @@
 
     </main>
 
-    <footer class="site-footer">
-        <div class="container">
-            <p>Generated with <a href="https://cooklang.org/">Cooklang</a></p>
+    <footer class="mt-24 py-8 border-t border-cookbook-border text-cookbook-light text-sm no-print">
+        <div class="max-w-cookbook mx-auto px-8">
+            <p class="mb-4">Generated with <a href="https://cooklang.org/" class="text-cookbook-light border-b border-cookbook-border hover:border-cookbook-accent transition-colors duration-200 no-underline">Cooklang</a></p>
         </div>
     </footer>
+
+    <!-- Mobile menu toggle script -->
+    <script>
+        (function() {
+            'use strict';
+
+            const toggle = document.getElementById('mobile-menu-toggle');
+            const menu = document.getElementById('mobile-menu');
+            const hamburgerIcon = document.getElementById('hamburger-icon');
+            const closeIcon = document.getElementById('close-icon');
+
+            if (!toggle || !menu || !hamburgerIcon || !closeIcon) {
+                return;
+            }
+
+            function toggleMenu() {
+                const isHidden = menu.classList.contains('hidden');
+
+                menu.classList.toggle('hidden');
+                hamburgerIcon.classList.toggle('hidden');
+                closeIcon.classList.toggle('hidden');
+                toggle.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+            }
+
+            toggle.addEventListener('click', toggleMenu);
+
+            const menuLinks = menu.querySelectorAll('a');
+            menuLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    if (!menu.classList.contains('hidden')) {
+                        toggleMenu();
+                    }
+                });
+            });
+
+            document.addEventListener('click', function(event) {
+                const isClickInside = toggle.contains(event.target) || menu.contains(event.target);
+                if (!isClickInside && !menu.classList.contains('hidden')) {
+                    toggleMenu();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
