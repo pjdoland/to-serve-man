@@ -94,6 +94,25 @@
     <section class="text-center py-16 mb-16">
         <h1 class="font-serif text-5xl mb-4">It's a cookbook!</h1>
 <p class="text-xl font-light text-cookbook-light italic">A personal collection of recipes worth keeping</p>
+
+        <!-- Search Box -->
+        <div class="search-container max-w-2xl mx-auto mt-12">
+            <div class="relative">
+                <input
+                    type="search"
+                    id="recipe-search"
+                    class="search-input"
+                    role="combobox"
+                    aria-label="Search recipes by title, ingredients, tags, or cuisine"
+                    aria-expanded="false"
+                    aria-autocomplete="list"
+                    aria-controls="search-results"
+                    placeholder="Search recipes..."
+                    autocomplete="off"
+                />
+                <div id="search-results" class="search-results" hidden></div>
+            </div>
+        </div>
     </section>
 
     <!-- Recent Recipes -->
@@ -615,5 +634,10 @@
             });
         })();
     </script>
+
+    <!-- Search functionality (homepage only) -->
+    
+    <script src="/to-serve-man/static/js/search.js"></script>
+    
 </body>
 </html>

@@ -14,6 +14,7 @@ Usage:
 import sys
 import argparse
 import shutil
+import subprocess
 from pathlib import Path
 
 from recipe_parser import RecipeCollection
@@ -49,9 +50,28 @@ def validate_recipes():
     return False
 
 
+def build_typescript():
+    """Compile TypeScript files."""
+    try:
+        print("  Compiling TypeScript...")
+        subprocess.run(['npm', 'run', 'build:ts'], check=True, capture_output=True)
+        print("  ✓ TypeScript compiled successfully")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"  ✗ Error compiling TypeScript: {e}")
+        return False
+    except FileNotFoundError:
+        print("  ⚠ npm not found, skipping TypeScript compilation")
+        return False
+
+
 def build_site(base_url: str = None):
     """Generate static website."""
     try:
+        # Compile TypeScript first
+        build_typescript()
+
+        # Generate site
         generate_site(base_url=base_url)
         return True
     except Exception as e:

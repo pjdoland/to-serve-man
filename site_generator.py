@@ -7,6 +7,7 @@ Generates a complete static website from Cooklang recipes.
 import os
 import re
 import shutil
+import json
 from pathlib import Path
 from typing import Dict, List
 from jinja2 import Environment, FileSystemLoader
@@ -236,6 +237,7 @@ class SiteGenerator:
             'cuisines': self.collection.get_by_cuisine(),
             'spirits': self.collection.get_by_spirit(),
             'hero_content': hero_content,
+            'is_homepage': True,
         }
 
         output_path = self.output_dir / "index.html"
@@ -309,6 +311,32 @@ class SiteGenerator:
         output_path = self.output_dir / "cocktails" / "index.html"
         self.generate_list_page("Cocktails", recipes, output_path, subtitle="All cocktail recipes")
 
+    def generate_search_data(self):
+        """Generate JSON search data for client-side search."""
+        search_data = {'recipes': []}
+
+        for recipe in self.collection.recipes:
+            recipe_data = {
+                'title': recipe.title,
+                'slug': recipe.slug,
+                'description': recipe.description or '',
+                'tags': recipe.tags,
+                'category': recipe.category,
+                'is_cocktail': recipe.is_cocktail,
+                'url': f'{self.base_url}/recipes/{recipe.slug}/'
+            }
+
+            if recipe.is_cocktail:
+                recipe_data['spirit_base'] = recipe.spirit_base or ''
+            else:
+                recipe_data['cuisine'] = recipe.cuisine or ''
+
+            search_data['recipes'].append(recipe_data)
+
+        output_path = self.output_dir / 'search-data.json'
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(search_data, f, ensure_ascii=False, indent=2)
+
     def generate_all(self):
         """Generate complete static site."""
         print("Generating site...")
@@ -324,6 +352,10 @@ class SiteGenerator:
         # Generate homepage
         print("  Generating homepage...")
         self.generate_homepage()
+
+        # Generate search data
+        print("  Generating search data...")
+        self.generate_search_data()
 
         # Generate recipe pages
         print(f"  Generating {len(self.collection.recipes)} recipe pages...")

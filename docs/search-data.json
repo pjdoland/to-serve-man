@@ -1,0 +1,237 @@
+{
+  "recipes": [
+    {
+      "title": "Crispy Roasted Brussels Sprouts",
+      "slug": "crispy-roasted-brussels-sprouts",
+      "description": "Perfectly crispy on the outside, tender on the inside. The secret is high heat and patience.",
+      "tags": [
+        "vegetables",
+        "vegetarian",
+        "vegan",
+        "healthy",
+        "side-dish"
+      ],
+      "category": "sides",
+      "is_cocktail": false,
+      "url": "/to-serve-man/recipes/crispy-roasted-brussels-sprouts/",
+      "cuisine": "American"
+    },
+    {
+      "title": "Banana Banana Bread",
+      "slug": "banana-banana-bread",
+      "description": "The most delicious, moist loaf with loads of banana flavor. This classic banana bread recipe creates a tender, perfectly sweet treat that's wonderful toasted.",
+      "tags": [
+        "baking",
+        "bread",
+        "breakfast",
+        "dessert",
+        "banana"
+      ],
+      "category": "desserts",
+      "is_cocktail": false,
+      "url": "/to-serve-man/recipes/banana-banana-bread/",
+      "cuisine": "American"
+    },
+    {
+      "title": "Brown Butter Chocolate Chip Cookies",
+      "slug": "brown-butter-chocolate-chip-cookies",
+      "description": "Crispy edges, chewy centers, and complex nutty flavor from brown butter. Worth the extra step.",
+      "tags": [
+        "dessert",
+        "baking",
+        "cookies",
+        "chocolate"
+      ],
+      "category": "desserts",
+      "is_cocktail": false,
+      "url": "/to-serve-man/recipes/brown-butter-chocolate-chip-cookies/",
+      "cuisine": "American"
+    },
+    {
+      "title": "Daiquiri No. 1",
+      "slug": "daiquiri-no-1",
+      "description": "The most elegant, simple, and famous of all Cuban cocktails. The Daiquiri and its variants were set in stone by legendary barman Constantino Ribalaigua of the famous Florida bar in Havana.",
+      "tags": [
+        "rum",
+        "classic",
+        "daiquiri",
+        "cuban"
+      ],
+      "category": "cocktails",
+      "is_cocktail": true,
+      "url": "/to-serve-man/recipes/daiquiri-no-1/",
+      "spirit_base": "rum"
+    },
+    {
+      "title": "Classic Margarita",
+      "slug": "classic-margarita",
+      "description": "The definitive margarita. Fresh lime juice, quality tequila, properly balanced. No mix needed.",
+      "tags": [
+        "tequila",
+        "citrus",
+        "shaken",
+        "classic",
+        "summer"
+      ],
+      "category": "cocktails",
+      "is_cocktail": true,
+      "url": "/to-serve-man/recipes/classic-margarita/",
+      "spirit_base": "tequila"
+    },
+    {
+      "title": "Paper Plane",
+      "slug": "paper-plane",
+      "description": "A perfectly balanced modern classic—equal parts everything, impossibly good.",
+      "tags": [
+        "bourbon",
+        "bitter",
+        "stirred",
+        "modern-classic"
+      ],
+      "category": "cocktails",
+      "is_cocktail": true,
+      "url": "/to-serve-man/recipes/paper-plane/",
+      "spirit_base": "bourbon"
+    },
+    {
+      "title": "Mai Tai",
+      "slug": "mai-tai",
+      "description": "The original Mai Tai created by Victor Bergeron in 1944. Not overly sweet, the Mai Tai is a beautifully balanced drink that showcases aged rum with lime, orgeat, and orange curaçao.",
+      "tags": [
+        "rum",
+        "tiki",
+        "classic",
+        "tropical"
+      ],
+      "category": "cocktails",
+      "is_cocktail": true,
+      "url": "/to-serve-man/recipes/mai-tai/",
+      "spirit_base": "rum"
+    },
+    {
+      "title": "Saturn",
+      "slug": "saturn",
+      "description": "A winning combination of gin, lemon, passion fruit, falernum, and orgeat. Created for the 1967 World Championship, this drink represents the rings of Saturn.",
+      "tags": [
+        "gin",
+        "tiki",
+        "falernum",
+        "passion-fruit"
+      ],
+      "category": "cocktails",
+      "is_cocktail": true,
+      "url": "/to-serve-man/recipes/saturn/",
+      "spirit_base": "gin"
+    },
+    {
+      "title": "Negroni",
+      "slug": "negroni",
+      "description": "The iconic Italian aperitif. Bold, bitter, beautiful. Equal parts gin, Campari, and sweet vermouth.",
+      "tags": [
+        "gin",
+        "bitter",
+        "stirred",
+        "aperitif",
+        "classic"
+      ],
+      "category": "cocktails",
+      "is_cocktail": true,
+      "url": "/to-serve-man/recipes/negroni/",
+      "spirit_base": "gin"
+    },
+    {
+      "title": "Jungle Bird",
+      "slug": "jungle-bird",
+      "description": "A drink from the post-tiki era that has found great popularity coast to coast in cocktails of all stripes. Adapted by Smuggler's Cove.",
+      "tags": [
+        "rum",
+        "tiki",
+        "tropical",
+        "pineapple",
+        "campari"
+      ],
+      "category": "cocktails",
+      "is_cocktail": true,
+      "url": "/to-serve-man/recipes/jungle-bird/",
+      "spirit_base": "rum"
+    },
+    {
+      "title": "Chicken Tikka Masala",
+      "slug": "chicken-tikka-masala",
+      "description": "Rich, creamy tomato curry with spiced yogurt-marinated chicken. Restaurant quality at home.",
+      "tags": [
+        "indian",
+        "curry",
+        "spicy",
+        "chicken"
+      ],
+      "category": "mains",
+      "is_cocktail": false,
+      "url": "/to-serve-man/recipes/chicken-tikka-masala/",
+      "cuisine": "Indian"
+    },
+    {
+      "title": "Neo-Neapolitan Pizza Dough",
+      "slug": "neo-neapolitan-pizza-dough",
+      "description": "This is the dough for making New Haven-style pizzas and pizzas in the style of Lombardi's, Totonno's, John's, Grimaldi's, and Tacconelli's. It makes a thin, crisp crust with airy pockets in the crown. This dough stays crisp better than Napoletana dough, which softens under the toppings.",
+      "tags": [
+        "pizza",
+        "dough",
+        "new-haven-style",
+        "italian-american",
+        "bread"
+      ],
+      "category": "mains",
+      "is_cocktail": false,
+      "url": "/to-serve-man/recipes/neo-neapolitan-pizza-dough/",
+      "cuisine": "Italian-American"
+    },
+    {
+      "title": "Instant Pot Guinness Beef Stew",
+      "slug": "instant-pot-guinness-beef-stew",
+      "description": "All the flavor of a slow-cooked stew done in a fraction of the time in the pressure cooker. Made with beef stew meat, onion, celery, carrots, parsnips, and of course, Guinness.",
+      "tags": [
+        "beef",
+        "stew",
+        "pressure-cooker",
+        "irish",
+        "comfort-food",
+        "guinness"
+      ],
+      "category": "mains",
+      "is_cocktail": false,
+      "url": "/to-serve-man/recipes/instant-pot-guinness-beef-stew/",
+      "cuisine": "Irish"
+    },
+    {
+      "title": "Pasta Carbonara",
+      "slug": "pasta-carbonara",
+      "description": "A rich, creamy Roman classic made the authentic way—no cream needed.",
+      "tags": [
+        "pasta",
+        "italian",
+        "quick",
+        "weeknight"
+      ],
+      "category": "mains",
+      "is_cocktail": false,
+      "url": "/to-serve-man/recipes/pasta-carbonara/",
+      "cuisine": "Italian"
+    },
+    {
+      "title": "Classic French Toast",
+      "slug": "classic-french-toast",
+      "description": "Perfectly golden, custardy French toast with a hint of vanilla and cinnamon.",
+      "tags": [
+        "breakfast",
+        "quick",
+        "kid-friendly",
+        "vegetarian"
+      ],
+      "category": "breakfast",
+      "is_cocktail": false,
+      "url": "/to-serve-man/recipes/classic-french-toast/",
+      "cuisine": "American"
+    }
+  ]
+}

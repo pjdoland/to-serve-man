@@ -139,5 +139,10 @@
             });
         })();
     </script>
+
+    <!-- Search functionality (homepage only) -->
+    {% if is_homepage %}
+    <script src="{{ base_url }}/static/js/search.js"></script>
+    {% endif %}
 </body>
 </html>

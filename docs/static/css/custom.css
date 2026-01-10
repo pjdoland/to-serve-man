@@ -151,6 +151,156 @@ article em {
 }
 
 /* ==========================================
+   Recipe Search Styles
+   ========================================== */
+
+.search-container {
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  font-family: 'EB Garamond', 'Palatino', 'Georgia', serif;
+  font-size: 1.25rem;
+  color: #1a1816;
+  background-color: #fdfcfb;
+  border: 2px solid #e8e4df;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #8b6f47;
+  box-shadow: 0 0 0 3px rgba(139, 111, 71, 0.1);
+}
+
+.search-input::placeholder {
+  color: #6b6560;
+  opacity: 0.6;
+}
+
+/* Search results container */
+.search-results {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background-color: #fdfcfb;
+  border: 2px solid #e8e4df;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.search-results[hidden] {
+  display: none;
+}
+
+/* Result count */
+.search-result-count {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  color: #6b6560;
+  border-bottom: 1px solid #e8e4df;
+}
+
+/* Results list */
+.search-results-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Individual result item */
+.search-result-item {
+  display: block;
+  padding: 1rem 1.5rem;
+  text-decoration: none;
+  border: none;
+  border-bottom: 1px solid #e8e4df;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover,
+.search-result-item.selected {
+  background-color: rgba(139, 111, 71, 0.05);
+}
+
+.search-result-item:hover .search-result-title,
+.search-result-item.selected .search-result-title {
+  color: #8b6f47;
+}
+
+/* Result title */
+.search-result-title {
+  font-family: 'EB Garamond', serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1816;
+  margin-bottom: 0.25rem;
+  transition: color 0.15s ease;
+}
+
+/* Result meta */
+.search-result-meta {
+  font-size: 0.875rem;
+  color: #6b6560;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-result-tags {
+  display: inline;
+  font-style: italic;
+}
+
+/* No results message */
+.search-no-results {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: #6b6560;
+}
+
+.search-no-results p {
+  margin-bottom: 0.5rem;
+}
+
+.search-no-results p:first-child {
+  font-size: 1.125rem;
+  color: #1a1816;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .search-input {
+    font-size: 1rem;
+    padding: 0.875rem 1.25rem;
+  }
+
+  .search-result-title {
+    font-size: 1.125rem;
+  }
+
+  .search-results {
+    max-height: 400px;
+  }
+}
+
+/* Smooth scrolling for keyboard navigation */
+.search-results {
+  scroll-behavior: smooth;
+}
+
+/* ==========================================
    Print Styles
    ========================================== */
 

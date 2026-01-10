@@ -42,3 +42,11 @@ Thumbs.db
 
 # Temporary files
 *.tmp
+
+# TypeScript compilation output
+static/js/search.js
+static/js/search.js.map
+
+# Node modules
+node_modules/
+package-lock.json
