@@ -8,17 +8,23 @@ A personal cookbook system built with [Cooklang](https://cooklang.org/) that gen
 
 - **Plain Text Recipes** - Store recipes in Cooklang format, making them portable and version-controllable
 - **Static Website** - Beautiful, responsive website with Schema.org markup for recipe discoverability
+- **Client-Side Search** - Fast, accessible recipe search with keyboard navigation and weighted scoring
 - **PDF Cookbook** - Professionally typeset PDF using LaTeX with elegant typography
 - **Dual Format Support** - Separate handling for food recipes and cocktails
 - **Multiple Browse Options** - Filter by category, cuisine, tags, and spirit base
 - **Customizable** - Easy configuration via `.env` file and Markdown content
-- **Responsive Design** - Mobile-friendly website with print-optimized recipe pages
+- **Responsive Design** - Mobile-friendly website with hamburger menu and print-optimized recipe pages
+- **Modern CSS** - Built with Tailwind CSS for rapid styling and consistency
 
 ## Quick Start
 
 ### Prerequisites
 
 - Python 3.8 or higher
+- Node.js 16+ and npm (for TypeScript compilation)
+  - macOS: `brew install node`
+  - Ubuntu: `sudo apt-get install nodejs npm`
+  - Windows: [Node.js installer](https://nodejs.org/)
 - LaTeX distribution (for PDF generation)
   - macOS: `brew install --cask mactex`
   - Ubuntu: `sudo apt-get install texlive-full`
@@ -41,19 +47,27 @@ A personal cookbook system built with [Cooklang](https://cooklang.org/) that gen
 
    The setup script will:
    - Create a Python virtual environment
-   - Install all dependencies
+   - Install all Python dependencies
    - Create a `.env` configuration file
    - Prompt you to configure your cookbook
    - Validate your recipes
 
-3. **Build your cookbook**
+3. **Install Node dependencies**
+
+   ```bash
+   npm install
+   ```
+
+   This installs TypeScript for the search feature compilation.
+
+4. **Build your cookbook**
 
    ```bash
    source venv/bin/activate  # Activate virtual environment
    python build.py all       # Build both website and PDF
    ```
 
-4. **Preview your cookbook**
+5. **Preview your cookbook**
 
    ```bash
    python -m http.server -d docs 8000
@@ -91,7 +105,8 @@ Edit Markdown files in the `content/` directory:
 
 ### Styling
 
-- **`static/css/style.css`** - Website styles
+- **Tailwind CSS** - Main styling framework (loaded via CDN)
+- **`static/css/custom.css`** - Custom CSS for components that need pseudo-elements or special styling
 - **`latex/preamble.tex`** - PDF typography and layout
 - **`latex/closing.tex`** - PDF back matter
 
@@ -248,8 +263,15 @@ to-serve-man/
 │   └── about.md      # About page
 ├── templates/         # Jinja2 HTML templates
 ├── static/           # CSS and static assets
+│   ├── css/
+│   │   └── custom.css  # Custom CSS overrides
+│   └── js/           # Compiled JavaScript (gitignored)
+├── src/              # TypeScript source files
+│   └── search.ts     # Client-side search implementation
 ├── latex/            # LaTeX templates for PDF
 ├── docs/             # Generated website (output)
+│   ├── search-data.json  # Generated search index
+│   └── ...
 ├── output/           # Generated PDF (output)
 ├── recipe_parser.py  # Recipe parsing logic
 ├── site_generator.py # Static site generator
@@ -257,6 +279,8 @@ to-serve-man/
 ├── config.py         # Configuration management
 ├── build.py          # Build script
 ├── setup.sh          # Setup script
+├── package.json      # Node.js dependencies
+├── tsconfig.json     # TypeScript configuration
 ├── .env              # Your configuration (gitignored)
 └── .env.example      # Configuration template
 ```
@@ -298,9 +322,10 @@ Optional:
 ### Adding New Features
 
 1. **Modify templates** in `templates/`
-2. **Update styles** in `static/css/style.css`
-3. **Extend generators** in `site_generator.py` or `pdf_generator.py`
-4. **Update LaTeX** in `latex/preamble.tex` or `latex/closing.tex`
+2. **Update styles** with Tailwind utilities or `static/css/custom.css`
+3. **Add TypeScript** in `src/` and compile with `npm run build:ts`
+4. **Extend generators** in `site_generator.py` or `pdf_generator.py`
+5. **Update LaTeX** in `latex/preamble.tex` or `latex/closing.tex`
 
 ### Virtual Environment
 
@@ -318,14 +343,16 @@ deactivate
 
 ### Dependencies
 
-Dependencies are listed in `requirements.txt`:
-
+**Python** (in `requirements.txt`):
 - Jinja2 - Template engine
 - PyYAML - YAML parsing
 - python-slugify - URL-friendly slugs
 - python-dotenv - Environment configuration
 - markdown - Markdown processing
 - cooklang-py - Cooklang parser
+
+**Node.js** (in `package.json`):
+- TypeScript - Type-safe JavaScript compilation
 
 ## Troubleshooting
 
@@ -381,10 +408,12 @@ Built with:
 - [Python](https://www.python.org/) - Programming language
 - [Jinja2](https://jinja.palletsprojects.com/) - Template engine
 - [LaTeX](https://www.latex-project.org/) - Document typesetting system
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
 
 Typography:
-- **Web**: Cormorant Garamond (serif) + Inter (sans-serif)
-- **PDF**: Palatino (serif) + Helvetica (sans-serif)
+- **Web**: EB Garamond (serif) + Inter (sans-serif)
+- **PDF**: EB Garamond (serif) + Helvetica (sans-serif)
 
 ## Contributing
 
