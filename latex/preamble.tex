@@ -33,14 +33,14 @@
 
 % Part formatting - elegant, simple (no small caps)
 \titleformat{\part}[display]
-    {\normalfont\Huge\filcenter}
+    {\normalfont\Huge}
     {\partname\ \thepart}
     {20pt}
     {\Huge}
 
 % Chapter formatting - recipe category (no small caps)
 \titleformat{\chapter}[display]
-    {\normalfont\huge\filcenter}
+    {\normalfont\huge}
     {}
     {0pt}
     {\huge}
@@ -103,6 +103,11 @@
 \fancyfoot[LE,RO]{\thepage}
 \renewcommand{\headrulewidth}{0pt}
 
+% Add spacing between headers/footers and content
+\setlength{\headheight}{14pt}
+\setlength{\headsep}{2em}
+\setlength{\footskip}{3em}
+
 % Chapter page style (no header)
 \fancypagestyle{plain}{
     \fancyhf{}
@@ -143,28 +148,23 @@
 % Define light text color (matches website's cookbook-light: #6b6560)
 \definecolor{lighttext}{HTML}{6b6560}
 
-% Custom commands for recipe metadata with consistent spacing
+% Custom commands for recipe metadata with consistent spacing (left-aligned)
 \newcommand{\recipemeta}[1]{%
     \vspace{0.25em}
-    \begin{center}
     {\small\color{lighttext}\itshape #1}
-    \end{center}
+    \par
 }
 
 \newcommand{\recipedescription}[1]{%
     \vspace{0.75em}
-    \begin{center}
-    \begin{minipage}{0.8\textwidth}
     {\normalsize\color{lighttext}\itshape #1}
-    \end{minipage}
-    \end{center}
+    \par
 }
 
 \newcommand{\recipeattribution}[1]{%
     \vspace{2em}
-    \begin{flushright}
     {\small\color{lighttext}#1}
-    \end{flushright}
+    \par
 }
 
 % Spacing adjustments
@@ -179,7 +179,6 @@
 
 % Half-title page
 \begin{titlepage}
-\centering
 \vspace*{3in}
 {\Huge {{COOKBOOK_TITLE}}}
 \end{titlepage}
@@ -188,7 +187,6 @@
 
 % Title page
 \begin{titlepage}
-\centering
 \vspace*{2in}
 {\Huge {{COOKBOOK_TITLE}}}\\[1.5em]
 {\Large A Personal Cookbook}\\[3em]
@@ -201,10 +199,7 @@
 % Epigraph
 \thispagestyle{empty}
 \vspace*{3in}
-\begin{center}
-\large\itshape
-``It's a cookbook!''
-\end{center}
+{\large\itshape``It's a cookbook!''}
 
 \cleardoublepage
 
