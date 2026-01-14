@@ -3,22 +3,34 @@
 
 \documentclass[10pt,twoside,openright]{book}
 
-% Page geometry with elegant proportions
+% Page geometry - wider margins for optimal 45-75 character line length
 \usepackage[
-    paperwidth=8.5in,
-    paperheight=11in,
-    top=1.25in,
-    bottom=1.25in,
+    letterpaper,
     inner=1.5in,
-    outer=1in
+    outer=1.25in,
+    top=1in,
+    bottom=1.25in,
+    marginparwidth=0in,
+    marginparsep=0in
 ]{geometry}
 
 % Font configuration
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{microtype} % Improved typography
 
-% Use EB Garamond for body text (elegant serif like Cormorant)
+% Enhanced microtype configuration for superior typography
+\usepackage[
+    activate={true,nocompatibility},
+    final,
+    tracking=true,
+    kerning=true,
+    spacing=true,
+    factor=1100,
+    stretch=10,
+    shrink=10
+]{microtype}
+
+% Use EB Garamond for body text (elegant serif)
 \usepackage{ebgaramond}
 
 % Use Helvetica for sans-serif
@@ -28,43 +40,56 @@
 \usepackage{setspace}
 \setstretch{1.4}
 
+% Prevent awkward page breaks in recipes
+\usepackage{needspace}
+
 % Section formatting
 \usepackage{titlesec}
 
 % Part formatting - elegant, centered (section divider pages)
 \titleformat{\part}[display]
-    {\normalfont\Huge\filcenter}
-    {\partname\ \thepart}
-    {20pt}
-    {\Huge}
+    {\centering\Huge\scshape\addfontfeatures{LetterSpace=15}}
+    {\thepart}
+    {0pt}
+    {}
+\titlespacing*{\part}
+    {0pt}
+    {0.3\textheight}             % Push down from top for breathing room
+    {2\baselineskip}
 
-% Chapter formatting - left-aligned (category headers)
+% Chapter formatting - left-aligned (category headers like "Breakfast")
 \titleformat{\chapter}[display]
-    {\normalfont\huge}
+    {\Large\scshape\addfontfeatures{LetterSpace=10}}
     {}
     {0pt}
-    {\huge}
+    {}
+\titlespacing*{\chapter}
+    {0pt}
+    {3\baselineskip}             % Generous space before
+    {1.5\baselineskip}           % Space after
 
-% Section formatting - recipe title (modest size: 20pt for professional look)
-% Using semibold (600) for hierarchy without being garish
+% Recipe title formatting - large, bold, prominent visual anchor
 \titleformat{\section}
-    {\normalfont\fontsize{20}{24}\selectfont\fontseries{sb}\selectfont}
+    {\LARGE\bfseries}            % Large and bold for prominence
     {}
     {0pt}
     {}
-    % No extra space after recipe title - metadata comes right after
+\titlespacing*{\section}
+    {0pt}
+    {2\baselineskip}             % Space before
+    {0.5\baselineskip}           % Space after
 
-% Section labels: "Ingredients" and "Instructions" (13pt - clear but modest)
+% Section labels: "Ingredients" and "Instructions"
 \newcommand{\ingredientsheading}{\fontsize{13}{16}\selectfont\fontseries{sb}\selectfont}
 \newcommand{\instructionsheading}{\fontsize{13}{16}\selectfont\fontseries{sb}\selectfont}
 
-% Subsection - recipe section headers like "Make the sauce" (11pt)
+% Subsection - recipe section headers like "Make the sauce"
 \titleformat{\subsection}
     {\normalfont\fontsize{11}{13}\selectfont\fontseries{sb}\selectfont}
     {}
     {0pt}
     {}
-    [\vspace{0.25em}]  % Add subtle space after subsection
+    [\vspace{0.25em}]
 
 % Lists
 \usepackage{enumitem}
@@ -73,45 +98,45 @@
 % Define accent color (matches website's cookbook-accent: #c1121f)
 \definecolor{accentcolor}{HTML}{c1121f}
 
-% Ingredients list - clean, simple with em-dash bullets
-% Consistent 1.5em indentation for visual hierarchy
+% Ingredients list - clean with light centered dot bullets
 \newlist{ingredients}{itemize}{1}
 \setlist[ingredients]{
-    label={—},
+    label={\textperiodcentered},
     leftmargin=1.5em,
-    itemsep=0pt,
+    labelsep=0.5em,
+    itemsep=0.15\baselineskip,
     parsep=0pt,
-    topsep=0.5em
+    topsep=0.5\baselineskip
 }
 
-% Instructions list - numbered with modest semibold numbers (12pt)
-% 3em indentation provides clear hierarchy and space for 2-digit numbers
+% Instructions list - clean numbered list with breathing room
 \setlist[enumerate]{
-    label={\fontsize{12}{14}\fontseries{sb}\selectfont\arabic*.},
-    leftmargin=3em,
-    itemsep=0pt,
+    label={\arabic*.},           % Simple numbers with period
+    leftmargin=2em,
+    labelsep=0.75em,
+    itemsep=0.5\baselineskip,    % More space between steps
     parsep=0pt,
-    topsep=0.5em
+    topsep=0.5\baselineskip
 }
 
-% Headers and footers
+% Headers and footers - elegant running headers
 \usepackage{fancyhdr}
 \pagestyle{fancy}
-\fancyhf{}
-\fancyhead[LE]{\small\itshape\nouppercase{\leftmark}}
-\fancyhead[RO]{\small\itshape\nouppercase{\rightmark}}
-\fancyfoot[LE,RO]{\thepage}
-\renewcommand{\headrulewidth}{0pt}
+\fancyhf{}                                      % Clear all
+\fancyhead[LE]{\small\itshape\nouppercase{\leftmark}}         % Chapter on left pages
+\fancyhead[RO]{\small\itshape\nouppercase{\rightmark}}        % Section on right pages
+\fancyfoot[C]{\small\thepage}                   % Page number centered
+\renewcommand{\headrulewidth}{0pt}              % No header rule (cleaner)
 
 % Add spacing between headers/footers and content
 \setlength{\headheight}{14pt}
 \setlength{\headsep}{2em}
 \setlength{\footskip}{3em}
 
-% Chapter page style (no header)
+% Chapter page style (no header, centered footer)
 \fancypagestyle{plain}{
     \fancyhf{}
-    \fancyfoot[C]{\thepage}
+    \fancyfoot[C]{\small\thepage}
     \renewcommand{\headrulewidth}{0pt}
 }
 
@@ -139,31 +164,39 @@
 \widowpenalty=10000
 \clubpenalty=10000
 
-% Table of contents formatting
+% Table of contents formatting - clean with dot leaders
 \usepackage{tocloft}
-\renewcommand{\cftchapfont}{\normalfont}
+\renewcommand{\cftdotsep}{2}                    % Dot spacing
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\setlength{\cftbeforesecskip}{0.5\baselineskip}
+\renewcommand{\cftchapfont}{\normalfont}        % Not bold
 \renewcommand{\cftchappagefont}{\normalfont}
+\renewcommand{\cftsecfont}{\normalfont}
+\renewcommand{\cftsecpagefont}{\normalfont}
 \setlength{\cftbeforechapskip}{0.5em}
 
 % Define light text color (matches website's cookbook-light: #6b6560)
 \definecolor{lighttext}{HTML}{6b6560}
 
-% Custom commands for recipe metadata with consistent spacing (left-aligned)
+% Recipe metadata - elegant small caps with letter spacing
 \newcommand{\recipemeta}[1]{%
-    \vspace{0.15em}
-    {\small\color{lighttext}\itshape #1}
+    \vspace{0.5\baselineskip}%
+    {\small\addfontfeatures{LetterSpace=5}\textsc{#1}}%
+    \vspace{0.75\baselineskip}%
     \par
 }
 
+% Recipe description (headnote) - subordinate, smaller, italic
 \newcommand{\recipedescription}[1]{%
-    \vspace{0.5em}
-    {\normalsize\color{lighttext}\itshape #1}
+    {\small\itshape\color{lighttext}#1}%
+    \vspace{0.75\baselineskip}%
     \par
 }
 
+% Recipe attribution - consistent, quiet position
 \newcommand{\recipeattribution}[1]{%
-    \vspace{1.75em}
-    {\small\color{lighttext}#1}
+    \vspace{\baselineskip}%
+    {\small\itshape\color{lighttext}Recipe by #1}%
     \par
 }
 

@@ -147,6 +147,9 @@ class PDFGenerator:
         """
         latex = []
 
+        # Prevent awkward page breaks (require at least 4 baseline skips available)
+        latex.append("\\needspace{4\\baselineskip}")
+
         # Recipe title as section
         latex.append(f"\\section{{{self.escape_latex(recipe.title)}}}")
 
@@ -168,7 +171,10 @@ class PDFGenerator:
                 meta_parts.append(f"{recipe.cook_time} cook")
 
         if meta_parts:
-            latex.append(f"\\recipemeta{{{self.escape_latex(' • '.join(meta_parts))}}}")
+            # Use \quad for elegant spacing between metadata items
+            escaped_parts = [self.escape_latex(part) for part in meta_parts]
+            meta_string = ' \\quad '.join(escaped_parts)
+            latex.append(f"\\recipemeta{{{meta_string}}}")
 
         # Description
         if recipe.description:
@@ -177,18 +183,17 @@ class PDFGenerator:
         # Parse content
         ingredients, instructions = self.parse_recipe_content(recipe)
 
-        # Ingredients section with proper spacing
+        # Ingredients section
         if ingredients:
-            latex.append("\\vspace{1.25em}")  # Moderate space before section
             latex.append("{\\ingredientsheading Ingredients}\\par")
             latex.append("\\begin{ingredients}")
             for ingredient in ingredients:
                 latex.append(f"\\item {ingredient}")
             latex.append("\\end{ingredients}")
 
-        # Instructions section with proper spacing
+        # Instructions section
         if instructions:
-            latex.append("\\vspace{1.25em}")  # Moderate space before section
+            latex.append("\\vspace{0.75\\baselineskip}")  # Space between sections
             latex.append("{\\instructionsheading Instructions}\\par")
 
             # Group by sections
