@@ -101,9 +101,11 @@ class PDFGenerator:
                     if ing_qty:
                         # Clean up quantity: replace % with space
                         qty_clean = ing_qty.replace('%', ' ')
-                        ingredients_dict[ing_name.lower()] = f"{ing_name} ({qty_clean})"
+                        # Store as tuple: (name, quantity)
+                        ingredients_dict[ing_name.lower()] = (ing_name, qty_clean)
                     else:
-                        ingredients_dict[ing_name.lower()] = ing_name
+                        # Store as tuple: (name, None)
+                        ingredients_dict[ing_name.lower()] = (ing_name, None)
 
             # Clean the instruction text by removing all Cooklang markup
             instruction_text = line
@@ -134,10 +136,22 @@ class PDFGenerator:
 
             instructions.append(('step', instruction_text))
 
-        # Convert ingredients dict to list and escape for LaTeX
+        # Convert ingredients dict to list with bold names and en-dash separators
         unique_ingredients = []
-        for ing_name_lower, ing_display in ingredients_dict.items():
-            unique_ingredients.append(self.escape_latex(ing_display))
+        for ing_name_lower, ing_data in ingredients_dict.items():
+            if isinstance(ing_data, tuple):
+                # New format: (name, quantity or None)
+                ing_name, ing_qty = ing_data
+                if ing_qty:
+                    # Format: **name** – quantity (with proper en-dash spacing)
+                    formatted = f"\\textbf{{{self.escape_latex(ing_name)}}} -- {self.escape_latex(ing_qty)}"
+                else:
+                    # Just bold name
+                    formatted = f"\\textbf{{{self.escape_latex(ing_name)}}}"
+                unique_ingredients.append(formatted)
+            else:
+                # Legacy format (shouldn't happen, but handle it)
+                unique_ingredients.append(self.escape_latex(ing_data))
 
         return unique_ingredients, instructions
 
