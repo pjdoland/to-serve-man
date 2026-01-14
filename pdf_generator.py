@@ -179,7 +179,7 @@ class PDFGenerator:
 
         # Ingredients section with proper spacing
         if ingredients:
-            latex.append("\\vspace{1.5em}")  # Consistent space before section
+            latex.append("\\vspace{1.25em}")  # Moderate space before section
             latex.append("{\\ingredientsheading Ingredients}\\par")
             latex.append("\\begin{ingredients}")
             for ingredient in ingredients:
@@ -188,7 +188,7 @@ class PDFGenerator:
 
         # Instructions section with proper spacing
         if instructions:
-            latex.append("\\vspace{1.5em}")  # Consistent space before section
+            latex.append("\\vspace{1.25em}")  # Moderate space before section
             latex.append("{\\instructionsheading Instructions}\\par")
 
             # Group by sections

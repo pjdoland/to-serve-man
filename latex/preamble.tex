@@ -31,16 +31,16 @@
 % Section formatting
 \usepackage{titlesec}
 
-% Part formatting - elegant, simple (no small caps)
+% Part formatting - elegant, centered (section divider pages)
 \titleformat{\part}[display]
-    {\normalfont\Huge}
+    {\normalfont\Huge\filcenter}
     {\partname\ \thepart}
     {20pt}
     {\Huge}
 
-% Chapter formatting - recipe category (no small caps)
+% Chapter formatting - centered (category title pages)
 \titleformat{\chapter}[display]
-    {\normalfont\huge}
+    {\normalfont\huge\filcenter}
     {}
     {0pt}
     {\huge}
@@ -52,7 +52,7 @@
     {}
     {0pt}
     {}
-    [\vspace{0.5em}]  % Add space after recipe title
+    % No extra space after recipe title - metadata comes right after
 
 % Section labels: "Ingredients" and "Instructions" (13pt - clear but modest)
 \newcommand{\ingredientsheading}{\fontsize{13}{16}\selectfont\fontseries{sb}\selectfont}
@@ -81,7 +81,7 @@
     leftmargin=1.5em,
     itemsep=0pt,
     parsep=0pt,
-    topsep=0.75em
+    topsep=0.5em
 }
 
 % Instructions list - numbered with modest semibold numbers (12pt)
@@ -91,7 +91,7 @@
     leftmargin=3em,
     itemsep=0pt,
     parsep=0pt,
-    topsep=0.75em
+    topsep=0.5em
 }
 
 % Headers and footers
@@ -150,19 +150,19 @@
 
 % Custom commands for recipe metadata with consistent spacing (left-aligned)
 \newcommand{\recipemeta}[1]{%
-    \vspace{0.25em}
+    \vspace{0.15em}
     {\small\color{lighttext}\itshape #1}
     \par
 }
 
 \newcommand{\recipedescription}[1]{%
-    \vspace{0.75em}
+    \vspace{0.5em}
     {\normalsize\color{lighttext}\itshape #1}
     \par
 }
 
 \newcommand{\recipeattribution}[1]{%
-    \vspace{2em}
+    \vspace{1.75em}
     {\small\color{lighttext}#1}
     \par
 }
@@ -179,6 +179,7 @@
 
 % Half-title page
 \begin{titlepage}
+\centering
 \vspace*{3in}
 {\Huge {{COOKBOOK_TITLE}}}
 \end{titlepage}
@@ -187,6 +188,7 @@
 
 % Title page
 \begin{titlepage}
+\centering
 \vspace*{2in}
 {\Huge {{COOKBOOK_TITLE}}}\\[1.5em]
 {\Large A Personal Cookbook}\\[3em]
@@ -198,6 +200,7 @@
 
 % Epigraph
 \thispagestyle{empty}
+\centering
 \vspace*{3in}
 {\large\itshape``It's a cookbook!''}
 
