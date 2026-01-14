@@ -91,7 +91,8 @@ class PDFGenerator:
 
             # Extract ingredients from this line for the ingredients list
             # Pattern matches: @ingredient{quantity} or @ingredient{}
-            for match in re.finditer(r'@([^{@#~]+)\{([^}]*)\}', line):
+            # Match anything except special Cooklang markers before the brace
+            for match in re.finditer(r'@([^{@#~]+?)\{([^}]*)\}', line):
                 ing_name = match.group(1).strip()
                 ing_qty = match.group(2).strip()
 
@@ -108,11 +109,11 @@ class PDFGenerator:
             instruction_text = line
 
             # Replace Cooklang markers with plain text (do this BEFORE LaTeX escaping)
-            # Ingredients: @ingredient{quantity} -> ingredient
-            instruction_text = re.sub(r'@(\w+(?:\s+\w+)*)(?:\{[^}]*\})?', r'\1', instruction_text)
+            # Ingredients: @ingredient{quantity} -> ingredient (match anything except @ # ~ { })
+            instruction_text = re.sub(r'@([^@#~{}]+?)(?:\{[^}]*\})?(?=\s|$|[.,!?])', r'\1', instruction_text)
 
-            # Cookware: #item or #item{} or #item{quantity} -> item
-            instruction_text = re.sub(r'#(\w+)(?:\{[^}]*\})?', r'\1', instruction_text)
+            # Cookware: #item{} or #item{quantity} -> item
+            instruction_text = re.sub(r'#([^@#~{}]+?)(?:\{[^}]*\})?(?=\s|$|[.,!?])', r'\1', instruction_text)
 
             # Timers: ~{time} -> time (replace % with space)
             def clean_timer(match):
@@ -121,7 +122,7 @@ class PDFGenerator:
 
             # Clean up any remaining empty braces or orphaned symbols
             instruction_text = re.sub(r'\{\}', '', instruction_text)
-            instruction_text = re.sub(r'[@#~]\s*', '', instruction_text)  # Remove orphaned markers
+            instruction_text = re.sub(r'[@#~]', '', instruction_text)  # Remove orphaned markers
 
             # Escape LaTeX special characters AFTER all Cooklang cleanup
             instruction_text = self.escape_latex(instruction_text)
@@ -171,9 +172,9 @@ class PDFGenerator:
                 meta_parts.append(f"{recipe.cook_time} cook")
 
         if meta_parts:
-            # Use \quad for elegant spacing between metadata items
+            # Use interpunct (·) for metadata separators
             escaped_parts = [self.escape_latex(part) for part in meta_parts]
-            meta_string = ' \\quad '.join(escaped_parts)
+            meta_string = ' · '.join(escaped_parts)
             latex.append(f"\\recipemeta{{{meta_string}}}")
 
         # Description
@@ -185,7 +186,7 @@ class PDFGenerator:
 
         # Ingredients section
         if ingredients:
-            latex.append("{\\ingredientsheading Ingredients}\\par")
+            latex.append("\\ingredientsheading")
             latex.append("\\begin{ingredients}")
             for ingredient in ingredients:
                 latex.append(f"\\item {ingredient}")
@@ -193,8 +194,8 @@ class PDFGenerator:
 
         # Instructions section
         if instructions:
-            latex.append("\\vspace{0.75\\baselineskip}")  # Space between sections
-            latex.append("{\\instructionsheading Instructions}\\par")
+            latex.append("\\vspace{1.5em}")  # Space between sections
+            latex.append("\\instructionsheading")
 
             # Group by sections
             current_section_items = []
@@ -220,14 +221,16 @@ class PDFGenerator:
                     latex.append(f"\\item {step}")
                 latex.append("\\end{enumerate}")
 
-        # Attribution
+        # Attribution - \recipeattribution already adds "Recipe by" prefix
         if recipe.metadata.get('author') or recipe.metadata.get('adapted_by'):
             attr_parts = []
             if recipe.metadata.get('author'):
-                attr_parts.append(f"Recipe by {recipe.metadata['author']}")
+                attr_parts.append(recipe.metadata['author'])
             if recipe.metadata.get('adapted_by'):
                 attr_parts.append(f"adapted by {recipe.metadata['adapted_by']}")
-            latex.append(f"\\recipeattribution{{{self.escape_latex(', '.join(attr_parts))}}}")
+            # First part is author, rest are adaptations
+            attr_string = ', '.join(attr_parts)
+            latex.append(f"\\recipeattribution{{Recipe by {self.escape_latex(attr_string)}}}")
 
         latex.append("\\clearpage")
 

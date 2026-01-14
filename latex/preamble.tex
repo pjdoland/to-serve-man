@@ -3,7 +3,7 @@
 
 \documentclass[10pt,twoside,openright]{book}
 
-% Page geometry - wider margins for optimal 45-75 character line length
+% Page geometry - classical cookbook proportions
 \usepackage[
     letterpaper,
     inner=1.5in,
@@ -18,7 +18,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 
-% Enhanced microtype configuration for superior typography
+% Enhanced microtype configuration - CRITICAL for letterspacing
 \usepackage[
     activate={true,nocompatibility},
     final,
@@ -30,15 +30,14 @@
     shrink=10
 ]{microtype}
 
-% Use EB Garamond for body text (elegant serif)
+% Use EB Garamond for body text
 \usepackage{ebgaramond}
 
 % Use Helvetica for sans-serif
 \usepackage{helvet}
 
-% Better line spacing (1.4 for good readability at 10pt base)
-\usepackage{setspace}
-\setstretch{1.4}
+% Body text leading
+\linespread{1.06}
 
 % Prevent awkward page breaks in recipes
 \usepackage{needspace}
@@ -46,46 +45,49 @@
 % Section formatting
 \usepackage{titlesec}
 
-% Part formatting - elegant, centered (section divider pages)
+% Part formatting - centered, all caps, generous letterspacing
 \titleformat{\part}[display]
-    {\centering\Huge\scshape\addfontfeatures{LetterSpace=15}}
-    {\thepart}
-    {0pt}
+    {\centering\Huge}
     {}
+    {0pt}
+    {\textls[150]{\MakeUppercase}}
 \titlespacing*{\part}
     {0pt}
-    {0.3\textheight}             % Push down from top for breathing room
+    {0.3\textheight}             % Push down from top
     {2\baselineskip}
 
-% Chapter formatting - left-aligned (category headers like "Breakfast")
+% Chapter formatting - left-aligned, all caps with letterspacing
+% Includes horizontal rule below
 \titleformat{\chapter}[display]
-    {\Large\scshape\addfontfeatures{LetterSpace=10}}
+    {\Large}
     {}
     {0pt}
-    {}
+    {\textls[150]{\MakeUppercase}}
+    [\vspace{0.5em}\rule{\textwidth}{0.4pt}]
 \titlespacing*{\chapter}
     {0pt}
-    {3\baselineskip}             % Generous space before
-    {1.5\baselineskip}           % Space after
+    {3\baselineskip}             % Space before
+    {1.5\baselineskip}           % Space after rule
 
-% Recipe title formatting - large, bold, prominent visual anchor
+% Recipe title - all caps with moderate letterspacing
+% Preceded by horizontal rule
 \titleformat{\section}
-    {\LARGE\bfseries}            % Large and bold for prominence
+    {\LARGE\bfseries}
     {}
     {0pt}
-    {}
+    {\rule{\textwidth}{0.5pt}\vspace{0.75em}\par\noindent\textls[80]{\MakeUppercase}}
 \titlespacing*{\section}
     {0pt}
-    {2\baselineskip}             % Space before
-    {0.5\baselineskip}           % Space after
+    {2em}                        % Space before rule
+    {0.5\baselineskip}           % Space after title
 
-% Section labels: "Ingredients" and "Instructions"
-\newcommand{\ingredientsheading}{\fontsize{13}{16}\selectfont\fontseries{sb}\selectfont}
-\newcommand{\instructionsheading}{\fontsize{13}{16}\selectfont\fontseries{sb}\selectfont}
+% Section labels: "Ingredients" and "Instructions" - bold, title case
+\newcommand{\ingredientsheading}{\noindent\textbf{Ingredients}}
+\newcommand{\instructionsheading}{\noindent\textbf{Instructions}}
 
-% Subsection - recipe section headers like "Make the sauce"
+% Subsection - recipe section headers like "Make the sauce" - bold italic
 \titleformat{\subsection}
-    {\normalfont\fontsize{11}{13}\selectfont\fontseries{sb}\selectfont}
+    {\normalfont\bfseries\itshape}
     {}
     {0pt}
     {}
@@ -95,10 +97,11 @@
 \usepackage{enumitem}
 \usepackage{xcolor}
 
-% Define accent color (matches website's cookbook-accent: #c1121f)
+% Define colors
 \definecolor{accentcolor}{HTML}{c1121f}
+\definecolor{lighttext}{HTML}{6b6560}
 
-% Ingredients list - clean with light centered dot bullets
+% Ingredients list - centered dot bullets
 \newlist{ingredients}{itemize}{1}
 \setlist[ingredients]{
     label={\textperiodcentered},
@@ -106,34 +109,35 @@
     labelsep=0.5em,
     itemsep=0.15\baselineskip,
     parsep=0pt,
-    topsep=0.5\baselineskip
+    topsep=0.75em
 }
 
-% Instructions list - clean numbered list with breathing room
+% Instructions list - simple numbered list
 \setlist[enumerate]{
-    label={\arabic*.},           % Simple numbers with period
+    label={\arabic*.},
     leftmargin=2em,
     labelsep=0.75em,
-    itemsep=0.5\baselineskip,    % More space between steps
+    itemsep=0.5\baselineskip,
     parsep=0pt,
     topsep=0.5\baselineskip
 }
 
-% Headers and footers - elegant running headers
+% Headers and footers - all caps running headers
 \usepackage{fancyhdr}
 \pagestyle{fancy}
-\fancyhf{}                                      % Clear all
-\fancyhead[LE]{\small\itshape\nouppercase{\leftmark}}         % Chapter on left pages
-\fancyhead[RO]{\small\itshape\nouppercase{\rightmark}}        % Section on right pages
-\fancyfoot[C]{\small\thepage}                   % Page number centered
-\renewcommand{\headrulewidth}{0pt}              % No header rule (cleaner)
+\fancyhf{}
+% Running headers: all caps, letterspaced, 8.5pt, ragged
+\fancyhead[LE]{\fontsize{8.5}{10}\selectfont\raggedright\textls[100]{\MakeUppercase{\nouppercase{\leftmark}}}}
+\fancyhead[RO]{\fontsize{8.5}{10}\selectfont\raggedleft\textls[100]{\MakeUppercase{\nouppercase{\rightmark}}}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0pt}
 
-% Add spacing between headers/footers and content
+% Spacing between headers/footers and content
 \setlength{\headheight}{14pt}
-\setlength{\headsep}{2em}
-\setlength{\footskip}{3em}
+\setlength{\headsep}{24pt}
+\setlength{\footskip}{18pt}
 
-% Chapter page style (no header, centered footer)
+% Chapter page style (no header)
 \fancypagestyle{plain}{
     \fancyhf{}
     \fancyfoot[C]{\small\thepage}
@@ -154,7 +158,7 @@
 % Better tables
 \usepackage{booktabs}
 
-% Graphics (if needed for images)
+% Graphics
 \usepackage{graphicx}
 
 % Better quotes
@@ -164,45 +168,44 @@
 \widowpenalty=10000
 \clubpenalty=10000
 
-% Table of contents formatting - clean with dot leaders
+% Table of contents - all caps chapter names with dot leaders
 \usepackage{tocloft}
-\renewcommand{\cftdotsep}{2}                    % Dot spacing
+\renewcommand{\cftdotsep}{2}
 \renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
 \setlength{\cftbeforesecskip}{0.5\baselineskip}
-\renewcommand{\cftchapfont}{\normalfont}        % Not bold
+\renewcommand{\cftchapfont}{\normalfont}
 \renewcommand{\cftchappagefont}{\normalfont}
 \renewcommand{\cftsecfont}{\normalfont}
 \renewcommand{\cftsecpagefont}{\normalfont}
 \setlength{\cftbeforechapskip}{0.5em}
 
-% Define light text color (matches website's cookbook-light: #6b6560)
-\definecolor{lighttext}{HTML}{6b6560}
-
-% Recipe metadata - elegant small caps with letter spacing
+% Recipe metadata - italic, with interpunct separators
 \newcommand{\recipemeta}[1]{%
-    \vspace{0.5\baselineskip}%
-    {\small\addfontfeatures{LetterSpace=5}\textsc{#1}}%
-    \vspace{0.75\baselineskip}%
+    {\small\itshape\color{lighttext}#1\par}%
+    \vspace{0.5em}%
+    \noindent\rule{\textwidth}{0.25pt}%
+    \vspace{1em}%
     \par
 }
 
-% Recipe description (headnote) - subordinate, smaller, italic
+% Recipe description (headnote) - smaller, normal weight
 \newcommand{\recipedescription}[1]{%
-    {\small\itshape\color{lighttext}#1}%
+    {\normalsize #1\par}%
     \vspace{0.75\baselineskip}%
-    \par
 }
 
-% Recipe attribution - consistent, quiet position
+% Recipe attribution - italic, light color
 \newcommand{\recipeattribution}[1]{%
-    \vspace{\baselineskip}%
-    {\small\itshape\color{lighttext}Recipe by #1}%
-    \par
+    \vspace{1.5em}%
+    {\small\itshape\color{lighttext}#1\par}%
 }
 
 % Spacing adjustments
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.5em}
+
+% Use ragged right (left-aligned) throughout to avoid awkward word spacing
+\raggedright
 
 % Start of document content
 \begin{document}
@@ -212,30 +215,33 @@
 
 % Half-title page
 \begin{titlepage}
-\centering
+{\centering
 \vspace*{3in}
-{\Huge {{COOKBOOK_TITLE}}}
+{\Huge\textls[150]{\MakeUppercase{{COOKBOOK_TITLE}}}}
+\par}
 \end{titlepage}
 
 \cleardoublepage
 
 % Title page
 \begin{titlepage}
-\centering
+{\centering
 \vspace*{2in}
-{\Huge {{COOKBOOK_TITLE}}}\\[1.5em]
+{\Huge\textls[150]{\MakeUppercase{{COOKBOOK_TITLE}}}}\\[1.5em]
 {\Large A Personal Cookbook}\\[3em]
-{{COOKBOOK_AUTHOR_LINE}}
+{{COOKBOOK_AUTHOR_LINE}}\\
 {\large Generated \today}
+\par}
 \end{titlepage}
 
 \cleardoublepage
 
 % Epigraph
 \thispagestyle{empty}
-\centering
+{\centering
 \vspace*{3in}
 {\large\itshape``It's a cookbook!''}
+\par}
 
 \cleardoublepage
 
@@ -246,3 +252,4 @@
 
 % Main matter
 \mainmatter
+
