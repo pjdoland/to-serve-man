@@ -109,16 +109,21 @@ class PDFGenerator:
             instruction_text = line
 
             # Replace Cooklang markers with plain text (do this BEFORE LaTeX escaping)
-            # Ingredients: @ingredient{quantity} -> ingredient (match anything except @ # ~ { })
-            instruction_text = re.sub(r'@([^@#~{}]+?)(?:\{[^}]*\})?(?=\s|$|[.,!?])', r'\1', instruction_text)
-
-            # Cookware: #item{} or #item{quantity} -> item
-            instruction_text = re.sub(r'#([^@#~{}]+?)(?:\{[^}]*\})?(?=\s|$|[.,!?])', r'\1', instruction_text)
-
-            # Timers: ~{time} -> time (replace % with space)
+            # Timers: ~{time} -> time (replace % with space) - DO THIS FIRST
             def clean_timer(match):
                 return match.group(1).replace('%', ' ')
             instruction_text = re.sub(r'~\{([^}]+)\}', clean_timer, instruction_text)
+
+            # Ingredients: @ingredient{quantity} -> ingredient
+            # Match @ followed by ingredient name, then optional {quantity}
+            instruction_text = re.sub(r'@([^@#~{}]+)\{[^}]*\}', r'\1', instruction_text)
+            # Also match ingredients without quantities: @ingredient
+            instruction_text = re.sub(r'@([^@#~{}\s]+)', r'\1', instruction_text)
+
+            # Cookware: #item{} or #item{quantity} -> item
+            instruction_text = re.sub(r'#([^@#~{}]+)\{[^}]*\}', r'\1', instruction_text)
+            # Also match cookware without braces: #item
+            instruction_text = re.sub(r'#([^@#~{}\s]+)', r'\1', instruction_text)
 
             # Clean up any remaining empty braces or orphaned symbols
             instruction_text = re.sub(r'\{\}', '', instruction_text)
