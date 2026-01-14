@@ -250,8 +250,8 @@ class PDFGenerator:
         with open(preamble_file, 'r', encoding='utf-8') as f:
             preamble = f.read()
 
-        # Replace title placeholder
-        preamble = preamble.replace('{{COOKBOOK_TITLE}}', self.escape_latex(self.pdf_title))
+        # Replace title placeholder with uppercase version for title pages
+        preamble = preamble.replace('{{COOKBOOK_TITLE}}', self.escape_latex(self.pdf_title.upper()))
 
         # Replace author placeholder - only add author line if author is set
         if self.pdf_author:
