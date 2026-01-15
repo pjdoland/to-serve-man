@@ -78,27 +78,27 @@
 \let\originalchapter\chapter
 \renewcommand{\chapter}{\cleardoublepage\originalchapter}
 
-% Recipe title (section) - refined small caps with letterspacing
+% Recipe title (section) - larger, refined small caps with letterspacing
 \titleformat{\section}
-    {\normalfont\large\scshape}
+    {\normalfont\LARGE\scshape}
     {}
     {0pt}
     {\textls[150]}
 \titlespacing*{\section}
     {0pt}
-    {3\baselineskip}
-    {1.5\baselineskip}
+    {2.5\baselineskip}
+    {0.75\baselineskip}
 
-% Subsection - "Ingredients", "Instructions" - understated small caps
+% Subsection - "Ingredients", "Instructions" - larger small caps
 \titleformat{\subsection}
-    {\normalfont\normalsize\scshape}
+    {\normalfont\large\scshape}
     {}
     {0pt}
     {\textls[100]}
 \titlespacing*{\subsection}
     {0pt}
-    {1.5\baselineskip}
-    {0.75\baselineskip}
+    {1.25\baselineskip}
+    {0.5\baselineskip}
 
 % Subsubsection - "Make the sauce" - italic, not bold
 \titleformat{\subsubsection}
@@ -193,15 +193,15 @@
 
 % Recipe metadata - small italic
 \newcommand{\recipemeta}[1]{%
-    \vspace{0.5\baselineskip}%
+    \vspace{0.35\baselineskip}%
     {\small\itshape\color{lighttext}#1}%
-    \par\vspace{0.75\baselineskip}%
+    \par\vspace{0.5\baselineskip}%
 }
 
 % Recipe description - italic
 \newcommand{\recipedescription}[1]{%
     {\itshape #1}%
-    \par\vspace{1.5\baselineskip}%
+    \par\vspace{1\baselineskip}%
 }
 
 % Recipe attribution - right-aligned, italic, smaller
