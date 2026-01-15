@@ -250,7 +250,8 @@ class PDFGenerator:
             attr_string = ', '.join(attr_parts)
             latex.append(f"\\recipeattribution{{Recipe by {self.escape_latex(attr_string)}}}")
 
-        latex.append("\\clearpage")
+        # Add vertical space between recipes instead of forcing page breaks
+        latex.append("\\vspace{4\\baselineskip}")
 
         return '\n'.join(latex)
 
