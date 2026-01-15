@@ -205,7 +205,7 @@ class PDFGenerator:
 
         # Ingredients section
         if ingredients:
-            latex.append("\\ingredientsheading")
+            latex.append("\\subsection*{Ingredients}")
             latex.append("\\begin{ingredients}")
             for ingredient in ingredients:
                 latex.append(f"\\item {ingredient}")
@@ -213,8 +213,7 @@ class PDFGenerator:
 
         # Instructions section
         if instructions:
-            latex.append("\\vspace{1.5em}")  # Space between sections
-            latex.append("\\instructionsheading")
+            latex.append("\\subsection*{Instructions}")
 
             # Group by sections
             current_section_items = []
@@ -228,8 +227,8 @@ class PDFGenerator:
                         latex.append("\\end{enumerate}")
                         current_section_items = []
 
-                    # Add new section header
-                    latex.append(f"\\subsection*{{{self.escape_latex(item_content)}}}")
+                    # Add new section header (e.g., "Make the sauce")
+                    latex.append(f"\\subsubsection*{{{self.escape_latex(item_content)}}}")
                 else:
                     current_section_items.append(item_content)
 
@@ -269,8 +268,8 @@ class PDFGenerator:
         with open(preamble_file, 'r', encoding='utf-8') as f:
             preamble = f.read()
 
-        # Replace title placeholder with uppercase version for title pages
-        preamble = preamble.replace('{{COOKBOOK_TITLE}}', self.escape_latex(self.pdf_title.upper()))
+        # Replace title placeholder with lowercase version (small caps will uppercase it)
+        preamble = preamble.replace('{{COOKBOOK_TITLE_LOWER}}', self.escape_latex(self.pdf_title.lower()))
 
         # Replace author placeholder - only add author line if author is set
         if self.pdf_author:
