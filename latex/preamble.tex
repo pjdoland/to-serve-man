@@ -197,13 +197,15 @@
 \renewcommand{\tableofcontents}{%
     \cleardoublepage
     \thispagestyle{plain}
-    \vspace*{0.3\textheight}
+    \vspace*{0.3\textheight}%
     \titlerule
-    \par\addvspace{0.10\baselineskip}
-    {\centering\normalfont\Large\scshape\textls[200]{contents}\par}
-    \vspace{0.20\baselineskip}
+    \par
+    \vspace{0.10\baselineskip}%
+    {\centering\normalfont\Large\scshape\textls[200]{contents}\par}%
+    \vspace{0.20\baselineskip}%
     \titlerule
-    \vspace{3\baselineskip}
+    \par
+    \vspace{3\baselineskip}%
     \@starttoc{toc}%
 }
 \makeatother
