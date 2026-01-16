@@ -1,7 +1,7 @@
 % To Serve Man — LaTeX Preamble
 % Professional cookbook typography following classic book design
 
-\documentclass[10pt,twoside,openright]{book}
+\documentclass[10pt,twoside,openany]{book}
 
 % Page geometry - classic book proportions with binding offset
 \usepackage[
@@ -63,7 +63,7 @@
     {0.35\textheight}
     {0pt}
 
-% Chapter formatting - small caps, centered, dropped 1/3 down page, with rules
+% Chapter formatting - small caps, centered, with rules
 \titleformat{\chapter}[display]
     {\normalfont\Large\scshape}
     {}
@@ -72,12 +72,10 @@
     [\vspace{0.20\baselineskip}\titlerule]
 \titlespacing*{\chapter}
     {0pt}
-    {0.3\textheight}
+    {0pt}
     {3\baselineskip}
 
-% Ensure chapters start on recto (right-hand/odd) pages
-\let\originalchapter\chapter
-\renewcommand{\chapter}{\cleardoublepage\originalchapter}
+% Chapters can start on any page (no forced page clearing)
 
 % Recipe title (section) - larger, refined small caps with letterspacing
 \titleformat{\section}
@@ -192,22 +190,26 @@
 \renewcommand{\cftsecfont}{\normalfont}
 \renewcommand{\cftsecpagefont}{\normalfont}
 
-% Redefine tableofcontents to match chapter formatting
-\makeatletter
-\renewcommand{\tableofcontents}{%
+% Custom Contents header command (built outside TOC system)
+\newcommand{\contentsheader}{%
     \cleardoublepage
     \thispagestyle{plain}
-    \vspace*{0.3\textheight}%
     \titlerule
-    \par
-    \vspace{0.10\baselineskip}%
-    {\centering\normalfont\Large\scshape\textls[200]{contents}\par}%
+    \addvspace{0.10\baselineskip}%
+    \begin{center}
+    \normalfont\Large\scshape\textls[200]{Contents}
+    \end{center}
     \vspace{0.20\baselineskip}%
     \titlerule
-    \par
-    \vspace{3\baselineskip}%
+}
+
+% Redefine tableofcontents to just generate the TOC list (no title)
+\makeatletter
+\renewcommand{\tableofcontents}{%
     \@starttoc{toc}%
 }
+% Suppress the TOC title completely
+\renewcommand{\contentsname}{}
 \makeatother
 
 % Recipe metadata - small italic
@@ -294,6 +296,7 @@
 \cleardoublepage
 
 % Table of contents
+\contentsheader
 \tableofcontents
 
 \cleardoublepage
