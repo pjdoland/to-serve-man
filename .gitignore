@@ -23,11 +23,9 @@ env/
 *.fdb_latexmk
 *.fls
 
-# Generated output (keep docs/ for GitHub Pages)
-output/*.pdf
-output/*.tex
-output/*.log
-output/*.aux
+# Generated output (rebuilt by GitHub Actions; never tracked)
+output/
+docs/
 
 # IDE
 .vscode/

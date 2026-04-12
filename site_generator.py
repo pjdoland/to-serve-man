@@ -4,10 +4,12 @@ Static site generator for To Serve Man cookbook.
 Generates a complete static website from Cooklang recipes.
 """
 
+import hashlib
 import os
 import re
 import shutil
 import json
+import time
 from pathlib import Path
 from typing import Dict, List
 from jinja2 import Environment, FileSystemLoader
@@ -26,6 +28,9 @@ class SiteGenerator:
         self.output_dir = Path(output_dir or config.DOCS_DIR)
         self.base_url = (base_url if base_url is not None else config.BASE_URL).rstrip('/')
         self.content_dir = Path(config.CONTENT_DIR)
+        # Per-build cache-bust token for static assets and search-data.json so a
+        # CDN/browser doesn't serve a stale copy after a recipe is added.
+        self.cache_bust = hashlib.sha1(str(time.time_ns()).encode()).hexdigest()[:10]
 
         # Set up Jinja2 environment
         self.jinja_env = Environment(
@@ -79,6 +84,7 @@ class SiteGenerator:
         context['site_description'] = config.COOKBOOK_DESCRIPTION
         context['site_author'] = config.COOKBOOK_AUTHOR
         context['site_url'] = config.SITE_URL
+        context['cache_bust'] = self.cache_bust
 
         html = template.render(**context)
 

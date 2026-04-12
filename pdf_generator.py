@@ -330,35 +330,40 @@ class PDFGenerator:
 
         return '\n'.join(latex_parts)
 
-    def compile_pdf(self, tex_file: Path) -> bool:
+    def write_latex(self) -> Path:
+        """Generate LaTeX source and write it to disk. Returns the .tex path."""
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        tex_file = self.output_dir / "cookbook.tex"
+        tex_file.write_text(self.generate_latex(), encoding='utf-8')
+        return tex_file
+
+    def compile_pdf(self, tex_file: str) -> bool:
         """
         Compile LaTeX to PDF using pdflatex.
 
-        Args:
-            tex_file: Path to .tex file
-
-        Returns:
-            True if successful, False otherwise
+        Cleans stale auxiliary files first so a previous broken build can't
+        poison this one with undefined references. Runs pdflatex twice so the
+        TOC resolves, and treats the build as successful only if pdflatex
+        produced an actual PDF on the second run.
         """
+        # Clean stale auxiliary files so we never compile against a poisoned aux.
+        for ext in ('aux', 'toc', 'out', 'log'):
+            (self.output_dir / f"cookbook.{ext}").unlink(missing_ok=True)
+
         try:
-            # Run pdflatex twice for TOC
             for i in range(2):
                 result = subprocess.run(
                     ['pdflatex', '-interaction=nonstopmode', str(tex_file)],
                     cwd=self.output_dir,
                     capture_output=True,
                     text=True,
-                    timeout=60
+                    timeout=120,
                 )
-
-                if result.returncode != 0:
-                    # Check if PDF was still generated despite errors
-                    pdf_file = self.output_dir / "cookbook.pdf"
-                    if not pdf_file.exists():
-                        print(f"Error compiling LaTeX (run {i+1}):")
-                        print(result.stdout)
-                        return False
-                    # PDF exists, so continue even with warnings
+                # On the final run, fail loudly if pdflatex couldn't produce a PDF.
+                if i == 1 and not (self.output_dir / "cookbook.pdf").exists():
+                    print(f"Error compiling LaTeX (run {i+1}):")
+                    print(result.stdout)
+                    return False
 
             return True
 
@@ -368,33 +373,18 @@ class PDFGenerator:
         except subprocess.TimeoutExpired:
             print("Error: LaTeX compilation timed out.")
             return False
-        except Exception as e:
-            print(f"Error compiling LaTeX: {e}")
-            return False
 
     def generate_all(self):
         """Generate complete PDF cookbook."""
         print("Generating PDF cookbook...")
 
-        # Create output directory
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-
-        # Generate LaTeX
         print("  Generating LaTeX...")
-        latex_content = self.generate_latex()
-
-        # Write LaTeX file
-        tex_file = self.output_dir / "cookbook.tex"
-        with open(tex_file, 'w', encoding='utf-8') as f:
-            f.write(latex_content)
-
+        tex_file = self.write_latex()
         print(f"  LaTeX written to {tex_file}")
 
-        # Compile to PDF
         print("  Compiling PDF...")
         if self.compile_pdf("cookbook.tex"):
-            pdf_file = self.output_dir / "cookbook.pdf"
-            print(f"✓ PDF generated successfully: {pdf_file}")
+            print(f"✓ PDF generated successfully: {self.output_dir / 'cookbook.pdf'}")
         else:
             print("✗ PDF compilation failed. LaTeX source is available at:", tex_file)
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-base-url="{{ base_url }}">
+<html lang="en" data-base-url="{{ base_url }}" data-cache-bust="{{ cache_bust }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -38,7 +38,7 @@
     </script>
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ base_url }}/static/css/custom.css">
+    <link rel="stylesheet" href="{{ base_url }}/static/css/custom.css?v={{ cache_bust }}">
 
     {% block head_extra %}{% endblock %}
 </head>
@@ -142,7 +142,7 @@
 
     <!-- Search functionality (homepage only) -->
     {% if is_homepage %}
-    <script src="{{ base_url }}/static/js/search.js"></script>
+    <script src="{{ base_url }}/static/js/search.js?v={{ cache_bust }}"></script>
     {% endif %}
 </body>
 </html>

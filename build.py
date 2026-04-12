@@ -19,7 +19,7 @@ from pathlib import Path
 
 from recipe_parser import RecipeCollection
 from site_generator import generate_site
-from pdf_generator import generate_pdf
+from pdf_generator import generate_pdf, PDFGenerator
 import config
 
 
@@ -93,6 +93,19 @@ def build_pdf():
         return False
 
 
+def build_latex():
+    """Generate LaTeX source only (no pdflatex compilation). Used by CI."""
+    try:
+        tex_file = PDFGenerator().write_latex()
+        print(f"LaTeX written to {tex_file}")
+        return True
+    except Exception as e:
+        print(f"✗ Error generating LaTeX: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+
 def copy_pdf_to_site():
     """Copy generated PDF to site directory for download."""
     pdf_source = Path(config.OUTPUT_DIR) / "cookbook.pdf"
@@ -155,6 +168,7 @@ def main():
 Commands:
   site        Generate website only
   pdf         Generate PDF only
+  latex       Generate LaTeX source only (for CI)
   all         Generate both website and PDF (default)
   validate    Validate all recipes
 
@@ -171,7 +185,7 @@ Examples:
         'command',
         nargs='?',
         default='all',
-        choices=['site', 'pdf', 'all', 'validate'],
+        choices=['site', 'pdf', 'latex', 'all', 'validate'],
         help='Build command to run (default: all)'
     )
 
@@ -197,6 +211,8 @@ Examples:
             print()
             print("Copying PDF to site...")
             copy_pdf_to_site()
+    elif args.command == 'latex':
+        success = build_latex()
     elif args.command == 'all':
         success = build_all(base_url)
     else:
