@@ -140,6 +140,23 @@
       "spirit_base": "gin"
     },
     {
+      "title": "Macadamia Nut Chi Chi",
+      "slug": "macadamia-nut-chi-chi",
+      "description": "A macadamia-spiked riff on the Piña Colada by way of the Chi Chi (which swaps rum for vodka). Fresh pineapple juice makes a tremendous difference here.",
+      "tags": [
+        "vodka",
+        "tiki",
+        "tropical",
+        "frozen",
+        "pineapple",
+        "coconut"
+      ],
+      "category": "cocktails",
+      "is_cocktail": true,
+      "url": "/to-serve-man/recipes/macadamia-nut-chi-chi/",
+      "spirit_base": "vodka"
+    },
+    {
       "title": "Jungle Bird",
       "slug": "jungle-bird",
       "description": "A drink from the post-tiki era that has found great popularity coast to coast in cocktails of all stripes. Adapted by Smuggler's Cove.",
