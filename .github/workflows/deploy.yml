@@ -17,6 +17,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      BASE_URL: /to-serve-man
+      SITE_URL: https://pjdoland.github.io/to-serve-man
     steps:
       - uses: actions/checkout@v4
 
