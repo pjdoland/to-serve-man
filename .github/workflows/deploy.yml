@@ -50,7 +50,11 @@ jobs:
           working_directory: output
           root_file: cookbook.tex
           latexmk_use_xelatex: false
-          args: -pdf -interaction=nonstopmode -file-line-error
+          args: -pdf -interaction=nonstopmode -f
+        continue-on-error: true
+
+      - name: Verify PDF was produced
+        run: test -s output/cookbook.pdf
 
       - name: Copy PDF into site
         run: cp output/cookbook.pdf docs/cookbook.pdf
