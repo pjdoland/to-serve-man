@@ -104,17 +104,23 @@ function installScaling(): void {
 }
 
 // --- Units (US ↔ metric, temperatures only) ----------------------------------
+//
+// Strict author-only policy: the toggle appears only when the recipe carries
+// double-authored temperatures (e.g. "375°F (190°C)"). Standalone temps are
+// left untouched — if you want a recipe converted, double-author it at import.
 
 const PAIRED_F_C = /(\d+(?:\.\d+)?)\s*°\s*F\s*\(\s*(\d+(?:\.\d+)?)\s*°\s*C\s*\)/gi;
 const PAIRED_C_F = /(\d+(?:\.\d+)?)\s*°\s*C\s*\(\s*(\d+(?:\.\d+)?)\s*°\s*F\s*\)/gi;
-const STANDALONE_F = /(\d+(?:\.\d+)?)\s*°\s*F\b/gi;
-const STANDALONE_C = /(\d+(?:\.\d+)?)\s*°\s*C\b/gi;
 
 function installUnits(): void {
   const stepLis = Array.from(document.querySelectorAll<HTMLElement>(".instructions-list li"));
-  const hasTemps = stepLis.some((li) => /\d+\s*°\s*[FC]/i.test(li.textContent || ""));
+  const hasPairedTemps = stepLis.some((li) => {
+    const text = li.textContent || "";
+    PAIRED_F_C.lastIndex = 0; PAIRED_C_F.lastIndex = 0;
+    return PAIRED_F_C.test(text) || PAIRED_C_F.test(text);
+  });
   const tool = document.querySelector<HTMLElement>('[data-feature="units"]');
-  if (!tool || !hasTemps) return; // leave the SSR'd shell hidden when there's nothing to convert
+  if (!tool || !hasPairedTemps) return;
 
   tool.removeAttribute("hidden");
   const buttons = Array.from(tool.querySelectorAll<HTMLButtonElement>("button"));
@@ -125,18 +131,8 @@ function installUnits(): void {
     stepLis.forEach((li) => {
       if (li.dataset.origHtmlUnits === undefined) li.dataset.origHtmlUnits = li.innerHTML;
       let html = li.dataset.origHtmlUnits;
-      // Recipes commonly carry both units in parallel ("375°F (190°C)") — collapse
-      // to a single measurement matching the user's preference. Reset every apply()
-      // because origHtmlUnits is the always-paired source of truth.
       html = html.replace(PAIRED_F_C, (_full, f, c) => (metric ? `${c}°C` : `${f}°F`));
       html = html.replace(PAIRED_C_F, (_full, c, f) => (metric ? `${c}°C` : `${f}°F`));
-      // Anything still standalone gets converted on the fly.
-      html = html.replace(STANDALONE_F, (full, n) =>
-        metric ? `${Math.round((parseFloat(n) - 32) * 5 / 9)}°C` : full,
-      );
-      html = html.replace(STANDALONE_C, (full, n) =>
-        metric ? full : `${Math.round(parseFloat(n) * 9 / 5 + 32)}°F`,
-      );
       li.innerHTML = html;
     });
     buttons.forEach((b) => {
@@ -151,7 +147,6 @@ function installUnits(): void {
     localStorage.setItem(STORAGE_KEYS.units, metric ? "metric" : "us");
     apply();
   }));
-  // Always run on boot so paired temps collapse to the chosen single unit.
   apply();
 }
 
