@@ -85,27 +85,40 @@
         <img src="{{ base_url }}/{{ recipe.hero_image }}" alt="{{ recipe.hero_alt or recipe.title }}" class="recipe-hero" loading="lazy">
         {% endif %}
 
-        {# SSR'd toolbar shell — recipe-app.ts only wires up handlers. Two groups
-           keep it on a single row at most viewport widths; "Print 4×6 card" and
-           "I made this" live in the footer (both are post-cook actions). #}
+        {# Three groups: Adjust (transforms), Mode (Cook view), Action (writes to user state). #}
         <section id="tsm-toolbar" class="no-print" aria-label="Recipe tools">
-            <div class="tsm-group" data-group="view">
-                <div class="tsm-tool">
-                    <span class="tsm-tool-label">Scale</span>
-                    <button class="tsm-btn" type="button" data-action="scale" data-factor="0.5">½×</button>
-                    <button class="tsm-btn is-active" type="button" data-action="scale" data-factor="1">1×</button>
-                    <button class="tsm-btn" type="button" data-action="scale" data-factor="2">2×</button>
+            <div class="tsm-toolbar-inner">
+                <div class="tsm-group" data-group="adjust">
+                    <div class="tsm-tool">
+                        <span class="tsm-tool-label">Scale</span>
+                        <div class="tsm-segmented">
+                            <button class="tsm-seg" type="button" data-action="scale" data-factor="0.5">½×</button>
+                            <button class="tsm-seg is-active" type="button" data-action="scale" data-factor="1">1×</button>
+                            <button class="tsm-seg" type="button" data-action="scale" data-factor="2">2×</button>
+                        </div>
+                    </div>
+                    <div class="tsm-tool" data-feature="units" hidden>
+                        <span class="tsm-tool-label">Units</span>
+                        <div class="tsm-segmented">
+                            <button class="tsm-seg is-active" type="button" data-action="units" data-units="us" aria-pressed="true">US</button>
+                            <button class="tsm-seg" type="button" data-action="units" data-units="metric" aria-pressed="false">Metric</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="tsm-tool" data-feature="units" hidden>
-                    <span class="tsm-tool-label">Units</span>
-                    <button class="tsm-btn is-active" type="button" data-action="units" data-units="us" aria-pressed="true">US</button>
-                    <button class="tsm-btn" type="button" data-action="units" data-units="metric" aria-pressed="false">Metric</button>
+                <div class="tsm-group" data-group="mode">
+                    <button class="tsm-btn tsm-btn-primary" type="button" data-action="cook-mode" aria-pressed="false">Cook view</button>
                 </div>
-            </div>
-            <div class="tsm-group" data-group="action">
-                <button class="tsm-btn tsm-btn-primary" type="button" data-action="cook-mode" aria-pressed="false">Cook view</button>
-                <button class="tsm-btn tsm-fav" type="button" data-action="favorite" aria-pressed="false">♡ Save</button>
-                <button class="tsm-btn" type="button" data-action="add-to-list">Add to list</button>
+                <div class="tsm-group" data-group="action">
+                    <button class="tsm-btn tsm-fav" type="button" data-action="favorite" aria-pressed="false">♡ Save</button>
+                    <button class="tsm-btn" type="button" data-action="add-to-list"><span aria-hidden="true">+ </span>Add to list</button>
+                    <details class="tsm-menu">
+                        <summary class="tsm-btn">Print<span aria-hidden="true"> ▾</span></summary>
+                        <div class="tsm-menu-popover" role="menu">
+                            <button type="button" role="menuitem" class="tsm-menu-item" data-action="print-full">Full recipe</button>
+                            <button type="button" role="menuitem" class="tsm-menu-item" data-action="print-card">4×6 card</button>
+                        </div>
+                    </details>
+                </div>
             </div>
         </section>
 
@@ -123,6 +136,10 @@
                 <div class="instructions-list">
                     {{ instructions_html|safe }}
                 </div>
+                {# Post-cook prompt — quiet inline, lives where the eye lands after the last step. #}
+                <p class="post-cook-prompt no-print">
+                    <button type="button" data-action="made-it" class="post-cook-link">Made this? Mark it →</button>
+                </p>
             </section>
         </div>
 
@@ -161,24 +178,13 @@
         </section>
         {% endif %}
 
-        <footer class="mt-16 pt-12 border-t border-cookbook-rule">
-            {% if recipe.metadata.source or recipe.metadata.author %}
-            <div class="recipe-attribution text-cookbook-light text-sm mb-8">
-                {% if recipe.metadata.author %}
-                <p class="mb-4">Recipe by {{ recipe.metadata.author }}{% if recipe.metadata.adapted_by %}, adapted by {{ recipe.metadata.adapted_by }}{% endif %}</p>
-                {% endif %}
-                {% if recipe.metadata.source %}
-                <p><a href="{{ recipe.metadata.source }}" target="_blank" rel="noopener" class="text-cookbook-light border-b border-cookbook-rule hover:border-cookbook-accent transition-colors duration-200 no-underline">Original recipe</a></p>
-                {% endif %}
-            </div>
-            {% endif %}
-
-            <div class="flex flex-wrap gap-3 no-print">
-                <button onclick="window.print()" class="tsm-btn" type="button">Print recipe</button>
-                <button class="tsm-btn" type="button" data-action="print-card">Print 4×6 card</button>
-                <button class="tsm-btn" type="button" data-action="made-it">I made this</button>
-            </div>
+        {% if recipe.metadata.source or recipe.metadata.author %}
+        <footer class="recipe-footer">
+            <p class="recipe-attribution">
+                {% if recipe.metadata.author %}Recipe by {{ recipe.metadata.author }}{% if recipe.metadata.adapted_by %}, adapted by {{ recipe.metadata.adapted_by }}{% endif %}{% endif %}{% if recipe.metadata.author and recipe.metadata.source %} · {% endif %}{% if recipe.metadata.source %}<a href="{{ recipe.metadata.source }}" target="_blank" rel="noopener">Original recipe ↗</a>{% endif %}
+            </p>
         </footer>
+        {% endif %}
     </div>
 </article>
 {% endblock %}

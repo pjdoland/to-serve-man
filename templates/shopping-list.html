@@ -13,7 +13,12 @@
         <div class="flex justify-end gap-2 mb-6 no-print">
             <button id="tsm-shop-copy" type="button" class="tsm-btn">Copy as text</button>
             <button id="tsm-shop-print" type="button" class="tsm-btn">Print</button>
-            <button id="tsm-shop-clear" type="button" class="tsm-btn">Clear all</button>
+            <button id="tsm-shop-clear" type="button" class="tsm-btn tsm-btn-destructive">Clear list</button>
+        </div>
+
+        <div id="tsm-shop-undo" class="tsm-undo-strip" hidden role="status">
+            <span id="tsm-undo-text"></span>
+            <button type="button" id="tsm-undo-action">Undo</button>
         </div>
 
         <div id="tsm-shop-empty">

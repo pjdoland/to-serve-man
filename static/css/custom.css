@@ -340,6 +340,105 @@
   border: none;
 }
 
+/* Post-cook prompt — quiet inline link below the last instruction step. */
+.post-cook-prompt {
+  margin: 2rem 0 0;
+  text-align: left;
+}
+.post-cook-link {
+  font-family: "EB Garamond", serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--cb-light);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--cb-rule);
+  padding: 0.25rem 0;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.post-cook-link:hover {
+  color: var(--cb-accent);
+  border-bottom-color: var(--cb-accent);
+}
+
+/* Shopping list — per-recipe header + small × remove + undo strip. */
+.shop-recipe-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.shop-remove-btn {
+  font-family: "Helvetica Neue", sans-serif;
+  font-size: 1.1rem;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  color: var(--cb-light);
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.shop-remove-btn:hover {
+  background: var(--cb-warm);
+  color: var(--cb-accent);
+}
+.tsm-btn-destructive {
+  color: var(--cb-accent);
+  border-color: var(--cb-accent);
+}
+.tsm-btn-destructive:hover {
+  background: var(--cb-accent);
+  color: var(--cb-bg);
+  border-color: var(--cb-accent);
+}
+.tsm-undo-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.6rem 1rem;
+  margin-bottom: 1rem;
+  background: var(--cb-warm);
+  border-left: 3px solid var(--cb-accent);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.tsm-undo-strip[hidden] { display: none; }
+.tsm-undo-strip button {
+  font-family: "Helvetica Neue", sans-serif;
+  font-size: 0.85rem;
+  background: transparent;
+  color: var(--cb-accent);
+  border: 0;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* Recipe page footer — attribution only, single line, quiet. */
+.recipe-footer {
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--cb-rule);
+}
+.recipe-attribution {
+  color: var(--cb-light);
+  font-size: 0.9rem;
+  margin: 0;
+}
+.recipe-attribution a {
+  color: var(--cb-light);
+  border-bottom: 1px solid var(--cb-rule);
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+.recipe-attribution a:hover { border-bottom-color: var(--cb-accent); }
+
 /* Hero photo on recipe page (placeholder visible only when image exists). */
 .recipe-hero {
   width: 100%;
@@ -518,21 +617,26 @@ article em     { font-style: italic; }
 .search-results { scroll-behavior: smooth; }
 
 /* ==========================================
-   Recipe App: toolbar (SSR shell, JS wires up handlers)
+   Recipe App: toolbar
+   Outer is full-bleed when sticky in cook view; inner constrains to content width.
    ========================================== */
 
 #tsm-toolbar {
+  width: 100%;
+  margin: 0 0 2.5rem;
+  border-top: 1px solid var(--cb-rule);
+  border-bottom: 1px solid var(--cb-rule);
+  background: transparent;
+}
+.tsm-toolbar-inner {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1rem 1.25rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem 1.25rem;
   align-items: center;
   justify-content: center;
-  padding: 1rem 1.25rem;
-  margin: 0 auto 2.5rem;
-  max-width: 60rem;
-  border-top: 1px solid var(--cb-rule);
-  border-bottom: 1px solid var(--cb-rule);
-  background: transparent;
 }
 .tsm-tool {
   display: inline-flex;
@@ -540,7 +644,13 @@ article em     { font-style: italic; }
   gap: 0.4rem;
   padding: 0;
 }
-/* Subtle hairline divider between groups (desktop only) */
+/* Hairline divider between groups (desktop only) */
+.tsm-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
 .tsm-group + .tsm-group {
   border-left: 1px solid var(--cb-rule);
   padding-left: 1rem;
@@ -561,6 +671,76 @@ article em     { font-style: italic; }
   color: var(--cb-light);
   margin-right: 0.25rem;
 }
+
+/* Segmented control: Scale + Units. One continuous border, internal dividers. */
+.tsm-segmented {
+  display: inline-flex;
+  border: 1px solid var(--cb-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.tsm-seg {
+  font-family: "Helvetica Neue", sans-serif;
+  font-size: 0.85rem;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.5rem 0.85rem;
+  background: var(--cb-bg);
+  color: var(--cb-text);
+  border: 0;
+  border-left: 1px solid var(--cb-border);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.tsm-seg:first-child { border-left: 0; }
+.tsm-seg:hover { color: var(--cb-accent); }
+.tsm-seg.is-active,
+.tsm-seg[aria-pressed="true"] {
+  background: var(--cb-text);
+  color: var(--cb-bg);
+}
+
+/* Native <details>/<summary>: hide default disclosure marker site-wide. */
+details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+details > summary::-webkit-details-marker { display: none; }
+
+/* Print dropdown menu */
+.tsm-menu { position: relative; display: inline-block; }
+.tsm-menu summary {
+  display: inline-flex;
+  align-items: center;
+}
+.tsm-menu-popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 12rem;
+  background: var(--cb-bg);
+  border: 1px solid var(--cb-border);
+  border-radius: 4px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  padding: 0.25rem;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+}
+.tsm-menu-item {
+  font-family: "Helvetica Neue", sans-serif;
+  font-size: 0.85rem;
+  padding: 0.6rem 0.85rem;
+  background: transparent;
+  color: var(--cb-text);
+  border: 0;
+  border-radius: 3px;
+  text-align: left;
+  cursor: pointer;
+  min-height: 36px;
+}
+.tsm-menu-item:hover,
+.tsm-menu-item:focus-visible { background: var(--cb-warm); color: var(--cb-accent); outline-offset: -2px; }
 /* Toolbar buttons: outlined ghost by default; primary CTA gets filled-dark.
    All buttons are ≥44px tall (WCAG 2.5.8 + comfortable for wet fingers). */
 .tsm-btn {
@@ -629,7 +809,8 @@ button.timer.is-running { color: var(--cb-accent); font-weight: 600; }
 button.timer.is-done { color: var(--cb-success); font-weight: 600; }
 
 /* Cook view — instructions become the primary visible content; ingredients stay
-   accessible via the mobile drawer toggle. Sticky toolbar pinned at top. */
+   accessible via the mobile drawer toggle. The sticky toolbar fills the viewport
+   width (continuous background, no floating-island look). */
 body.cook-mode { font-size: 1.2em; }
 body.cook-mode #tsm-toolbar {
   position: sticky;
@@ -638,7 +819,12 @@ body.cook-mode #tsm-toolbar {
   background: var(--cb-bg);
   border-top: none;
   border-bottom: 1px solid var(--cb-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   margin-bottom: 1.5rem;
+  /* Break out of the max-w-cookbook container so the bar spans the full viewport
+     when stuck (no floating-island look); inner .tsm-toolbar-inner stays centered. */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
 }
 body.cook-mode .ingredients-list li.is-done,
 body.cook-mode .instructions-list li.is-done {
@@ -792,6 +978,63 @@ body.cook-mode .tsm-check-label input.tsm-check {
   font-style: italic;
   margin: 0;
 }
+.facet-clear {
+  font-family: "Helvetica Neue", sans-serif;
+  font-size: 0.8rem;
+  color: var(--cb-accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 500;
+}
+.facet-clear[hidden] { display: none; }
+
+/* Multi-select dropdown — used when a facet has more than ~7 options. */
+.facet-dropdown { position: relative; display: inline-block; }
+.facet-dropdown summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.85rem;
+  background: var(--cb-bg);
+  color: var(--cb-text);
+  border: 1px solid var(--cb-border);
+  border-radius: 9999px;
+  min-height: 36px;
+  font-family: "Helvetica Neue", sans-serif;
+  font-size: 0.85rem;
+}
+.facet-dropdown[open] summary { border-color: var(--cb-accent); }
+.facet-dropdown-popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 30;
+  min-width: 14rem;
+  max-height: 18rem;
+  overflow-y: auto;
+  background: var(--cb-bg);
+  border: 1px solid var(--cb-border);
+  border-radius: 4px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+}
+.facet-dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.5rem;
+  font-family: "Helvetica Neue", sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 3px;
+}
+.facet-dropdown-option:hover { background: var(--cb-warm); }
+.facet-dropdown-option input { margin: 0; }
 
 /* Recipe cards — uniform-height grid (cocktails listing was orphan-cell-y before). */
 .recipe-grid {

@@ -425,11 +425,23 @@ function installDrawer(): void {
 
 // --- Print recipe card (4×6) -------------------------------------------------
 
-function installPrintCard(): void {
-  const btn = document.querySelector<HTMLButtonElement>('[data-action="print-card"]');
-  if (!btn || !RECIPE_SLUG) return;
-  btn.addEventListener("click", () => {
-    // Inject a top-level @page rule because @page can't be selector-scoped via body.print-card.
+// Close any open <details class="tsm-menu"> when the user clicks outside it.
+function installMenuOutsideClose(): void {
+  document.addEventListener("click", (e) => {
+    const target = e.target as Element;
+    document.querySelectorAll<HTMLDetailsElement>("details.tsm-menu[open]").forEach((d) => {
+      if (!d.contains(target)) d.removeAttribute("open");
+    });
+  });
+}
+
+function installPrint(): void {
+  if (!RECIPE_SLUG) return;
+  document.querySelector<HTMLButtonElement>('[data-action="print-full"]')?.addEventListener("click", () => {
+    window.print();
+  });
+  document.querySelector<HTMLButtonElement>('[data-action="print-card"]')?.addEventListener("click", () => {
+    // @page can't be selector-scoped, so inject a top-level rule for the duration of print.
     const styleEl = document.createElement("style");
     styleEl.id = "tsm-print-card-page";
     styleEl.textContent = "@page { size: 4in 6in; margin: 0.25in; }";
@@ -472,7 +484,8 @@ onReady(() => {
   installCookMode();
   installFavorites();
   installShoppingList();
-  installPrintCard();
+  installPrint();
+  installMenuOutsideClose();
   installDrawer();
   recordRecent();
 });

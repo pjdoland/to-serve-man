@@ -333,6 +333,13 @@ class SiteGenerator:
         output_path = self.output_dir / "about" / "index.html"
         self.render_template("about.html", context, output_path)
 
+    @staticmethod
+    def _facet(name: str, key: str, options: list[str]) -> dict:
+        """Build a facet definition; mode tells the template which control to render."""
+        # Pills work to ~7 options; past that, a multi-select dropdown scales better.
+        mode = "pills" if len(options) <= 7 else "dropdown"
+        return {"name": name, "key": key, "options": options, "mode": mode}
+
     def generate_food_page(self):
         """Generate main food page with facet rail (cuisine + category)."""
         recipes = self.collection.food_recipes
@@ -344,8 +351,8 @@ class SiteGenerator:
             "subtitle": f"{len(recipes)} food recipes",
             "recipes": recipes,
             "facets": [
-                {"name": "Cuisine", "key": "cuisine", "options": cuisines},
-                {"name": "Category", "key": "category", "options": categories},
+                self._facet("Cuisine", "cuisine", cuisines),
+                self._facet("Category", "category", categories),
             ],
         }
         self.render_template("listing.html", context, output_path)
@@ -361,8 +368,8 @@ class SiteGenerator:
             "subtitle": f"{len(recipes)} cocktail recipes",
             "recipes": recipes,
             "facets": [
-                {"name": "Spirit", "key": "spirit_base", "options": spirits},
-                {"name": "Glass", "key": "glass", "options": glasses},
+                self._facet("Spirit", "spirit_base", spirits),
+                self._facet("Glass", "glass", glasses),
             ],
         }
         self.render_template("listing.html", context, output_path)
