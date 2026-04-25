@@ -9,7 +9,17 @@ import subprocess
 from pathlib import Path
 
 import config
-from recipe_parser import Cookware, Ingredient, Recipe, RecipeCollection, Section, Step, Text, Timer
+from recipe_parser import (
+    Callout,
+    Cookware,
+    Ingredient,
+    Recipe,
+    RecipeCollection,
+    Section,
+    Step,
+    Text,
+    Timer,
+)
 
 logger = logging.getLogger("tsm.pdf")
 
@@ -82,6 +92,8 @@ class PDFGenerator:
         for block in parsed.blocks:
             if isinstance(block, Section):
                 instructions.append(("section", block.name))
+            elif isinstance(block, Callout):
+                instructions.append(("callout", f"{block.kind}|{self.escape_latex(block.text)}"))
             else:
                 instructions.append(("step", self._render_step_latex(block)))
 
@@ -144,6 +156,10 @@ class PDFGenerator:
         if recipe.description:
             latex.append(f"\\recipedescription{{{self.escape_latex(recipe.description)}}}")
 
+        # Headnote (cook's voice / story)
+        if recipe.headnote:
+            latex.append(f"\\recipeheadnote{{{self.escape_latex(recipe.headnote)}}}")
+
         # Parse content
         ingredients, instructions = self.parse_recipe_content(recipe)
 
@@ -159,29 +175,53 @@ class PDFGenerator:
         if instructions:
             latex.append("\\subsection*{Instructions}")
 
-            # Group by sections
-            current_section_items = []
+            # Group by sections; callouts are emitted between sections.
+            current_section_items: list[str] = []
+
+            def flush_steps():
+                if current_section_items:
+                    latex.append("\\begin{enumerate}")
+                    for step in current_section_items:
+                        latex.append(f"\\item {step}")
+                    latex.append("\\end{enumerate}")
+                    current_section_items.clear()
+
             for item_type, item_content in instructions:
                 if item_type == "section":
-                    # Output previous section if exists
-                    if current_section_items:
-                        latex.append("\\begin{enumerate}")
-                        for step in current_section_items:
-                            latex.append(f"\\item {step}")
-                        latex.append("\\end{enumerate}")
-                        current_section_items = []
-
-                    # Add new section header (e.g., "Make the sauce")
+                    flush_steps()
                     latex.append(f"\\subsubsection*{{{self.escape_latex(item_content)}}}")
+                elif item_type == "callout":
+                    flush_steps()
+                    kind, escaped = item_content.split("|", 1)
+                    latex.append(f"\\callout{{{kind}}}{{{escaped}}}")
                 else:
                     current_section_items.append(item_content)
 
-            # Output final section
-            if current_section_items:
-                latex.append("\\begin{enumerate}")
-                for step in current_section_items:
-                    latex.append(f"\\item {step}")
-                latex.append("\\end{enumerate}")
+            flush_steps()
+
+        # Phase 3: storage / make-ahead / yield notes / variations
+        notes_lines: list[str] = []
+        if recipe.yield_notes:
+            notes_lines.append(f"\\textbf{{Yield:}} {self.escape_latex(recipe.yield_notes)}")
+        if recipe.make_ahead:
+            notes_lines.append(f"\\textbf{{Make ahead:}} {self.escape_latex(recipe.make_ahead)}")
+        if recipe.storage:
+            notes_lines.append(f"\\textbf{{Keeps:}} {self.escape_latex(recipe.storage)}")
+        if recipe.reheats:
+            notes_lines.append(f"\\textbf{{Reheat:}} {self.escape_latex(recipe.reheats)}")
+        if notes_lines:
+            latex.append("\\recipenotes{" + " \\\\ ".join(notes_lines) + "}")
+
+        if recipe.variations:
+            latex.append("\\subsection*{Variations}")
+            latex.append("\\begin{ingredients}")
+            for v in recipe.variations:
+                name = self.escape_latex(v.get("name", ""))
+                swap = self.escape_latex(v.get("swap", ""))
+                note = self.escape_latex(v.get("note", ""))
+                bits = [b for b in (swap, note) if b]
+                latex.append(f"\\item \\textbf{{{name}}}" + (f" -- {' — '.join(bits)}" if bits else ""))
+            latex.append("\\end{ingredients}")
 
         # Attribution - \recipeattribution already adds "Recipe by" prefix
         if recipe.metadata.get("author") or recipe.metadata.get("adapted_by"):

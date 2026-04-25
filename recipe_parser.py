@@ -94,11 +94,23 @@ class Section:
 
 
 @dataclass
+class Callout:
+    """A `>note ...`, `>tip ...`, or `>warning ...` line — promoted to a styled aside."""
+
+    kind: str  # "note" | "tip" | "warning"
+    text: str
+
+
+CALLOUT_KINDS = ("note", "tip", "warning")
+_CALLOUT_RE = re.compile(r"^>(note|tip|warning)\s+(.+)$", re.IGNORECASE)
+
+
+@dataclass
 class ParsedBody:
     """Parsed Cooklang recipe body."""
 
     ingredients: list[Ingredient]  # Deduplicated, in first-appearance order.
-    blocks: list[Section | Step]
+    blocks: list[Section | Step | Callout]
 
 
 def _split_qty(raw: str) -> tuple[str, str]:
@@ -122,7 +134,7 @@ def parse_body(raw_content: str) -> ParsedBody:
     whose tokens preserve the literal text interleaved with typed references.
     """
     body = _strip_frontmatter(raw_content)
-    blocks: list[Section | Step] = []
+    blocks: list[Section | Step | Callout] = []
     seen_ingredients: dict[str, Ingredient] = {}  # key: lowercased name
     ingredients_order: list[Ingredient] = []
 
@@ -132,6 +144,10 @@ def parse_body(raw_content: str) -> ParsedBody:
             continue
         if line.startswith(">>"):
             blocks.append(Section(name=line[2:].strip()))
+            continue
+        callout_match = _CALLOUT_RE.match(line)
+        if callout_match:
+            blocks.append(Callout(kind=callout_match.group(1).lower(), text=callout_match.group(2).strip()))
             continue
 
         tokens: list[StepToken] = []
@@ -266,6 +282,61 @@ class Recipe:
     @property
     def garnish(self) -> str | None:
         return self.metadata.get("garnish")
+
+    # --- Phase 3 schema additions (all optional) ----------------------------
+
+    @property
+    def headnote(self) -> str | None:
+        """Cook's voice / story preamble (markdown)."""
+        return self.metadata.get("headnote")
+
+    @property
+    def yield_notes(self) -> str | None:
+        """Qualitative yield info ('freezes 3 months raw')."""
+        return self.metadata.get("yield_notes")
+
+    @property
+    def make_ahead(self) -> str | None:
+        return self.metadata.get("make_ahead")
+
+    @property
+    def storage(self) -> str | None:
+        return self.metadata.get("storage")
+
+    @property
+    def reheats(self) -> str | None:
+        return self.metadata.get("reheats")
+
+    @property
+    def variations(self) -> list[dict[str, str]]:
+        """List of {name, swap, note} dicts."""
+        return self.metadata.get("variations") or []
+
+    @property
+    def serve_with(self) -> list[str]:
+        """Slugs of recipes to serve with this one."""
+        return self.metadata.get("serve_with") or []
+
+    @property
+    def pairs_with(self) -> list[str]:
+        return self.metadata.get("pairs_with") or []
+
+    @property
+    def uses(self) -> list[str]:
+        """Slugs of recipes used as components in this one."""
+        return self.metadata.get("uses") or []
+
+    @property
+    def season(self) -> list[str]:
+        """One or more of: spring, summer, fall, winter, year-round."""
+        raw = self.metadata.get("season") or []
+        return raw if isinstance(raw, list) else [raw]
+
+    @property
+    def occasion(self) -> list[str]:
+        """One or more of: weeknight, dinner-party, holiday, brunch, hangover, etc."""
+        raw = self.metadata.get("occasion") or []
+        return raw if isinstance(raw, list) else [raw]
 
     def parsed_body(self) -> ParsedBody:
         """Return the body parsed into structured tokens."""

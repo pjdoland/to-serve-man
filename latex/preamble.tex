@@ -225,6 +225,34 @@
     \par\vspace{1\baselineskip}%
 }
 
+% Headnote - the cook's voice / story before the recipe (small italic block)
+\newcommand{\recipeheadnote}[1]{%
+    {\small\itshape #1}%
+    \par\vspace{0.75\baselineskip}%
+}
+
+% Recipe notes block (yield/make-ahead/storage/reheat) — boxed, small
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
+\newcommand{\recipenotes}[1]{%
+    \par\vspace{0.5\baselineskip}%
+    \begin{tcolorbox}[
+        enhanced, sharp corners, boxrule=0pt,
+        left=0.6em, right=0.6em, top=0.4em, bottom=0.4em,
+        colback=white, borderline north={0.4pt}{0pt}{black!40},
+                       borderline south={0.4pt}{0pt}{black!40}]
+        {\small #1}
+    \end{tcolorbox}%
+    \par\vspace{0.5\baselineskip}%
+}
+
+% Callout: \callout{kind}{text}. Kind ∈ {note, tip, warning} — italicized label.
+\newcommand{\callout}[2]{%
+    \par\vspace{0.4\baselineskip}%
+    \begin{quote}\small{\itshape\MakeUppercase{#1}:} #2\end{quote}%
+    \vspace{0.4\baselineskip}%
+}
+
 % Recipe attribution - right-aligned, italic, smaller
 \newcommand{\recipeattribution}[1]{%
     \vspace{1\baselineskip}%

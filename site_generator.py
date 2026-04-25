@@ -15,7 +15,17 @@ from jinja2 import Environment, FileSystemLoader
 from slugify import slugify
 
 import config
-from recipe_parser import Cookware, Ingredient, Recipe, RecipeCollection, Section, Step, Text, Timer
+from recipe_parser import (
+    Callout,
+    Cookware,
+    Ingredient,
+    Recipe,
+    RecipeCollection,
+    Section,
+    Step,
+    Text,
+    Timer,
+)
 
 logger = logging.getLogger("tsm.site")
 
@@ -119,6 +129,14 @@ class SiteGenerator:
             if isinstance(block, Section):
                 flush_steps()
                 parts.append(f'<h3 class="section-header">{block.name}</h3>')
+            elif isinstance(block, Callout):
+                flush_steps()
+                label = block.kind.capitalize()
+                parts.append(
+                    f'<aside class="callout callout-{block.kind}" role="note">'
+                    f'<strong class="callout-label">{label}</strong> '
+                    f"<span>{block.text}</span></aside>"
+                )
             else:
                 current_steps.append(self._render_step_html(block))
         flush_steps()
@@ -139,17 +157,33 @@ class SiteGenerator:
                 out.append(f'<span class="timer">{tok.display}</span>')
         return "".join(out)
 
+    def _resolve_cross_refs(self, recipe: Recipe) -> dict[str, list[Recipe]]:
+        """Resolve serve_with/pairs_with/uses slugs to Recipe objects; warn on misses."""
+        by_slug = {r.slug: r for r in self.collection.recipes}
+        resolved: dict[str, list[Recipe]] = {}
+        for field_name in ("serve_with", "pairs_with", "uses"):
+            slugs = getattr(recipe, field_name)
+            hits: list[Recipe] = []
+            for s in slugs:
+                target = by_slug.get(s)
+                if target:
+                    hits.append(target)
+                else:
+                    logger.warning(f"{recipe.filepath}: unknown {field_name} slug '{s}'")
+            if hits:
+                resolved[field_name] = hits
+        return resolved
+
     def generate_recipe_page(self, recipe: Recipe):
         """Generate individual recipe page."""
-        # Parse recipe content
         ingredients_html, instructions_html = self.parse_recipe_content(recipe)
-
+        cross_refs = self._resolve_cross_refs(recipe)
         context = {
             "recipe": recipe,
             "ingredients_html": ingredients_html,
             "instructions_html": instructions_html,
+            "cross_refs": cross_refs or None,
         }
-
         output_path = self.output_dir / "recipes" / recipe.slug / "index.html"
         self.render_template("recipe.html", context, output_path)
 
@@ -215,6 +249,17 @@ class SiteGenerator:
             slug = slugify(spirit)
             output_path = self.output_dir / "spirit" / slug / "index.html"
             self.generate_list_page(f"{spirit.title()} Cocktails", recipes, output_path)
+
+    def generate_facet_pages(self, attr: str, segment: str, label: str):
+        """Generate /<segment>/<value>/ pages for a multi-value Recipe facet (e.g. season, occasion)."""
+        groups: dict[str, list[Recipe]] = {}
+        for recipe in self.collection.recipes:
+            for value in getattr(recipe, attr) or []:
+                groups.setdefault(value, []).append(recipe)
+        for value, recipes in groups.items():
+            slug = slugify(value)
+            output_path = self.output_dir / segment / slug / "index.html"
+            self.generate_list_page(value.title(), recipes, output_path, subtitle=f"{label}: {value}")
 
     def generate_about_page(self):
         """Generate about page."""
@@ -304,6 +349,11 @@ class SiteGenerator:
         # Generate spirit pages
         logger.info("  Generating spirit pages...")
         self.generate_spirit_pages()
+
+        # Generate season/occasion pages
+        logger.info("  Generating season/occasion pages...")
+        self.generate_facet_pages("season", "season", "Season")
+        self.generate_facet_pages("occasion", "occasion", "Occasion")
 
         # Generate about page
         logger.info("  Generating about page...")

@@ -51,6 +51,17 @@
             <p class="text-lg italic text-cookbook-light max-w-2xl mx-auto my-8">{{ recipe.description }}</p>
             {% endif %}
 
+            {% if recipe.headnote %}
+            <p class="recipe-headnote">{{ recipe.headnote }}</p>
+            {% endif %}
+
+            {% if recipe.season or recipe.occasion %}
+            <div class="recipe-facets no-print">
+                {% for s in recipe.season %}<a href="{{ base_url }}/season/{{ s|lower }}/">{{ s }}</a>{% endfor %}
+                {% for o in recipe.occasion %}<a href="{{ base_url }}/occasion/{{ o|lower|replace(' ', '-') }}/">{{ o }}</a>{% endfor %}
+            </div>
+            {% endif %}
+
             {% if recipe.tags %}
             <div class="flex justify-center gap-4 flex-wrap mt-8 no-print">
                 {% for tag in recipe.tags %}
@@ -81,6 +92,44 @@
                 </div>
             </section>
         </div>
+
+        {% if recipe.yield_notes or recipe.make_ahead or recipe.storage or recipe.reheats %}
+        <dl class="recipe-notes">
+            {% if recipe.yield_notes %}<dt>Yield</dt><dd>{{ recipe.yield_notes }}</dd>{% endif %}
+            {% if recipe.make_ahead %}<dt>Make ahead</dt><dd>{{ recipe.make_ahead }}</dd>{% endif %}
+            {% if recipe.storage %}<dt>Keeps</dt><dd>{{ recipe.storage }}</dd>{% endif %}
+            {% if recipe.reheats %}<dt>Reheat</dt><dd>{{ recipe.reheats }}</dd>{% endif %}
+        </dl>
+        {% endif %}
+
+        {% if recipe.variations %}
+        <section class="recipe-variations">
+            <h2>Variations</h2>
+            <dl>
+                {% for v in recipe.variations %}
+                <dt>{{ v.name }}</dt>
+                <dd>{% if v.swap %}{{ v.swap }}{% endif %}{% if v.swap and v.note %} — {% endif %}{% if v.note %}{{ v.note }}{% endif %}</dd>
+                {% endfor %}
+            </dl>
+        </section>
+        {% endif %}
+
+        {% if cross_refs %}
+        <section class="recipe-crossrefs">
+            {% if cross_refs.serve_with %}
+            <h3>Serve with</h3>
+            <ul>{% for r in cross_refs.serve_with %}<li><a href="{{ base_url }}/recipes/{{ r.slug }}/">{{ r.title }}</a></li>{% endfor %}</ul>
+            {% endif %}
+            {% if cross_refs.pairs_with %}
+            <h3>Pairs with</h3>
+            <ul>{% for r in cross_refs.pairs_with %}<li><a href="{{ base_url }}/recipes/{{ r.slug }}/">{{ r.title }}</a></li>{% endfor %}</ul>
+            {% endif %}
+            {% if cross_refs.uses %}
+            <h3>Uses</h3>
+            <ul>{% for r in cross_refs.uses %}<li><a href="{{ base_url }}/recipes/{{ r.slug }}/">{{ r.title }}</a></li>{% endfor %}</ul>
+            {% endif %}
+        </section>
+        {% endif %}
 
         <!-- Recipe Footer -->
         <footer class="mt-16 pt-16 border-t border-cookbook-border">
