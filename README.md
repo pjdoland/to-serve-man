@@ -199,8 +199,23 @@ python build.py site
 # Build PDF only
 python build.py pdf
 
+# Generate LaTeX source only (no pdflatex compile — used by CI)
+python build.py latex
+
 # Validate recipes
 python build.py validate
+
+# Local dev server with auto-rebuild on file change
+python build.py serve
+
+# Run smoke tests
+python -m unittest discover -s tests -t . -v
+
+# Refresh snapshot fixtures after an intentional rendering change
+UPDATE_SNAPSHOTS=1 python -m unittest discover -s tests -t .
+
+# Lint and format
+ruff check . && ruff format .
 
 # Build with custom base URL
 python build.py site --base-url /my-cookbook
@@ -208,81 +223,78 @@ python build.py site --base-url /my-cookbook
 
 ### Output
 
-- **Website** - Generated in `docs/` directory
-- **PDF** - Generated as `output/cookbook.pdf`
+Both output directories are gitignored and rebuilt on every CI run:
+
+- **Website** - Generated in `docs/`
+- **PDF** - Generated as `output/cookbook.pdf` (and copied to `docs/cookbook.pdf` for download)
 
 ## Deployment
 
-### GitHub Pages
+Deployment is handled by `.github/workflows/deploy.yml`: every push to `main` validates recipes, runs the smoke tests, builds the site, compiles the PDF via `xu-cheng/latex-action`, and publishes to GitHub Pages via `actions/deploy-pages`.
 
-1. **Enable GitHub Pages**
-   - Go to your repository Settings → Pages
-   - Select "main" branch and "/docs" folder
-   - Click Save
+### GitHub Pages setup
 
-2. **Update configuration**
+1. **Enable GitHub Pages with the workflow source**
+   - Settings → Pages → Source: *GitHub Actions*
+2. **Set the site URL in the workflow**
 
-   Edit `.env`:
-   ```bash
-   BASE_URL=/your-repo-name
-   SITE_URL=https://yourusername.github.io/your-repo-name
+   Edit the `env:` block in `.github/workflows/deploy.yml`:
+   ```yaml
+   env:
+     BASE_URL: /your-repo-name
+     SITE_URL: https://yourusername.github.io/your-repo-name
    ```
+3. **Push to `main`** — the workflow runs automatically.
 
-3. **Rebuild and push**
-
-   ```bash
-   python build.py site
-   git add docs/
-   git commit -m "Update site"
-   git push
-   ```
-
-Your cookbook will be live at `https://yourusername.github.io/your-repo-name/`
+Your cookbook will be live at `https://yourusername.github.io/your-repo-name/`.
 
 ### Custom Domain
 
-1. Configure your domain in GitHub Pages settings
-2. Set `.env` configuration:
-   ```bash
-   BASE_URL=
-   SITE_URL=https://your-domain.com
+1. Configure your domain in GitHub Pages settings.
+2. Edit the workflow `env:` block:
+   ```yaml
+   env:
+     BASE_URL: ""
+     SITE_URL: https://your-domain.com
    ```
-3. Rebuild and deploy
+3. Push to `main`.
 
 ## Project Structure
 
 ```
 to-serve-man/
-├── recipes/           # Recipe files (.cook)
+├── recipes/              # Recipe files (.cook)
+│   ├── breakfast/
+│   ├── basics/
 │   ├── mains/
 │   ├── sides/
 │   ├── desserts/
 │   └── cocktails/
-├── content/           # Markdown content files
-│   ├── hero.md       # Homepage hero section
-│   └── about.md      # About page
-├── templates/         # Jinja2 HTML templates
-├── static/           # CSS and static assets
+├── content/              # Markdown content files
+│   ├── hero.md           # Homepage hero section
+│   └── about.md          # About page
+├── templates/            # Jinja2 HTML templates
+├── static/               # CSS and static assets
 │   ├── css/
-│   │   └── custom.css  # Custom CSS overrides
-│   └── js/           # Compiled JavaScript (gitignored)
-├── src/              # TypeScript source files
-│   └── search.ts     # Client-side search implementation
-├── latex/            # LaTeX templates for PDF
-├── docs/             # Generated website (output)
-│   ├── search-data.json  # Generated search index
-│   └── ...
-├── output/           # Generated PDF (output)
-├── recipe_parser.py  # Recipe parsing logic
-├── site_generator.py # Static site generator
-├── pdf_generator.py  # PDF generator
-├── config.py         # Configuration management
-├── build.py          # Build script
-├── setup.sh          # Setup script
-├── package.json      # Node.js dependencies
-├── tsconfig.json     # TypeScript configuration
-├── .env              # Your configuration (gitignored)
-└── .env.example      # Configuration template
+│   │   └── custom.css    # Custom CSS overrides
+│   └── js/               # Compiled JavaScript (gitignored)
+├── src/                  # TypeScript source files
+│   └── search.ts         # Client-side search implementation
+├── latex/                # LaTeX templates for PDF
+├── tests/                # Smoke tests (unittest)
+├── .github/workflows/    # CI/CD (build + deploy to GitHub Pages)
+├── docs/                 # Generated website (gitignored, built by CI)
+├── output/               # Generated PDF/LaTeX (gitignored, built by CI)
+├── recipe_parser.py      # Recipe parsing logic
+├── site_generator.py     # Static site generator
+├── pdf_generator.py      # PDF generator
+├── config.py             # Configuration management
+├── build.py              # Build script
+├── setup.sh              # Setup script
+├── package.json          # Node.js dependencies
+├── tsconfig.json         # TypeScript configuration
+├── .env                  # Your configuration (gitignored)
+└── .env.example          # Configuration template
 ```
 
 ## Recipe Metadata
@@ -343,13 +355,14 @@ deactivate
 
 ### Dependencies
 
-**Python** (in `requirements.txt`):
+**Python** (in `pyproject.toml`):
 - Jinja2 - Template engine
 - PyYAML - YAML parsing
 - python-slugify - URL-friendly slugs
 - python-dotenv - Environment configuration
 - markdown - Markdown processing
-- cooklang-py - Cooklang parser
+
+Dev extras (`pip install -e ".[dev]"`): ruff, mypy, watchfiles, pre-commit.
 
 **Node.js** (in `package.json`):
 - TypeScript - Type-safe JavaScript compilation

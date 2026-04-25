@@ -48,10 +48,7 @@ class RecipeSearch {
     try {
       const baseUrl = document.documentElement.dataset.baseUrl || '';
       const cacheBust = document.documentElement.dataset.cacheBust || '';
-      const url = cacheBust
-        ? `${baseUrl}/search-data.json?v=${cacheBust}`
-        : `${baseUrl}/search-data.json`;
-      const response = await fetch(url);
+      const response = await fetch(`${baseUrl}/search-data.json?v=${cacheBust}`);
       const data: SearchData = await response.json();
       this.recipes = data.recipes;
     } catch (error) {

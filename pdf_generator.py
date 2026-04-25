@@ -4,14 +4,14 @@ PDF cookbook generator for To Serve Man.
 Generates a beautifully typeset LaTeX cookbook and compiles it to PDF.
 """
 
-import os
-import re
+import logging
 import subprocess
 from pathlib import Path
-from typing import Dict, List
 
-from recipe_parser import RecipeCollection, Recipe
 import config
+from recipe_parser import Cookware, Ingredient, Recipe, RecipeCollection, Section, Step, Text, Timer
+
+logger = logging.getLogger("tsm.pdf")
 
 
 class PDFGenerator:
@@ -43,16 +43,16 @@ class PDFGenerator:
 
         # Replace special characters
         replacements = {
-            '&': r'\&',
-            '%': r'\%',
-            '$': r'\$',
-            '#': r'\#',
-            '_': r'\_',
-            '{': r'\{',
-            '}': r'\}',
-            '~': r'\textasciitilde{}',
-            '^': r'\^{}',
-            '\\': r'\textbackslash{}',
+            "&": r"\&",
+            "%": r"\%",
+            "$": r"\$",
+            "#": r"\#",
+            "_": r"\_",
+            "{": r"\{",
+            "}": r"\}",
+            "~": r"\textasciitilde{}",
+            "^": r"\^{}",
+            "\\": r"\textbackslash{}",
         }
 
         for char, replacement in replacements.items():
@@ -60,100 +60,44 @@ class PDFGenerator:
 
         return text
 
-    def parse_recipe_content(self, recipe: Recipe) -> tuple:
+    def parse_recipe_content(self, recipe: Recipe) -> tuple[list[str], list[tuple[str, str]]]:
+        """Render the recipe body to (ingredients_latex, instructions).
+
+        instructions is a list of `(kind, text)` tuples where kind is "section" or "step".
         """
-        Parse recipe content into LaTeX-ready ingredients and instructions.
+        parsed = recipe.parsed_body()
 
-        Returns:
-            Tuple of (ingredients_list, instructions_list)
-        """
-        # Extract content after frontmatter
-        content = re.sub(r'^---\s*\n.*?\n---\s*\n', '', recipe.raw_content, flags=re.DOTALL)
-
-        # Split into lines
-        lines = content.strip().split('\n')
-
-        ingredients_dict = {}  # Use dict to track unique ingredients
-        instructions = []
-
-        for line in lines:
-            line = line.strip()
-
-            # Skip empty lines and comments
-            if not line or line.startswith('--'):
+        unique_ingredients: list[str] = []
+        for ing in parsed.ingredients:
+            if not ing.from_braces:
                 continue
-
-            # Check for section headers
-            if line.startswith('>>'):
-                section_name = line[2:].strip()
-                instructions.append(('section', section_name))
-                continue
-
-            # Extract ingredients from this line for the ingredients list
-            # Pattern matches: @ingredient{quantity} or @ingredient{}
-            # Match anything except special Cooklang markers before the brace
-            for match in re.finditer(r'@([^{@#~]+?)\{([^}]*)\}', line):
-                ing_name = match.group(1).strip()
-                ing_qty = match.group(2).strip()
-
-                # Store in dict (will deduplicate automatically)
-                if ing_name.lower() not in ingredients_dict:
-                    if ing_qty:
-                        # Clean up quantity: replace % with space
-                        qty_clean = ing_qty.replace('%', ' ')
-                        # Store as tuple: (name, quantity)
-                        ingredients_dict[ing_name.lower()] = (ing_name, qty_clean)
-                    else:
-                        # Store as tuple: (name, None)
-                        ingredients_dict[ing_name.lower()] = (ing_name, None)
-
-            # Clean the instruction text by removing all Cooklang markup
-            instruction_text = line
-
-            # Replace Cooklang markers with plain text (do this BEFORE LaTeX escaping)
-            # Timers: ~{time} -> time (replace % with space) - DO THIS FIRST
-            def clean_timer(match):
-                return match.group(1).replace('%', ' ')
-            instruction_text = re.sub(r'~\{([^}]+)\}', clean_timer, instruction_text)
-
-            # Ingredients: @ingredient{quantity} -> ingredient
-            # Match @ followed by ingredient name, then optional {quantity}
-            instruction_text = re.sub(r'@([^@#~{}]+)\{[^}]*\}', r'\1', instruction_text)
-            # Also match ingredients without quantities: @ingredient
-            instruction_text = re.sub(r'@([^@#~{}\s]+)', r'\1', instruction_text)
-
-            # Cookware: #item{} or #item{quantity} -> item
-            instruction_text = re.sub(r'#([^@#~{}]+)\{[^}]*\}', r'\1', instruction_text)
-            # Also match cookware without braces: #item
-            instruction_text = re.sub(r'#([^@#~{}\s]+)', r'\1', instruction_text)
-
-            # Clean up any remaining empty braces or orphaned symbols
-            instruction_text = re.sub(r'\{\}', '', instruction_text)
-            instruction_text = re.sub(r'[@#~]', '', instruction_text)  # Remove orphaned markers
-
-            # Escape LaTeX special characters AFTER all Cooklang cleanup
-            instruction_text = self.escape_latex(instruction_text)
-
-            instructions.append(('step', instruction_text))
-
-        # Convert ingredients dict to list with bold names and en-dash separators
-        unique_ingredients = []
-        for ing_name_lower, ing_data in ingredients_dict.items():
-            if isinstance(ing_data, tuple):
-                # New format: (name, quantity or None)
-                ing_name, ing_qty = ing_data
-                if ing_qty:
-                    # Format: **name** – quantity (with proper en-dash spacing)
-                    formatted = f"\\textbf{{{self.escape_latex(ing_name)}}} -- {self.escape_latex(ing_qty)}"
-                else:
-                    # Just bold name
-                    formatted = f"\\textbf{{{self.escape_latex(ing_name)}}}"
-                unique_ingredients.append(formatted)
+            name_latex = self.escape_latex(ing.name)
+            qty = ing.qty_display
+            if qty:
+                unique_ingredients.append(f"\\textbf{{{name_latex}}} -- {self.escape_latex(qty)}")
             else:
-                # Legacy format (shouldn't happen, but handle it)
-                unique_ingredients.append(self.escape_latex(ing_data))
+                unique_ingredients.append(f"\\textbf{{{name_latex}}}")
+
+        instructions: list[tuple[str, str]] = []
+        for block in parsed.blocks:
+            if isinstance(block, Section):
+                instructions.append(("section", block.name))
+            else:
+                instructions.append(("step", self._render_step_latex(block)))
 
         return unique_ingredients, instructions
+
+    def _render_step_latex(self, step: Step) -> str:
+        """Render a step to plain LaTeX text — Cooklang markers stripped, special chars escaped."""
+        out: list[str] = []
+        for tok in step.tokens:
+            if isinstance(tok, Text):
+                out.append(self.escape_latex(tok.text))
+            elif isinstance(tok, (Ingredient, Cookware)):
+                out.append(self.escape_latex(tok.name))
+            elif isinstance(tok, Timer):
+                out.append(self.escape_latex(tok.display))
+        return "".join(out)
 
     def format_recipe_latex(self, recipe: Recipe) -> str:
         """
@@ -180,7 +124,7 @@ class PDFGenerator:
                 meta_parts.append(recipe.glass.title())
             if recipe.spirit_base:
                 meta_parts.append(recipe.spirit_base.title())
-            if recipe.garnish and recipe.garnish.lower() != 'none':
+            if recipe.garnish and recipe.garnish.lower() != "none":
                 meta_parts.append(f"Garnish: {recipe.garnish}")
         else:
             if recipe.servings:
@@ -193,7 +137,7 @@ class PDFGenerator:
         if meta_parts:
             # Use interpunct (·) for metadata separators
             escaped_parts = [self.escape_latex(part) for part in meta_parts]
-            meta_string = ' · '.join(escaped_parts)
+            meta_string = " · ".join(escaped_parts)
             latex.append(f"\\recipemeta{{{meta_string}}}")
 
         # Description
@@ -218,7 +162,7 @@ class PDFGenerator:
             # Group by sections
             current_section_items = []
             for item_type, item_content in instructions:
-                if item_type == 'section':
+                if item_type == "section":
                     # Output previous section if exists
                     if current_section_items:
                         latex.append("\\begin{enumerate}")
@@ -240,20 +184,20 @@ class PDFGenerator:
                 latex.append("\\end{enumerate}")
 
         # Attribution - \recipeattribution already adds "Recipe by" prefix
-        if recipe.metadata.get('author') or recipe.metadata.get('adapted_by'):
+        if recipe.metadata.get("author") or recipe.metadata.get("adapted_by"):
             attr_parts = []
-            if recipe.metadata.get('author'):
-                attr_parts.append(recipe.metadata['author'])
-            if recipe.metadata.get('adapted_by'):
+            if recipe.metadata.get("author"):
+                attr_parts.append(recipe.metadata["author"])
+            if recipe.metadata.get("adapted_by"):
                 attr_parts.append(f"adapted by {recipe.metadata['adapted_by']}")
             # First part is author, rest are adaptations
-            attr_string = ', '.join(attr_parts)
+            attr_string = ", ".join(attr_parts)
             latex.append(f"\\recipeattribution{{Recipe by {self.escape_latex(attr_string)}}}")
 
         # Add vertical space between recipes instead of forcing page breaks
         latex.append("\\vspace{3\\baselineskip}")
 
-        return '\n'.join(latex)
+        return "\n".join(latex)
 
     def generate_latex(self) -> str:
         """
@@ -266,18 +210,18 @@ class PDFGenerator:
 
         # Read preamble and replace placeholders
         preamble_file = self.latex_dir / "preamble.tex"
-        with open(preamble_file, 'r', encoding='utf-8') as f:
+        with open(preamble_file, encoding="utf-8") as f:
             preamble = f.read()
 
         # Replace title placeholder with lowercase version (small caps will uppercase it)
-        preamble = preamble.replace('{{COOKBOOK_TITLE_LOWER}}', self.escape_latex(self.pdf_title.lower()))
+        preamble = preamble.replace("{{COOKBOOK_TITLE_LOWER}}", self.escape_latex(self.pdf_title.lower()))
 
         # Replace author placeholder - only add author line if author is set
         if self.pdf_author:
-            author_line = f'{{\\large {self.escape_latex(self.pdf_author)}}}\\\\[1em]\n'
+            author_line = f"{{\\large {self.escape_latex(self.pdf_author)}}}\\\\[1em]\n"
         else:
-            author_line = ''
-        preamble = preamble.replace('{{COOKBOOK_AUTHOR_LINE}}', author_line)
+            author_line = ""
+        preamble = preamble.replace("{{COOKBOOK_AUTHOR_LINE}}", author_line)
 
         latex_parts.append(preamble)
 
@@ -286,26 +230,13 @@ class PDFGenerator:
         if food_recipes:
             latex_parts.append("\n\\part{Food}\n")
 
-            # Group by category
-            categories = {}
+            # Group by category, then output in canonical order
+            categories: dict[str, list[Recipe]] = {}
             for recipe in food_recipes:
-                if recipe.category not in categories:
-                    categories[recipe.category] = []
-                categories[recipe.category].append(recipe)
+                categories.setdefault(recipe.category, []).append(recipe)
 
-            # Sort categories
-            category_order = ['breakfast', 'basics', 'mains', 'sides', 'desserts']
-            sorted_categories = []
-            for cat in category_order:
-                if cat in categories:
-                    sorted_categories.append((cat, categories[cat]))
-            # Add any remaining categories
-            for cat, recipes in categories.items():
-                if cat not in category_order:
-                    sorted_categories.append((cat, recipes))
-
-            # Output each category as a chapter
-            for category, recipes in sorted_categories:
+            for category in config.order_food_categories(list(categories.keys())):
+                recipes = categories[category]
                 latex_parts.append(f"\n\\chapter{{{category.replace('-', ' ').title()}}}\n")
                 for recipe in sorted(recipes, key=lambda r: r.title):
                     latex_parts.append(self.format_recipe_latex(recipe))
@@ -325,68 +256,66 @@ class PDFGenerator:
 
         # Read closing
         closing_file = self.latex_dir / "closing.tex"
-        with open(closing_file, 'r', encoding='utf-8') as f:
+        with open(closing_file, encoding="utf-8") as f:
             latex_parts.append(f.read())
 
-        return '\n'.join(latex_parts)
+        return "\n".join(latex_parts)
 
     def write_latex(self) -> Path:
         """Generate LaTeX source and write it to disk. Returns the .tex path."""
         self.output_dir.mkdir(parents=True, exist_ok=True)
         tex_file = self.output_dir / "cookbook.tex"
-        tex_file.write_text(self.generate_latex(), encoding='utf-8')
+        tex_file.write_text(self.generate_latex(), encoding="utf-8")
         return tex_file
 
-    def compile_pdf(self, tex_file: str) -> bool:
+    def compile_pdf(self) -> bool:
         """
-        Compile LaTeX to PDF using pdflatex.
+        Compile cookbook.tex to PDF using pdflatex.
 
-        Cleans stale auxiliary files first so a previous broken build can't
-        poison this one with undefined references. Runs pdflatex twice so the
-        TOC resolves, and treats the build as successful only if pdflatex
-        produced an actual PDF on the second run.
+        Clears stale aux/toc so a previous broken build can't poison this one
+        with undefined references. Runs pdflatex twice so the TOC resolves.
         """
-        # Clean stale auxiliary files so we never compile against a poisoned aux.
-        for ext in ('aux', 'toc', 'out', 'log'):
+        for ext in ("aux", "toc", "out", "log"):
             (self.output_dir / f"cookbook.{ext}").unlink(missing_ok=True)
 
         try:
             for i in range(2):
                 result = subprocess.run(
-                    ['pdflatex', '-interaction=nonstopmode', str(tex_file)],
+                    ["pdflatex", "-interaction=nonstopmode", "cookbook.tex"],
                     cwd=self.output_dir,
                     capture_output=True,
                     text=True,
                     timeout=120,
                 )
-                # On the final run, fail loudly if pdflatex couldn't produce a PDF.
-                if i == 1 and not (self.output_dir / "cookbook.pdf").exists():
-                    print(f"Error compiling LaTeX (run {i+1}):")
-                    print(result.stdout)
+                if result.returncode != 0 and not (self.output_dir / "cookbook.pdf").exists():
+                    logger.error(f"Error compiling LaTeX (run {i + 1}):")
+                    logger.info(result.stdout)
                     return False
 
             return True
 
         except FileNotFoundError:
-            print("Error: pdflatex not found. Please install a LaTeX distribution (e.g., TeX Live, MiKTeX).")
+            logger.error(
+                "Error: pdflatex not found. Please install a LaTeX distribution (e.g., TeX Live, MiKTeX)."
+            )
             return False
         except subprocess.TimeoutExpired:
-            print("Error: LaTeX compilation timed out.")
+            logger.error("Error: LaTeX compilation timed out.")
             return False
 
     def generate_all(self):
         """Generate complete PDF cookbook."""
-        print("Generating PDF cookbook...")
+        logger.info("Generating PDF cookbook...")
 
-        print("  Generating LaTeX...")
+        logger.info("  Generating LaTeX...")
         tex_file = self.write_latex()
-        print(f"  LaTeX written to {tex_file}")
+        logger.info(f"  LaTeX written to {tex_file}")
 
-        print("  Compiling PDF...")
-        if self.compile_pdf("cookbook.tex"):
-            print(f"✓ PDF generated successfully: {self.output_dir / 'cookbook.pdf'}")
+        logger.info("  Compiling PDF...")
+        if self.compile_pdf():
+            logger.info(f"✓ PDF generated successfully: {self.output_dir / 'cookbook.pdf'}")
         else:
-            print("✗ PDF compilation failed. LaTeX source is available at:", tex_file)
+            logger.error("✗ PDF compilation failed. LaTeX source is available at:", tex_file)
 
 
 def generate_pdf(recipes_dir: str = None, output_dir: str = None):

@@ -1,0 +1,26 @@
+\needspace{4\baselineskip}
+\section{Classic French Toast}
+\recipemeta{4 servings · 5 minutes prep · 15 minutes cook}
+\recipedescription{Perfectly golden, custardy French toast with a hint of vanilla and cinnamon.}
+\subsection*{Ingredients}
+\begin{ingredients}
+\item \textbf{eggs} -- 4
+\item \textbf{whole milk} -- 1 cup
+\item \textbf{vanilla extract} -- 1 tsp
+\item \textbf{ground cinnamon} -- 1/2 tsp
+\item \textbf{salt} -- 1/4 tsp
+\item \textbf{butter} -- 2 tbsp
+\item \textbf{bread} -- 8 slices, day-old
+\item \textbf{maple syrup}
+\item \textbf{powdered sugar}
+\end{ingredients}
+\subsection*{Instructions}
+\begin{enumerate}
+\item In a shallow dish or pie plate, whisk together eggs, whole milk, vanilla extract, ground cinnamon, and salt.
+\item Heat a griddle or large skillet over medium heat. Add butter and let it melt.
+\item Dip bread into the egg mixture, letting each side soak for 3 seconds. Don't oversoak or the bread will fall apart.
+\item Place soaked bread on the hot griddle and cook for 3 minutes per side, until golden brown and cooked through.
+\item Serve hot with maple syrup and powdered sugar for dusting, if desired.
+\end{enumerate}
+\recipeattribution{Recipe by King Arthur Baking}
+\vspace{3\baselineskip}

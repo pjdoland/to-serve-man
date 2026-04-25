@@ -1,0 +1,24 @@
+INGREDIENTS:
+<ul>
+<li>water (4 liters)</li>
+<li>salt (2 tbsp)</li>
+<li>guanciale (200 g)</li>
+<li>pancetta (200 g)</li>
+<li>eggs (3)</li>
+<li>egg yolks (2)</li>
+<li>pecorino romano (100 g, finely grated)</li>
+<li>black pepper (generous amount, freshly ground)</li>
+<li>spaghetti (400 g)</li>
+<li>pasta water (1 cup)</li>
+</ul>
+
+INSTRUCTIONS:
+<ol>
+<li>Bring a large <span class="cookware">pot</span> of <span class="ingredient">water</span> to boil. Season generously with <span class="ingredient">salt</span>.</li>
+<li>While waiting, cut <span class="ingredient">guanciale</span> into small strips. If unavailable, use <span class="ingredient">pancetta</span> instead.</li>
+<li>Whisk together <span class="ingredient">eggs</span>, <span class="ingredient">egg yolks</span>, and <span class="ingredient">pecorino romano</span> in a <span class="cookware">mixing</span> bowl. Season with <span class="ingredient">black pepper</span>.</li>
+<li>Cook <span class="ingredient">spaghetti</span> in the boiling water for <span class="timer">2 minutes</span> less than package directions.</li>
+<li>Meanwhile, cook the guanciale in a cold <span class="cookware">skillet</span> over medium heat for <span class="timer">8 minutes</span> until fat renders and meat is crispy.</li>
+<li>Reserve <span class="ingredient">pasta water</span>, then drain pasta. Off heat, add pasta to skillet, then quickly stir in egg mixture. Toss vigorously, adding pasta water as needed to create a creamy sauce.</li>
+<li>Serve immediately with additional pecorino and black pepper.</li>
+</ol>

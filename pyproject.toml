@@ -1,0 +1,48 @@
+[project]
+name = "to-serve-man"
+version = "0.1.0"
+description = "A personal cookbook system built with Cooklang."
+requires-python = ">=3.10"
+dependencies = [
+    "Jinja2>=3.1.0",
+    "PyYAML>=6.0",
+    "python-slugify>=8.0.0",
+    "python-dotenv>=1.0.0",
+    "markdown>=3.5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.6.0",
+    "mypy>=1.10",
+    "watchfiles>=0.22",
+    "pre-commit>=3.7",
+    "types-PyYAML",
+    "types-Markdown",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 110
+extend-exclude = ["docs", "output", "venv", "node_modules"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",  # pycodestyle / pyflakes
+    "I",            # isort
+    "B",            # flake8-bugbear
+    "UP",           # pyupgrade
+    "SIM",          # flake8-simplify
+]
+ignore = [
+    "E501",  # line length handled by formatter
+    "SIM108",  # ternary preference, not always more readable
+]
+
+[tool.mypy]
+python_version = "3.10"
+strict_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+ignore_missing_imports = true
+exclude = ["docs/", "output/", "venv/", "node_modules/"]

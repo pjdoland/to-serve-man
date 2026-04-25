@@ -1,0 +1,40 @@
+\needspace{4\baselineskip}
+\section{Brown Butter Chocolate Chip Cookies}
+\recipemeta{24 servings · 20 minutes prep · 12 minutes cook}
+\recipedescription{Crispy edges, chewy centers, and complex nutty flavor from brown butter. Worth the extra step.}
+\subsection*{Ingredients}
+\begin{ingredients}
+\item \textbf{butter} -- 3/4 cup, 1.5 sticks
+\item \textbf{brown sugar} -- 3/4 cup, packed
+\item \textbf{granulated sugar} -- 1/2 cup
+\item \textbf{eggs} -- 2, large
+\item \textbf{vanilla extract} -- 2 tsp
+\item \textbf{all-purpose flour} -- 2 cups
+\item \textbf{baking soda} -- 1 tsp
+\item \textbf{salt} -- 1 tsp, flaky sea salt
+\item \textbf{chocolate chips} -- 12 oz, mix of dark and milk chocolate
+\item \textbf{flaky sea salt}
+\end{ingredients}
+\subsection*{Instructions}
+\subsubsection*{Brown the butter}
+\begin{enumerate}
+\item In a saucepan, melt butter over medium heat. Continue cooking, stirring frequently, until butter turns golden brown and smells nutty, about 5 minutes.
+\item Transfer browned butter to a large bowl and let cool for 10 minutes.
+\end{enumerate}
+\subsubsection*{Make the dough}
+\begin{enumerate}
+\item Add brown sugar and granulated sugar to the cooled butter. Whisk until combined.
+\item Add eggs and vanilla extract, whisking until smooth.
+\item In a separate bowl, whisk together all-purpose flour, baking soda, and salt.
+\item Fold dry ingredients into wet ingredients until just combined. Fold in chocolate chips.
+\end{enumerate}
+\subsubsection*{Bake}
+\begin{enumerate}
+\item Preheat oven to 375°F (190°C). Line baking sheets with parchment paper.
+\item Scoop dough into 2 tablespoon-sized balls and place on prepared baking sheets, spacing them 3 inches apart.
+\item Bake for 11-13 minutes until edges are golden brown but centers still look slightly underdone.
+\item Let cool on baking sheet for 5 minutes, then transfer to a wire rack.
+\item Sprinkle with extra flaky sea salt while still warm, if desired.
+\end{enumerate}
+\recipeattribution{Recipe by Claire Saffitz}
+\vspace{3\baselineskip}

@@ -1,0 +1,29 @@
+\needspace{4\baselineskip}
+\section{Pasta Carbonara}
+\recipemeta{4 servings · 10 minutes prep · 20 minutes cook}
+\recipedescription{A rich, creamy Roman classic made the authentic way—no cream needed.}
+\subsection*{Ingredients}
+\begin{ingredients}
+\item \textbf{water} -- 4 liters
+\item \textbf{salt} -- 2 tbsp
+\item \textbf{guanciale} -- 200 g
+\item \textbf{pancetta} -- 200 g
+\item \textbf{eggs} -- 3
+\item \textbf{egg yolks} -- 2
+\item \textbf{pecorino romano} -- 100 g, finely grated
+\item \textbf{black pepper} -- generous amount, freshly ground
+\item \textbf{spaghetti} -- 400 g
+\item \textbf{pasta water} -- 1 cup
+\end{ingredients}
+\subsection*{Instructions}
+\begin{enumerate}
+\item Bring a large pot of water to boil. Season generously with salt.
+\item While waiting, cut guanciale into small strips. If unavailable, use pancetta instead.
+\item Whisk together eggs, egg yolks, and pecorino romano in a mixing bowl. Season with black pepper.
+\item Cook spaghetti in the boiling water for 2 minutes less than package directions.
+\item Meanwhile, cook the guanciale in a cold skillet over medium heat for 8 minutes until fat renders and meat is crispy.
+\item Reserve pasta water, then drain pasta. Off heat, add pasta to skillet, then quickly stir in egg mixture. Toss vigorously, adding pasta water as needed to create a creamy sauce.
+\item Serve immediately with additional pecorino and black pepper.
+\end{enumerate}
+\recipeattribution{Recipe by J. Kenji López-Alt, adapted by PJ}
+\vspace{3\baselineskip}

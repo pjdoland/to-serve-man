@@ -4,136 +4,284 @@ Recipe parser and validator for To Serve Man cookbook system.
 Handles discovery, parsing, and validation of Cooklang recipe files.
 """
 
-import os
+import logging
 import re
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any
+
 import yaml
 from slugify import slugify
 
+import config
 
+logger = logging.getLogger("tsm.parser")
+
+
+# --- Cooklang body parsing ---------------------------------------------------
+
+INGREDIENT_RE = re.compile(r"@([^{@#~]+?)\{([^}]*)\}")
+INGREDIENT_NO_BRACE_RE = re.compile(r"@([^@#~{}\s]+)")
+COOKWARE_BRACE_RE = re.compile(r"#([^@#~{}]+?)\{([^}]*)\}")
+COOKWARE_NO_BRACE_RE = re.compile(r"#(\w+)")
+TIMER_RE = re.compile(r"~\{([^}]+)\}")
+# Order matters: braced forms must be tried before bare-word forms.
+TOKEN_RE = re.compile(
+    r"(?P<ing_brace>@[^{@#~]+?\{[^}]*\})"
+    r"|(?P<cw_brace>#[^@#~{}]+?\{[^}]*\})"
+    r"|(?P<ing>@[^@#~{}\s]+)"
+    r"|(?P<cw>#\w+)"
+    r"|(?P<timer>~\{[^}]+\})"
+)
+
+
+@dataclass(frozen=True)
+class Ingredient:
+    """An ingredient reference inside a step (e.g. @butter{2%tbsp}).
+
+    `from_braces` distinguishes `@x{...}` (which appears in the ingredients list)
+    from bare `@x` (which only gets highlighted inline).
+    """
+
+    name: str
+    qty: str = ""  # "2", "3/4", "" for unspecified
+    unit: str = ""  # "tbsp", "cup", "" for unitless
+    from_braces: bool = True
+
+    @property
+    def qty_display(self) -> str:
+        """Human-readable quantity ("2 tbsp", "3/4 cup", "")."""
+        if self.qty and self.unit:
+            return f"{self.qty} {self.unit}"
+        return self.qty or self.unit
+
+
+@dataclass(frozen=True)
+class Cookware:
+    name: str
+
+
+@dataclass(frozen=True)
+class Timer:
+    value: str  # "30"
+    unit: str = ""  # "seconds", "minutes"; "" if not specified
+
+    @property
+    def display(self) -> str:
+        return f"{self.value} {self.unit}".strip()
+
+
+@dataclass(frozen=True)
+class Text:
+    text: str
+
+
+StepToken = Text | Ingredient | Cookware | Timer
+
+
+@dataclass
+class Step:
+    """One instruction line, broken into typed tokens."""
+
+    tokens: list[StepToken] = field(default_factory=list)
+
+
+@dataclass
+class Section:
+    """A `>> Section name` header."""
+
+    name: str
+
+
+@dataclass
+class ParsedBody:
+    """Parsed Cooklang recipe body."""
+
+    ingredients: list[Ingredient]  # Deduplicated, in first-appearance order.
+    blocks: list[Section | Step]
+
+
+def _split_qty(raw: str) -> tuple[str, str]:
+    """Split Cooklang `qty%unit` into (qty, unit). `%` is the separator."""
+    if "%" not in raw:
+        return raw.strip(), ""
+    qty, unit = raw.split("%", 1)
+    return qty.strip(), unit.strip()
+
+
+def _strip_frontmatter(raw: str) -> str:
+    return re.sub(r"^---\s*\n.*?\n---\s*\n", "", raw, flags=re.DOTALL)
+
+
+def parse_body(raw_content: str) -> ParsedBody:
+    """Parse a Cooklang recipe body into structured tokens.
+
+    The output is renderer-agnostic: site_generator turns it into HTML,
+    pdf_generator into LaTeX. Comments (`-- ...`) are dropped; section
+    headers (`>> name`) become `Section` blocks; everything else is a `Step`
+    whose tokens preserve the literal text interleaved with typed references.
+    """
+    body = _strip_frontmatter(raw_content)
+    blocks: list[Section | Step] = []
+    seen_ingredients: dict[str, Ingredient] = {}  # key: lowercased name
+    ingredients_order: list[Ingredient] = []
+
+    for raw_line in body.strip().split("\n"):
+        line = raw_line.strip()
+        if not line or line.startswith("--"):
+            continue
+        if line.startswith(">>"):
+            blocks.append(Section(name=line[2:].strip()))
+            continue
+
+        tokens: list[StepToken] = []
+        cursor = 0
+        for match in TOKEN_RE.finditer(line):
+            if match.start() > cursor:
+                tokens.append(Text(text=line[cursor : match.start()]))
+            kind = match.lastgroup
+            chunk = match.group()
+            if kind == "ing_brace":
+                m = INGREDIENT_RE.fullmatch(chunk)
+                name = m.group(1).strip()
+                qty, unit = _split_qty(m.group(2))
+                ing = Ingredient(name=name, qty=qty, unit=unit)
+                tokens.append(ing)
+                key = name.lower()
+                if key not in seen_ingredients:
+                    seen_ingredients[key] = ing
+                    ingredients_order.append(ing)
+            elif kind == "ing":
+                m = INGREDIENT_NO_BRACE_RE.fullmatch(chunk)
+                name = m.group(1).strip()
+                ing = Ingredient(name=name, from_braces=False)
+                tokens.append(ing)
+                key = name.lower()
+                if key not in seen_ingredients:
+                    seen_ingredients[key] = ing
+                    ingredients_order.append(ing)
+            elif kind == "cw_brace":
+                m = COOKWARE_BRACE_RE.fullmatch(chunk)
+                tokens.append(Cookware(name=m.group(1).strip()))
+            elif kind == "cw":
+                m = COOKWARE_NO_BRACE_RE.fullmatch(chunk)
+                tokens.append(Cookware(name=m.group(1).strip()))
+            elif kind == "timer":
+                m = TIMER_RE.fullmatch(chunk)
+                value, unit = _split_qty(m.group(1))
+                tokens.append(Timer(value=value, unit=unit))
+            cursor = match.end()
+        if cursor < len(line):
+            tokens.append(Text(text=line[cursor:]))
+        blocks.append(Step(tokens=tokens))
+
+    return ParsedBody(ingredients=ingredients_order, blocks=blocks)
+
+
+# --- Recipe & RecipeCollection ----------------------------------------------
+
+
+@dataclass
 class Recipe:
-    """Represents a parsed recipe with metadata and content."""
+    """A parsed recipe with metadata and (lazily) a parsed body."""
 
-    def __init__(self, filepath: Path, parsed_data: Dict[str, Any], raw_content: str):
-        self.filepath = filepath
-        self.parsed_data = parsed_data
-        self.raw_content = raw_content
+    filepath: Path
+    raw_content: str
+    metadata: dict[str, Any]
+    is_cocktail: bool
+    category: str
+    slug: str
 
-        # Extract metadata from frontmatter
-        self.metadata = self._extract_metadata()
+    @classmethod
+    def from_path(cls, path: Path) -> "Recipe":
+        raw_content = path.read_text(encoding="utf-8")
+        metadata = cls._extract_metadata(raw_content)
+        is_cocktail = metadata.get("type") == "cocktail" or path.parent.name == config.COCKTAIL_FOLDER
+        slug = slugify(metadata.get("title", path.stem))
+        return cls(
+            filepath=path,
+            raw_content=raw_content,
+            metadata=metadata,
+            is_cocktail=is_cocktail,
+            category=path.parent.name,
+            slug=slug,
+        )
 
-        # Determine recipe type
-        self.is_cocktail = self.metadata.get('type') == 'cocktail' or 'cocktails' in str(filepath)
-
-        # Generate slug for URLs
-        self.slug = slugify(self.metadata.get('title', filepath.stem))
-
-        # Determine category from filepath
-        self.category = self._determine_category()
-
-    def _extract_metadata(self) -> Dict[str, Any]:
-        """Extract YAML frontmatter from raw content."""
-        # Match YAML frontmatter between --- markers
-        match = re.match(r'^---\s*\n(.*?)\n---\s*\n', self.raw_content, re.DOTALL)
-        if match:
-            try:
-                return yaml.safe_load(match.group(1)) or {}
-            except yaml.YAMLError as e:
-                raise ValueError(f"Invalid YAML frontmatter: {e}")
-        return {}
-
-    def _determine_category(self) -> str:
-        """Determine recipe category from filepath."""
-        # Get parent directory name
-        return self.filepath.parent.name
+    @staticmethod
+    def _extract_metadata(raw_content: str) -> dict[str, Any]:
+        match = re.match(r"^---\s*\n(.*?)\n---\s*\n", raw_content, re.DOTALL)
+        if not match:
+            return {}
+        try:
+            return yaml.safe_load(match.group(1)) or {}
+        except yaml.YAMLError as e:
+            raise ValueError(f"Invalid YAML frontmatter: {e}") from e
 
     @property
     def title(self) -> str:
-        """Get recipe title."""
-        return self.metadata.get('title', 'Untitled Recipe')
+        return self.metadata.get("title", "Untitled Recipe")
 
     @property
-    def description(self) -> Optional[str]:
-        """Get recipe description."""
-        return self.metadata.get('description')
+    def description(self) -> str | None:
+        return self.metadata.get("description")
 
     @property
-    def tags(self) -> List[str]:
-        """Get recipe tags."""
-        return self.metadata.get('tags', [])
+    def tags(self) -> list[str]:
+        return self.metadata.get("tags", [])
 
     @property
-    def cuisine(self) -> Optional[str]:
-        """Get cuisine type (food recipes only)."""
-        return self.metadata.get('cuisine')
+    def cuisine(self) -> str | None:
+        return self.metadata.get("cuisine")
 
     @property
-    def spirit_base(self) -> Optional[str]:
-        """Get spirit base (cocktail recipes only)."""
-        return self.metadata.get('spirit_base')
+    def spirit_base(self) -> str | None:
+        return self.metadata.get("spirit_base")
 
     @property
-    def difficulty(self) -> Optional[str]:
-        """Get difficulty level."""
-        return self.metadata.get('difficulty')
+    def difficulty(self) -> str | None:
+        return self.metadata.get("difficulty")
 
     @property
-    def servings(self) -> Optional[int]:
-        """Get number of servings."""
-        servings = self.metadata.get('servings')
-        if servings:
-            try:
-                return int(servings)
-            except (ValueError, TypeError):
-                return None
-        return None
+    def servings(self) -> int | None:
+        servings = self.metadata.get("servings")
+        if servings is None:
+            return None
+        try:
+            return int(servings)
+        except (ValueError, TypeError):
+            return None
 
     @property
-    def prep_time(self) -> Optional[str]:
-        """Get prep time."""
-        return self.metadata.get('prep_time')
+    def prep_time(self) -> str | None:
+        return self.metadata.get("prep_time")
 
     @property
-    def cook_time(self) -> Optional[str]:
-        """Get cook time."""
-        return self.metadata.get('cook_time')
+    def cook_time(self) -> str | None:
+        return self.metadata.get("cook_time")
 
     @property
-    def glass(self) -> Optional[str]:
-        """Get glass type (cocktails only)."""
-        return self.metadata.get('glass')
+    def glass(self) -> str | None:
+        return self.metadata.get("glass")
 
     @property
-    def garnish(self) -> Optional[str]:
-        """Get garnish (cocktails only)."""
-        return self.metadata.get('garnish')
+    def garnish(self) -> str | None:
+        return self.metadata.get("garnish")
 
-    def validate(self) -> List[str]:
-        """
-        Validate recipe and return list of errors/warnings.
+    def parsed_body(self) -> ParsedBody:
+        """Return the body parsed into structured tokens."""
+        return parse_body(self.raw_content)
 
-        Returns:
-            List of error/warning messages (empty if valid)
-        """
+    def validate(self) -> list[str]:
         errors = []
-
-        # Check required fields
-        if not self.title or self.title == 'Untitled Recipe':
+        if not self.title or self.title == "Untitled Recipe":
             errors.append(f"{self.filepath}: Missing required field 'title'")
-
-        # Validate recipe-type-specific fields
         if self.is_cocktail:
-            # Cocktail validations
             if not self.spirit_base:
                 errors.append(f"{self.filepath}: Cocktail recipes should have 'spirit_base'")
             if not self.glass:
                 errors.append(f"{self.filepath}: Cocktail recipes should have 'glass'")
-        else:
-            # Food recipe validations
-            if not self.cuisine:
-                errors.append(f"{self.filepath}: Food recipes should have 'cuisine'")
-
+        elif not self.cuisine:
+            errors.append(f"{self.filepath}: Food recipes should have 'cuisine'")
         return errors
 
 
@@ -142,134 +290,72 @@ class RecipeCollection:
 
     def __init__(self, recipes_dir: Path):
         self.recipes_dir = Path(recipes_dir)
-        self.recipes: List[Recipe] = []
+        self.recipes: list[Recipe] = []
         self._loaded = False
 
-    def discover_recipes(self) -> List[Path]:
-        """Discover all .cook files in recipes directory."""
+    def discover_recipes(self) -> list[Path]:
         if not self.recipes_dir.exists():
             raise FileNotFoundError(f"Recipes directory not found: {self.recipes_dir}")
-
         return list(self.recipes_dir.rglob("*.cook"))
 
     def load_recipes(self, use_cooklang_parser: bool = False):
-        """
-        Load and parse all recipes.
-
-        Args:
-            use_cooklang_parser: If True, use cooklang-py library for parsing.
-                                If False, just extract metadata (faster, no C extension needed).
-        """
-        recipe_files = self.discover_recipes()
-
-        for recipe_file in recipe_files:
+        """Load and parse all recipes. `use_cooklang_parser` is accepted for backward-compat and ignored."""
+        del use_cooklang_parser
+        for recipe_file in self.discover_recipes():
             try:
-                # Read raw content
-                with open(recipe_file, 'r', encoding='utf-8') as f:
-                    raw_content = f.read()
-
-                # Parse with cooklang if requested
-                parsed_data = {}
-                if use_cooklang_parser:
-                    try:
-                        import cooklang
-                        parsed_data = cooklang.parseRecipe(str(recipe_file))
-                    except ImportError:
-                        print("Warning: cooklang-py not installed. Falling back to metadata-only parsing.")
-                    except Exception as e:
-                        print(f"Warning: Failed to parse {recipe_file} with cooklang: {e}")
-
-                # Create Recipe object
-                recipe = Recipe(recipe_file, parsed_data, raw_content)
-                self.recipes.append(recipe)
-
-            except Exception as e:
-                print(f"Error loading recipe {recipe_file}: {e}")
-
+                self.recipes.append(Recipe.from_path(recipe_file))
+            except Exception:
+                logger.exception(f"Error loading recipe {recipe_file}")
         self._loaded = True
         return self.recipes
 
-    def validate_all(self) -> Dict[str, List[str]]:
-        """
-        Validate all recipes.
-
-        Returns:
-            Dictionary mapping recipe paths to lists of errors
-        """
+    def validate_all(self) -> dict[str, list[str]]:
         if not self._loaded:
             self.load_recipes()
-
         all_errors = {}
         for recipe in self.recipes:
             errors = recipe.validate()
             if errors:
                 all_errors[str(recipe.filepath)] = errors
-
         return all_errors
 
-    def get_by_category(self) -> Dict[str, List[Recipe]]:
-        """Group recipes by category."""
-        categories = {}
+    def get_by_category(self) -> dict[str, list[Recipe]]:
+        out: dict[str, list[Recipe]] = {}
         for recipe in self.recipes:
-            category = recipe.category
-            if category not in categories:
-                categories[category] = []
-            categories[category].append(recipe)
-        return categories
+            out.setdefault(recipe.category, []).append(recipe)
+        return out
 
-    def get_by_tag(self) -> Dict[str, List[Recipe]]:
-        """Group recipes by tag."""
-        tags = {}
+    def get_by_tag(self) -> dict[str, list[Recipe]]:
+        out: dict[str, list[Recipe]] = {}
         for recipe in self.recipes:
             for tag in recipe.tags:
-                if tag not in tags:
-                    tags[tag] = []
-                tags[tag].append(recipe)
-        return tags
+                out.setdefault(tag, []).append(recipe)
+        return out
 
-    def get_by_cuisine(self) -> Dict[str, List[Recipe]]:
-        """Group food recipes by cuisine."""
-        cuisines = {}
+    def get_by_cuisine(self) -> dict[str, list[Recipe]]:
+        out: dict[str, list[Recipe]] = {}
         for recipe in self.recipes:
             if not recipe.is_cocktail and recipe.cuisine:
-                cuisine = recipe.cuisine
-                if cuisine not in cuisines:
-                    cuisines[cuisine] = []
-                cuisines[cuisine].append(recipe)
-        return cuisines
+                out.setdefault(recipe.cuisine, []).append(recipe)
+        return out
 
-    def get_by_spirit(self) -> Dict[str, List[Recipe]]:
-        """Group cocktail recipes by spirit base."""
-        spirits = {}
+    def get_by_spirit(self) -> dict[str, list[Recipe]]:
+        out: dict[str, list[Recipe]] = {}
         for recipe in self.recipes:
             if recipe.is_cocktail and recipe.spirit_base:
-                spirit = recipe.spirit_base
-                if spirit not in spirits:
-                    spirits[spirit] = []
-                spirits[spirit].append(recipe)
-        return spirits
+                out.setdefault(recipe.spirit_base, []).append(recipe)
+        return out
 
     @property
-    def food_recipes(self) -> List[Recipe]:
-        """Get all food recipes."""
+    def food_recipes(self) -> list[Recipe]:
         return [r for r in self.recipes if not r.is_cocktail]
 
     @property
-    def cocktail_recipes(self) -> List[Recipe]:
-        """Get all cocktail recipes."""
+    def cocktail_recipes(self) -> list[Recipe]:
         return [r for r in self.recipes if r.is_cocktail]
 
 
 def load_and_parse_recipes(recipes_dir: str = "recipes") -> RecipeCollection:
-    """
-    Convenience function to load recipes.
-
-    Args:
-        recipes_dir: Path to recipes directory
-
-    Returns:
-        RecipeCollection with loaded recipes
-    """
     collection = RecipeCollection(Path(recipes_dir))
-    collection.load_recipes(use_cooklang_parser=False)  # Start with simple parsing
+    collection.load_recipes()
     return collection

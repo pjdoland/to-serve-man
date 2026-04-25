@@ -1,0 +1,21 @@
+INGREDIENTS:
+<ul>
+<li>eggs (4)</li>
+<li>whole milk (1 cup)</li>
+<li>vanilla extract (1 tsp)</li>
+<li>ground cinnamon (1/2 tsp)</li>
+<li>salt (1/4 tsp)</li>
+<li>butter (2 tbsp)</li>
+<li>bread (8 slices, day-old)</li>
+<li>maple syrup</li>
+<li>powdered sugar</li>
+</ul>
+
+INSTRUCTIONS:
+<ol>
+<li>In a shallow <span class="cookware">dish</span> or <span class="cookware">pie</span> plate, whisk together <span class="ingredient">eggs</span>, <span class="ingredient">whole milk</span>, <span class="ingredient">vanilla extract</span>, <span class="ingredient">ground cinnamon</span>, and <span class="ingredient">salt</span>.</li>
+<li>Heat a <span class="cookware">griddle</span> or large <span class="cookware">skillet</span> over medium heat. Add <span class="ingredient">butter</span> and let it melt.</li>
+<li>Dip <span class="ingredient">bread</span> into the egg mixture, letting each side soak for <span class="timer">3 seconds</span>. Don't oversoak or the bread will fall apart.</li>
+<li>Place soaked bread on the hot griddle and cook for <span class="timer">3 minutes</span> per side, until golden brown and cooked through.</li>
+<li>Serve hot with <span class="ingredient">maple syrup</span> and <span class="ingredient">powdered sugar</span> for dusting, if desired.</li>
+</ol>
