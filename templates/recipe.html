@@ -105,19 +105,29 @@
                         </div>
                     </div>
                 </div>
-                <div class="tsm-group" data-group="mode">
-                    <button class="tsm-btn tsm-btn-primary" type="button" data-action="cook-mode" aria-pressed="false">Cook view</button>
-                </div>
-                <div class="tsm-group" data-group="action">
-                    <button class="tsm-btn tsm-fav" type="button" data-action="favorite" aria-pressed="false">♡ Save</button>
-                    <button class="tsm-btn" type="button" data-action="add-to-list"><span aria-hidden="true">+ </span>Add to list</button>
-                    <details class="tsm-menu">
-                        <summary class="tsm-btn">Print<span aria-hidden="true"> ▾</span></summary>
-                        <div class="tsm-menu-popover" role="menu">
-                            <button type="button" role="menuitem" class="tsm-menu-item" data-action="print-full">Full recipe</button>
-                            <button type="button" role="menuitem" class="tsm-menu-item" data-action="print-card">4×6 card</button>
-                        </div>
-                    </details>
+                <div class="tsm-actions-row">
+                    <div class="tsm-group" data-group="mode">
+                        <button class="tsm-btn tsm-btn-toggle" type="button" data-action="cook-mode" aria-pressed="false">
+                            <span aria-hidden="true" class="tsm-btn-icon">▶</span><span class="tsm-btn-label">Start cook view</span>
+                        </button>
+                    </div>
+                    <div class="tsm-group" data-group="action">
+                        <button class="tsm-btn tsm-fav" type="button" data-action="favorite" aria-pressed="false" aria-label="Save recipe">
+                            <span aria-hidden="true" class="tsm-btn-icon">♡</span><span class="tsm-btn-label">Save</span>
+                        </button>
+                        <button class="tsm-btn" type="button" data-action="add-to-list" aria-label="Add ingredients to shopping list">
+                            <span aria-hidden="true" class="tsm-btn-icon">+</span><span class="tsm-btn-label">Shopping list</span>
+                        </button>
+                        <details class="tsm-menu">
+                            <summary class="tsm-btn" aria-label="Print options">
+                                <span aria-hidden="true" class="tsm-btn-icon">⎙</span><span class="tsm-btn-label">Print</span><span aria-hidden="true"> ▾</span>
+                            </summary>
+                            <div class="tsm-menu-popover" role="menu">
+                                <button type="button" role="menuitem" class="tsm-menu-item" data-action="print-full">Full recipe</button>
+                                <button type="button" role="menuitem" class="tsm-menu-item" data-action="print-card">4×6 card</button>
+                            </div>
+                        </details>
+                    </div>
                 </div>
             </div>
         </section>

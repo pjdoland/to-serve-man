@@ -303,12 +303,16 @@ function installCookMode(): void {
     liveRegion.textContent = msg;
   };
 
+  const cookIcon = btn.querySelector<HTMLElement>(".tsm-btn-icon");
+  const cookLabel = btn.querySelector<HTMLElement>(".tsm-btn-label");
+
   const toggle = () => {
     active = !active;
     document.body.classList.toggle("cook-mode", active);
     btn.classList.toggle("is-active", active);
     btn.setAttribute("aria-pressed", active ? "true" : "false");
-    btn.textContent = active ? "Exit cook view" : "Cook view";
+    if (cookIcon) cookIcon.textContent = active ? "✕" : "▶";
+    if (cookLabel) cookLabel.textContent = active ? "Exit cook view" : "Start cook view";
     if (active) {
       addCheckboxes(ingItems, "ing");
       addCheckboxes(stepItems, "step");
@@ -342,10 +346,13 @@ function installFavorites(): void {
   const made = document.querySelector<HTMLButtonElement>('[data-action="made-it"]');
   if (!slug || !heart || !made) return;
 
+  const heartIcon = heart.querySelector<HTMLElement>(".tsm-btn-icon");
+  const heartLabel = heart.querySelector<HTMLElement>(".tsm-btn-label");
   const updateHeart = () => {
     const favs = loadJson<FavoritesStore>(STORAGE_KEYS.favorites, { favorites: [] });
     const isFav = favs.favorites.includes(slug);
-    heart.textContent = isFav ? "♥ Saved" : "♡ Save";
+    if (heartIcon) heartIcon.textContent = isFav ? "♥" : "♡";
+    if (heartLabel) heartLabel.textContent = isFav ? "Saved" : "Save";
     heart.classList.toggle("is-active", isFav);
     heart.setAttribute("aria-pressed", isFav ? "true" : "false");
   };

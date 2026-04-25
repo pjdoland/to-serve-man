@@ -644,6 +644,14 @@ article em     { font-style: italic; }
   gap: 0.4rem;
   padding: 0;
 }
+@media (max-width: 700px) {
+  .tsm-group[data-group="adjust"] {
+    justify-content: center;
+    gap: 0.75rem 1rem;
+  }
+  .tsm-tool-label { font-size: 0.65rem; }
+  .tsm-seg { padding: 0.4rem 0.65rem; min-width: 38px; min-height: 40px; font-size: 0.8rem; }
+}
 /* Hairline divider between groups (desktop only) */
 .tsm-group {
   display: inline-flex;
@@ -656,12 +664,83 @@ article em     { font-style: italic; }
   padding-left: 1rem;
   margin-left: 0.25rem;
 }
+
+/* Mobile (≤700px): collapse to two tight rows.
+   Row 1: Adjust group (Scale + Units, compact, full-width).
+   Row 2: Mode + Action groups together (Cook view + Save + Shopping list + Print).
+   Action buttons drop their text labels and become icon-only at the smallest sizes. */
+/* Wrapper: groups Mode + Action so they share one row on mobile. Desktop keeps
+   them inline with the same hairline divider as before via .tsm-group + .tsm-group. */
+.tsm-actions-row {
+  display: contents;
+}
 @media (max-width: 700px) {
+  .tsm-actions-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+}
+
+/* Mobile (≤700px): two tight rows. Row 1 = Adjust (Scale + Units side-by-side
+   without text labels). Row 2 = Mode (Cook view) + Action (♡ + ⎙) all icons. */
+@media (max-width: 700px) {
+  .tsm-toolbar-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.75rem 0.75rem;
+  }
+  .tsm-group {
+    width: 100%;
+    justify-content: center;
+    gap: 0.5rem;
+  }
   .tsm-group + .tsm-group {
     border-left: none;
     padding-left: 0;
     margin-left: 0;
+    border-top: 1px solid var(--cb-rule);
+    padding-top: 0.5rem;
   }
+  /* Hide SCALE/UNITS labels on mobile — the segmented controls speak for themselves. */
+  .tsm-tool-label { display: none; }
+  /* Mode + Action groups share a single row at narrow widths. */
+  .tsm-group[data-group="mode"],
+  .tsm-group[data-group="action"] {
+    width: auto;
+    flex: 0 1 auto;
+    border-top: none;
+    padding-top: 0;
+  }
+  /* Wrap mode+action together inside one parent row — done via .tsm-toolbar-inner
+     keeping a third "row" only when both groups overflow. */
+  .tsm-group[data-group="mode"] + .tsm-group[data-group="action"],
+  .tsm-group[data-group="action"] + .tsm-group[data-group="mode"] {
+    border-top: none;
+    padding-top: 0;
+    margin-left: 0.5rem;
+  }
+  /* Compact action buttons: icon-led, tight padding. */
+  .tsm-group[data-group="action"] .tsm-btn,
+  .tsm-group[data-group="mode"] .tsm-btn {
+    padding: 0.5rem 0.7rem;
+    min-width: 44px;
+    font-size: 0.8rem;
+  }
+}
+
+/* Phone narrow (≤480px): action buttons drop text labels, keep accessible names. */
+@media (max-width: 480px) {
+  .tsm-group[data-group="action"] .tsm-btn-label {
+    position: absolute;
+    width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+  .tsm-group[data-group="action"] .tsm-btn { gap: 0; padding: 0.5rem; }
+  .tsm-btn-icon { font-size: 1.05rem; }
 }
 .tsm-tool-label {
   font-size: 0.7rem;
@@ -741,9 +820,12 @@ details > summary::-webkit-details-marker { display: none; }
 }
 .tsm-menu-item:hover,
 .tsm-menu-item:focus-visible { background: var(--cb-warm); color: var(--cb-accent); outline-offset: -2px; }
-/* Toolbar buttons: outlined ghost by default; primary CTA gets filled-dark.
-   All buttons are ≥44px tall (WCAG 2.5.8 + comfortable for wet fingers). */
+/* Toolbar buttons: outlined ghost by default. ≥44×44 (WCAG 2.5.8). */
 .tsm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   font-family: "Helvetica Neue", sans-serif;
   font-size: 0.85rem;
   min-height: 44px;
@@ -760,29 +842,46 @@ details > summary::-webkit-details-marker { display: none; }
   border-color: var(--cb-accent);
   color: var(--cb-accent);
 }
-/* Filled-dark state — used for both `.is-active` toggle state and the primary CTA. */
-.tsm-btn.is-active,
-.tsm-btn[aria-pressed="true"],
+.tsm-btn-icon { display: inline-flex; line-height: 1; }
+
+/* One-shot primary CTA (filled-dark) — for actions, NOT toggles. */
 .tsm-btn-primary {
   background: var(--cb-text);
   color: var(--cb-bg);
   border-color: var(--cb-text);
+  font-weight: 500;
 }
-.tsm-btn-primary { font-weight: 500; }
-.tsm-btn-primary:hover,
-.tsm-btn-primary.is-active,
-.tsm-btn-primary[aria-pressed="true"] {
+.tsm-btn-primary:hover {
   background: var(--cb-header);
   border-color: var(--cb-header);
   color: var(--cb-on-header);
 }
 
+/* Toggle: outlined off → filled cordovan on. Cook view uses this so the off-state
+   doesn't lie about being "currently active." */
+.tsm-btn-toggle:hover { border-color: var(--cb-header); color: var(--cb-header); }
+.tsm-btn-toggle[aria-pressed="true"],
+.tsm-btn-toggle.is-active {
+  background: var(--cb-header);
+  color: var(--cb-on-header);
+  border-color: var(--cb-header);
+}
+.tsm-btn-toggle[aria-pressed="true"]:hover,
+.tsm-btn-toggle.is-active:hover {
+  background: var(--cb-text);
+  border-color: var(--cb-text);
+  color: var(--cb-bg);
+}
+
+/* Generic .is-active for non-toggle .tsm-btn (used by Save heart variant only). */
 .tsm-fav.is-active,
 .tsm-fav[aria-pressed="true"] {
   color: var(--cb-accent);
   border-color: var(--cb-accent);
   background: var(--cb-bg);
 }
+.tsm-fav.is-active .tsm-btn-icon,
+.tsm-fav[aria-pressed="true"] .tsm-btn-icon { color: var(--cb-accent); }
 
 /* Scaled badge */
 body.is-scaled .recipe-ingredients h2::after {
