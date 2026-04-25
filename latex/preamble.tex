@@ -231,18 +231,16 @@
     \par\vspace{0.75\baselineskip}%
 }
 
-% Recipe notes block (yield/make-ahead/storage/reheat) — boxed, small
-\usepackage{tcolorbox}
-\tcbuselibrary{skins}
+% Recipe notes block (yield/make-ahead/storage/reheat). Plain top/bottom rules
+% rather than tcolorbox — tcolorbox pulls in tikz and conflicts with titlesec's
+% \titlerule under certain TeX Live versions (e.g. the action's Docker image).
 \newcommand{\recipenotes}[1]{%
     \par\vspace{0.5\baselineskip}%
-    \begin{tcolorbox}[
-        enhanced, sharp corners, boxrule=0pt,
-        left=0.6em, right=0.6em, top=0.4em, bottom=0.4em,
-        colback=white, borderline north={0.4pt}{0pt}{black!40},
-                       borderline south={0.4pt}{0pt}{black!40}]
-        {\small #1}
-    \end{tcolorbox}%
+    \noindent\rule{\textwidth}{0.4pt}\par%
+    \vspace{0.3\baselineskip}%
+    {\small #1}\par%
+    \vspace{0.3\baselineskip}%
+    \noindent\rule{\textwidth}{0.4pt}%
     \par\vspace{0.5\baselineskip}%
 }
 
