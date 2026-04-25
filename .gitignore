@@ -42,8 +42,8 @@ Thumbs.db
 *.tmp
 
 # TypeScript compilation output
-static/js/search.js
-static/js/search.js.map
+static/js/*.js
+static/js/*.js.map
 
 # Built Tailwind CSS
 static/css/tailwind.css

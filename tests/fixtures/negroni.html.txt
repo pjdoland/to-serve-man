@@ -9,8 +9,8 @@ INGREDIENTS:
 
 INSTRUCTIONS:
 <ol>
-<li>Add <span class="ingredient">gin</span>, <span class="ingredient">Campari</span>, and <span class="ingredient">sweet vermouth</span> to a <span class="cookware">mixing</span> glass with ice.</li>
-<li>Stir for <span class="timer">30 seconds</span> until well chilled and properly diluted.</li>
-<li>Strain into a <span class="cookware">rocks</span> glass over <span class="ingredient">large ice cube</span>.</li>
+<li>Add <span class="ingredient" data-amount="1" data-unit="oz">gin</span>, <span class="ingredient" data-amount="1" data-unit="oz">Campari</span>, and <span class="ingredient" data-amount="1" data-unit="oz">sweet vermouth</span> to a <span class="cookware">mixing</span> glass with ice.</li>
+<li>Stir for <span class="timer" data-value="30" data-unit="seconds">30 seconds</span> until well chilled and properly diluted.</li>
+<li>Strain into a <span class="cookware">rocks</span> glass over <span class="ingredient" data-amount="1" data-unit="">large ice cube</span>.</li>
 <li>Express the oils from an <span class="ingredient">orange peel</span> over the drink by holding it over the glass and giving it a good twist. Rub the peel around the rim of the glass, then drop it in.</li>
 </ol>

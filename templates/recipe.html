@@ -26,7 +26,8 @@
 {% endblock %}
 
 {% block content %}
-<article class="pb-24">
+<script type="module" src="{{ base_url }}/static/js/recipe-app.js?v={{ cache_bust }}"></script>
+<article class="pb-24" data-recipe-slug="{{ recipe.slug }}">
     <div class="max-w-cookbook mx-auto px-8">
         <!-- Recipe Header -->
         <header class="text-center py-16 mb-16 border-b border-cookbook-border">

@@ -11,7 +11,7 @@
 
     {% if is_homepage %}
     <link rel="prefetch" href="{{ base_url }}/search-data.json?v={{ cache_bust }}" as="fetch" crossorigin>
-    <script defer src="{{ base_url }}/static/js/search.js?v={{ cache_bust }}"></script>
+    <script type="module" src="{{ base_url }}/static/js/search.js?v={{ cache_bust }}"></script>
     {% endif %}
 
     {% block head_extra %}{% endblock %}
@@ -43,8 +43,10 @@
                     <a href="{{ base_url }}/" class="nav-link font-normal border-none text-cookbook-text">Home</a>
                     <a href="{{ base_url }}/food/" class="nav-link font-normal border-none text-cookbook-text">Food</a>
                     <a href="{{ base_url }}/cocktails/" class="nav-link font-normal border-none text-cookbook-text">Cocktails</a>
+                    <a href="{{ base_url }}/favorites/" class="nav-link font-normal border-none text-cookbook-text">Favorites</a>
+                    <a href="{{ base_url }}/shopping-list/" class="nav-link font-normal border-none text-cookbook-text">List</a>
                     <a href="{{ base_url }}/about/" class="nav-link font-normal border-none text-cookbook-text">About</a>
-                    <a href="{{ base_url }}/cookbook.pdf" class="nav-link font-normal border-none text-cookbook-text" download>Download PDF</a>
+                    <a href="{{ base_url }}/cookbook.pdf" class="nav-link font-normal border-none text-cookbook-text" download>PDF</a>
                 </nav>
             </div>
 
@@ -52,6 +54,8 @@
                 <a href="{{ base_url }}/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Home</a>
                 <a href="{{ base_url }}/food/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Food</a>
                 <a href="{{ base_url }}/cocktails/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Cocktails</a>
+                <a href="{{ base_url }}/favorites/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Favorites</a>
+                <a href="{{ base_url }}/shopping-list/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Shopping List</a>
                 <a href="{{ base_url }}/about/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">About</a>
                 <a href="{{ base_url }}/cookbook.pdf" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline" download>Download PDF</a>
             </nav>

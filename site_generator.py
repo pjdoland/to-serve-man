@@ -150,11 +150,14 @@ class SiteGenerator:
             if isinstance(tok, Text):
                 out.append(tok.text)
             elif isinstance(tok, Ingredient):
-                out.append(f'<span class="ingredient">{tok.name}</span>')
+                attrs = f' data-amount="{tok.qty}" data-unit="{tok.unit}"' if (tok.qty or tok.unit) else ""
+                out.append(f'<span class="ingredient"{attrs}>{tok.name}</span>')
             elif isinstance(tok, Cookware):
                 out.append(f'<span class="cookware">{tok.name}</span>')
             elif isinstance(tok, Timer):
-                out.append(f'<span class="timer">{tok.display}</span>')
+                out.append(
+                    f'<span class="timer" data-value="{tok.value}" data-unit="{tok.unit}">{tok.display}</span>'
+                )
         return "".join(out)
 
     def _resolve_cross_refs(self, recipe: Recipe) -> dict[str, list[Recipe]]:
@@ -261,6 +264,21 @@ class SiteGenerator:
             output_path = self.output_dir / segment / slug / "index.html"
             self.generate_list_page(value.title(), recipes, output_path, subtitle=f"{label}: {value}")
 
+    def generate_favorites_page(self):
+        """Generate /favorites/ shell — content populated client-side from localStorage."""
+        recipe_index = [
+            {"slug": r.slug, "title": r.title, "url": f"{self.base_url}/recipes/{r.slug}/"}
+            for r in self.collection.recipes
+        ]
+        context = {"recipe_index": recipe_index}
+        output_path = self.output_dir / "favorites" / "index.html"
+        self.render_template("favorites.html", context, output_path)
+
+    def generate_shopping_list_page(self):
+        """Generate /shopping-list/ shell — content populated client-side from localStorage."""
+        output_path = self.output_dir / "shopping-list" / "index.html"
+        self.render_template("shopping-list.html", {}, output_path)
+
     def generate_about_page(self):
         """Generate about page."""
         about_content = self.load_markdown_content("about.md")
@@ -354,6 +372,11 @@ class SiteGenerator:
         logger.info("  Generating season/occasion pages...")
         self.generate_facet_pages("season", "season", "Season")
         self.generate_facet_pages("occasion", "occasion", "Occasion")
+
+        # Generate favorites + shopping list shells
+        logger.info("  Generating favorites + shopping-list shells...")
+        self.generate_favorites_page()
+        self.generate_shopping_list_page()
 
         # Generate about page
         logger.info("  Generating about page...")

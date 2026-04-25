@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Shopping List — {{ site_title }}{% endblock %}
+
+{% block content %}
+<article class="pb-24">
+    <div class="max-w-cookbook-narrow mx-auto px-8">
+        <header class="text-center py-16 mb-8 border-b border-cookbook-border">
+            <h1 class="font-serif text-5xl mb-4">Shopping List</h1>
+            <p class="text-cookbook-light italic">Aggregated ingredients from recipes you've added.</p>
+        </header>
+
+        <div class="flex justify-end gap-2 mb-6 no-print">
+            <button id="tsm-shop-clear" class="tsm-btn">Clear all</button>
+            <button id="tsm-shop-print" class="tsm-btn">Print</button>
+        </div>
+
+        <section id="tsm-shop-empty" class="text-center text-cookbook-light italic">
+            <p>Your list is empty. Open any recipe and tap "Add to list".</p>
+        </section>
+
+        <section id="tsm-shop-list" hidden>
+            <ul class="list-none p-0"></ul>
+        </section>
+    </div>
+</article>
+
+<script type="module" src="{{ base_url }}/static/js/shopping-list-page.js?v={{ cache_bust }}"></script>
+{% endblock %}

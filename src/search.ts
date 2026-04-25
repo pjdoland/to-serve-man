@@ -1,3 +1,5 @@
+export {}; // module isolation
+
 // Type definitions
 interface Recipe {
   title: string;

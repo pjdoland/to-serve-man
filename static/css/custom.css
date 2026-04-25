@@ -448,6 +448,121 @@ article em {
 }
 
 /* ==========================================
+   Recipe App: toolbar, cook mode, timers, scaling
+   ========================================== */
+
+#tsm-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  margin: 0 auto 2rem;
+  max-width: 60rem;
+  border: 1px solid #e8e4df;
+  border-radius: 8px;
+  background: #fdfcfb;
+}
+.tsm-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.5rem;
+}
+.tsm-tool-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #5a544f;
+  margin-right: 0.25rem;
+}
+.tsm-btn {
+  font-family: 'Helvetica Neue', sans-serif;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.85rem;
+  background: transparent;
+  border: 1px solid #e8e4df;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.tsm-btn:hover { border-color: #c1121f; color: #c1121f; }
+.tsm-btn.is-active { background: #1a1816; color: #fdfcfb; border-color: #1a1816; }
+.tsm-fav.is-active { color: #c1121f; border-color: #c1121f; background: transparent; }
+
+/* Scaled badge */
+body.is-scaled .recipe-ingredients h2::after {
+  content: " (scaled)";
+  font-size: 0.7em;
+  color: #c1121f;
+  font-style: italic;
+  font-weight: normal;
+}
+
+/* Timer (clickable) */
+.timer.is-clickable {
+  cursor: pointer;
+  border-bottom: 1px dashed #c1121f;
+  padding: 0 0.15rem;
+}
+.timer.is-clickable:focus { outline: 2px solid #c1121f; outline-offset: 2px; }
+.timer.is-running { color: #c1121f; font-weight: 600; }
+.timer.is-done { color: #2f7a3a; font-weight: 600; }
+
+/* Cook mode */
+body.cook-mode {
+  font-size: 1.2em;
+}
+body.cook-mode .ingredients-list li,
+body.cook-mode .instructions-list li {
+  position: relative;
+}
+body.cook-mode .ingredients-list li.is-done,
+body.cook-mode .instructions-list li.is-done {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+body.cook-mode input.tsm-check {
+  margin-right: 0.75rem;
+  transform: scale(1.5);
+  vertical-align: middle;
+}
+
+/* Mobile sticky ingredients drawer */
+.tsm-drawer-toggle {
+  display: none;
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  padding: 0.6rem 1.25rem;
+  background: #1a1816;
+  color: #fdfcfb;
+  border: none;
+  border-radius: 24px;
+  font-family: 'Helvetica Neue', sans-serif;
+  font-size: 0.875rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+@media (max-width: 1023px) {
+  .tsm-drawer-toggle { display: block; }
+  body.drawer-open .recipe-ingredients {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    max-height: 60vh;
+    overflow-y: auto;
+    background: #fdfcfb;
+    border-top: 1px solid #e8e4df;
+    padding: 1.5rem;
+    z-index: 55;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* ==========================================
    Print Styles
    ========================================== */
 
@@ -496,4 +611,44 @@ article em {
     content: " (" attr(href) ")";
     font-size: 10pt;
   }
+}
+
+/* Print-card mode: 4×6 index card layout (toggled by recipe-app.ts). */
+@media print {
+  body.print-card {
+    font-size: 7pt;
+    line-height: 1.25;
+  }
+  body.print-card @page {
+    size: 4in 6in;
+    margin: 0.25in;
+  }
+  body.print-card header,
+  body.print-card footer,
+  body.print-card .recipe-headnote,
+  body.print-card .recipe-facets,
+  body.print-card .recipe-notes,
+  body.print-card .recipe-variations,
+  body.print-card .recipe-crossrefs,
+  body.print-card .recipe-attribution {
+    display: none !important;
+  }
+  body.print-card .recipe-title {
+    font-size: 12pt;
+    margin: 0 0 4pt;
+  }
+  body.print-card .recipe-content {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6pt !important;
+  }
+  body.print-card .recipe-ingredients h2,
+  body.print-card .recipe-instructions h2 {
+    font-size: 8pt;
+    margin: 0 0 2pt;
+  }
+}
+@page tsm-card {
+  size: 4in 6in;
+  margin: 0.25in;
 }

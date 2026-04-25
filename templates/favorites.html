@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Favorites — {{ site_title }}{% endblock %}
+
+{% block content %}
+<article class="pb-24" data-favorites-page="1">
+    <div class="max-w-cookbook-narrow mx-auto px-8">
+        <header class="text-center py-16 mb-16 border-b border-cookbook-border">
+            <h1 class="font-serif text-5xl mb-4">Favorites</h1>
+            <p class="text-cookbook-light italic">Recipes you've saved and made.</p>
+        </header>
+
+        <section id="tsm-favorites-empty" class="text-center text-cookbook-light italic">
+            <p>No favorites yet. Tap "♡ Save" on any recipe to add it here.</p>
+        </section>
+
+        <section id="tsm-favorites-list" hidden>
+            <h2 class="font-serif text-2xl mb-6">Saved</h2>
+            <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 list-none p-0 mb-12"></ul>
+        </section>
+
+        <section id="tsm-made-list" hidden>
+            <h2 class="font-serif text-2xl mb-6">I made this</h2>
+            <ul class="list-none p-0"></ul>
+        </section>
+    </div>
+</article>
+
+<script type="application/json" id="tsm-recipe-index">{{ recipe_index|tojson }}</script>
+<script type="module" src="{{ base_url }}/static/js/favorites-page.js?v={{ cache_bust }}"></script>
+{% endblock %}
