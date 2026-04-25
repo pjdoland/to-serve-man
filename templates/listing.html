@@ -23,7 +23,8 @@
     </section>
     {% endif %}
 
-    <section class="mb-24">
+    <section class="mb-24" aria-labelledby="recipe-list-heading">
+        <h2 id="recipe-list-heading" class="sr-only">Recipes</h2>
         {% if recipes %}
         <div class="recipe-grid" id="facet-results">
             {% set facet_keys = facets|map(attribute='key')|list if facets else [] %}

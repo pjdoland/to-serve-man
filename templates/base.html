@@ -23,9 +23,9 @@
     <header class="site-header mb-16 no-print">
         <div class="max-w-cookbook mx-auto px-8 py-7">
             <div class="flex items-center justify-between flex-wrap gap-y-4">
-                <h1 class="m-0">
-                    <a href="{{ base_url }}/" class="wordmark no-underline border-none">{{ site_title }}</a>
-                </h1>
+                {# Wordmark is brand chrome, not document structure — leaving the
+                   page-title <h1> on each page is the sole top-level heading. #}
+                <a href="{{ base_url }}/" class="wordmark no-underline border-none m-0" rel="home">{{ site_title }}</a>
 
                 <button
                     id="mobile-menu-toggle"
