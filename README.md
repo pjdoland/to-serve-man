@@ -307,14 +307,22 @@ Required:
 
 Optional:
 - `cuisine` - E.g., Italian, Indian, American
-- `tags` - List of tags for categorization
+- `tags` - List of tags (see "Tags vs. facets" below for the vocabulary policy)
 - `servings` - Number of servings
-- `prep_time` - Preparation time
-- `cook_time` - Cooking time
+- `prep_time` - Preparation time (e.g., "15 minutes", "1 hour")
+- `cook_time` - Cooking time (computed `total_time` is auto-derived from these two)
 - `description` - Brief description
+- `headnote` - Cook's voice/story (markdown), rendered above ingredients
 - `source` - Source URL
 - `author` - Original author
 - `adapted_by` - Your name if adapted
+- `make_ahead`, `storage`, `reheats`, `yield_notes` - Standardized notes block
+- `variations` - List of `{name, swap, note}` for substitutions
+- `serve_with`, `pairs_with`, `uses` - Lists of recipe slugs (cross-references)
+- `season` - List of: spring, summer, fall, winter, year-round
+- `occasion` - List of: weeknight, dinner-party, holiday, brunch, hangover, etc.
+- `hero_image` - Path to hero photo, relative to site root (e.g. `images/recipes/foo.jpg`)
+- `hero_alt` - Alt text — required if `hero_image` is set
 
 ### Cocktails
 
@@ -326,8 +334,35 @@ Optional:
 - `glass` - Glass type (rocks, coupe, highball, etc.)
 - `spirit_base` - Primary spirit (gin, vodka, rum, etc.)
 - `garnish` - Garnish description
-- `tags` - List of tags
+- `tags` - List of tags (see "Tags vs. facets")
 - `description` - Brief description
+- All Phase 3 schema fields above (`headnote`, `variations`, cross-refs, etc.)
+  apply to cocktails too.
+
+### Tags vs. facets — vocabulary policy
+
+The site has multiple ways to slice recipes. To keep them from competing,
+each one has a distinct purpose:
+
+| Field | Type | Purpose | Examples |
+|---|---|---|---|
+| `category` | controlled | Where it lives in the cookbook | mains, sides, desserts |
+| `cuisine` | controlled (food only) | Culinary tradition | Italian, Indian, Italian-American |
+| `spirit_base` | controlled (cocktails only) | Primary spirit | gin, rum, bourbon |
+| `season` | controlled enum | When it's at its best | spring, summer, fall, winter, year-round |
+| `occasion` | controlled enum | When you'd reach for it | weeknight, dinner-party, holiday, brunch |
+| `tags` | freeform | Technique, dietary, mood | one-pot, vegetarian, no-knead, comfort-food |
+
+**Rule of thumb:** if a value has its own dedicated field (cuisine, spirit,
+season, occasion), don't also tag it. `tags` is reserved for cross-cuts the
+named facets don't capture — e.g. cooking technique (`braise`, `no-knead`,
+`grill`), dietary constraints (`vegan`, `gluten-free`), mood/feel (`comfort-food`,
+`celebratory`, `easy-cleanup`).
+
+If you find yourself adding the same tag to many recipes and treating it
+structurally (e.g. filtering by it), promote it to a facet instead — add a
+new field to `Recipe` in `recipe_parser.py` and a matching index page in
+`site_generator.py`.
 
 ## Development
 
