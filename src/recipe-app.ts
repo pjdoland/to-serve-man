@@ -1,17 +1,26 @@
-// Recipe page client app: cook mode, timers, scaling, units, favorites,
-// shopping list, sticky drawer. Each feature self-installs only if the
-// relevant DOM markers are present.
+// Recipe page client app: cook view (wake-lock + sticky toolbar + drawer + checkboxes),
+// timers, scaling, units, favorites, shopping list, sticky drawer, print card.
+// Toolbar buttons are server-rendered in templates/recipe.html — this module only
+// wires up handlers and toggles state. Each feature self-installs only when its
+// DOM markers are present so the file stays one network round-trip.
 
-import { STORAGE_KEYS, loadJson, onReady, saveJson } from "./util.js";
+import {
+  type FavoritesStore,
+  type NotesStore,
+  type RecentStore,
+  type ShoppingStore,
+  STORAGE_KEYS,
+  loadJson,
+  onReady,
+  saveJson,
+} from "./util.js";
 
-interface FavoritesStore { favorites: string[]; }
-interface NotesStore { [slug: string]: { date?: string; note?: string }[]; }
-interface ShoppingItem { recipeSlug: string; recipeTitle: string; text: string; checked: boolean; }
-interface ShoppingStore { items: ShoppingItem[]; }
+const RECENT_LIMIT = 8;
+const RECENT_DEDUPE_MS = 5 * 60 * 1000; // skip re-recording the same recipe within 5 min
 
-function recipeSlug(): string {
-  return document.body.dataset.recipeSlug || "";
-}
+const article = document.querySelector<HTMLElement>("article[data-recipe-slug]");
+const RECIPE_SLUG = article?.dataset.recipeSlug || "";
+const RECIPE_TITLE = article?.dataset.recipeTitle || "";
 
 function smartFraction(v: number): string {
   if (Number.isInteger(v)) return v.toString();
@@ -44,95 +53,68 @@ function parseAmount(raw: string): number | null {
   return Number.isNaN(f) ? null : f;
 }
 
-function ensureToolbar(): HTMLElement {
-  let t = document.getElementById("tsm-toolbar");
-  if (t) return t;
-  t = document.createElement("div");
-  t.id = "tsm-toolbar";
-  t.className = "no-print";
-  const header = document.querySelector("article > div > header");
-  if (header && header.parentNode) {
-    header.parentNode.insertBefore(t, header.nextSibling);
-  } else {
-    document.body.prepend(t);
-  }
-  return t;
-}
+// --- Scaling -----------------------------------------------------------------
 
 function installScaling(): void {
+  const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-action="scale"]'));
   const ingItems = Array.from(document.querySelectorAll<HTMLElement>(".ingredients-list li"));
-  if (!ingItems.length) return;
+  if (!buttons.length || !ingItems.length) return;
 
-  const slug = recipeSlug();
+  const slug = RECIPE_SLUG;
   const saved = parseFloat(sessionStorage.getItem(STORAGE_KEYS.scale(slug)) || "1");
   let factor = saved || 1;
-  let cached = false;
+
+  const syncButtons = () => {
+    buttons.forEach((b) => {
+      b.classList.toggle("is-active", parseFloat(b.dataset.factor || "1") === factor);
+    });
+  };
 
   const apply = () => {
-    if (!cached) {
-      // Cache originals lazily — most page loads never scale, so don't pay this cost upfront.
-      ingItems.forEach((li) => { li.dataset.origHtml = li.innerHTML; });
-      cached = true;
-    }
     sessionStorage.setItem(STORAGE_KEYS.scale(slug), factor.toString());
     document.body.classList.toggle("is-scaled", factor !== 1);
 
     ingItems.forEach((li) => {
-      const orig = li.dataset.origHtml || "";
-      // Match every numeric token (mixed fraction, fraction, decimal, integer) inside
-      // the (qty unit) parens — recipes like "5 cups, 22 1/2 oz" carry parallel
-      // measurements and we need to scale all of them, not just the first.
+      // Idempotent cache — first apply stamps origHtml; later applies reuse it.
+      if (li.dataset.origHtml === undefined) li.dataset.origHtml = li.innerHTML;
+      const orig = li.dataset.origHtml;
+      // Recipes like "5 cups, 22 1/2 oz" carry parallel measurements — scale every number.
       li.innerHTML = orig.replace(/\(([^)]+)\)/, (full, body) => {
-        // Bare-number bodies (e.g. "(3)" eggs) round to a whole count.
         const bare = body.trim().match(/^\d+(?:\.\d+)?$/);
-        if (bare) {
-          return `(${Math.max(1, Math.round(parseFloat(bare[0]) * factor))})`;
-        }
+        if (bare) return `(${Math.max(1, Math.round(parseFloat(bare[0]) * factor))})`;
         const NUMBER_RE = /\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?/g;
-        const scaled = body.replace(NUMBER_RE, (match: string) => {
-          const amt = parseAmount(match);
-          return amt === null ? match : smartFraction(amt * factor);
-        });
-        return `(${scaled})`;
+        return `(${body.replace(NUMBER_RE, (m: string) => {
+          const amt = parseAmount(m);
+          return amt === null ? m : smartFraction(amt * factor);
+        })})`;
       });
     });
+
+    syncButtons();
   };
 
-  const toolbar = ensureToolbar();
-  const wrap = document.createElement("div");
-  wrap.className = "tsm-tool";
-  wrap.innerHTML = `
-    <span class="tsm-tool-label">Scale</span>
-    ${[0.5, 1, 2].map((f) => `<button data-factor="${f}" class="tsm-btn ${f === factor ? "is-active" : ""}">${f === 0.5 ? "½×" : f + "×"}</button>`).join("")}
-  `;
-  wrap.querySelectorAll<HTMLButtonElement>("button").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      factor = parseFloat(btn.dataset.factor || "1");
-      wrap.querySelectorAll("button").forEach((b) => b.classList.remove("is-active"));
-      btn.classList.add("is-active");
-      apply();
-    });
-  });
-  toolbar.appendChild(wrap);
+  buttons.forEach((btn) => btn.addEventListener("click", () => {
+    factor = parseFloat(btn.dataset.factor || "1");
+    apply();
+  }));
+  // Boot: only re-render when a non-1 scale was carried over. Default factor
+  // means the SSR'd ingredient HTML is already correct — just light up 1×.
   if (factor !== 1) apply();
+  else syncButtons();
 }
 
+// --- Units (US ↔ metric, temperatures only) ----------------------------------
+
 function installUnits(): void {
-  // °F / °C in step text. Fresh regex per test() call so the `g` flag's lastIndex doesn't leak.
   const stepLis = Array.from(document.querySelectorAll<HTMLElement>(".instructions-list li"));
   const hasTemps = stepLis.some((li) => /(\d+(?:\.\d+)?)\s*°\s*([FC])/i.test(li.textContent || ""));
-  if (!hasTemps) return;
+  const tool = document.querySelector<HTMLElement>('[data-feature="units"]');
+  if (!tool) return;
+  if (!hasTemps) return; // leave the SSR'd shell hidden — recipe has no convertible temps
 
+  tool.removeAttribute("hidden");
+  const buttons = Array.from(tool.querySelectorAll<HTMLButtonElement>("button"));
   let metric = localStorage.getItem(STORAGE_KEYS.units) === "metric";
-  const toolbar = ensureToolbar();
-  const wrap = document.createElement("div");
-  wrap.className = "tsm-tool";
-  wrap.innerHTML = `
-    <span class="tsm-tool-label">Units</span>
-    <button class="tsm-btn ${metric ? "" : "is-active"}" data-units="us">US</button>
-    <button class="tsm-btn ${metric ? "is-active" : ""}" data-units="metric">Metric</button>
-  `;
-  toolbar.appendChild(wrap);
 
   const apply = () => {
     document.body.classList.toggle("is-metric", metric);
@@ -145,19 +127,22 @@ function installUnits(): void {
         return full;
       });
     });
+    buttons.forEach((b) => {
+      const isActive = (b.dataset.units === "metric") === metric;
+      b.classList.toggle("is-active", isActive);
+      b.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
   };
 
-  wrap.querySelectorAll<HTMLButtonElement>("button").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      metric = btn.dataset.units === "metric";
-      localStorage.setItem(STORAGE_KEYS.units, metric ? "metric" : "us");
-      wrap.querySelectorAll("button").forEach((b) => b.classList.remove("is-active"));
-      btn.classList.add("is-active");
-      apply();
-    });
-  });
+  buttons.forEach((btn) => btn.addEventListener("click", () => {
+    metric = btn.dataset.units === "metric";
+    localStorage.setItem(STORAGE_KEYS.units, metric ? "metric" : "us");
+    apply();
+  }));
   if (metric) apply();
 }
+
+// --- Timers ------------------------------------------------------------------
 
 const TIMER_UNIT_SECONDS: Record<string, number> = {
   second: 1, seconds: 1, sec: 1, secs: 1, s: 1,
@@ -166,7 +151,8 @@ const TIMER_UNIT_SECONDS: Record<string, number> = {
 };
 
 function installTimers(): void {
-  const timers = Array.from(document.querySelectorAll<HTMLElement>(".timer[data-value]"));
+  // Renderer emits <button class="timer">; promote handlers + accessible status.
+  const timers = Array.from(document.querySelectorAll<HTMLButtonElement>("button.timer[data-value]"));
   if (!timers.length) return;
 
   const running = new Map<HTMLElement, number>();
@@ -182,7 +168,7 @@ function installTimers(): void {
         osc.frequency.value = 880; gain.gain.value = 0.2;
         osc.start();
         setTimeout(() => { osc.stop(); ctx.close(); }, 800);
-      } catch {/* audio unavailable */}
+      } catch { /* audio unavailable */ }
     }
     navigator.vibrate?.([200, 100, 200]);
   };
@@ -193,12 +179,7 @@ function installTimers(): void {
     const seconds = Math.round(value * (TIMER_UNIT_SECONDS[unit] || 60));
     if (!seconds) return;
 
-    el.classList.add("is-clickable");
-    el.setAttribute("role", "button");
-    el.setAttribute("tabindex", "0");
-    el.title = "Click to start timer";
-
-    const start = () => {
+    el.addEventListener("click", () => {
       if (running.has(el)) return;
       let remaining = seconds;
       const original = el.textContent;
@@ -223,27 +204,30 @@ function installTimers(): void {
       };
       tick();
       running.set(el, window.setInterval(tick, 1000));
-    };
-
-    el.addEventListener("click", start);
-    el.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); start(); }
     });
   });
 
-  // Free timer intervals if the page goes away (e.g. bfcache restore).
   window.addEventListener("pagehide", () => {
     running.forEach((id) => clearInterval(id));
     running.clear();
   });
 }
 
+// --- Cook view (wake-lock + sticky toolbar + drawer-open + checkboxes) -------
+
 function installCookMode(): void {
-  const slug = recipeSlug();
-  if (!slug) return;
+  const slug = RECIPE_SLUG;
+  const btn = document.querySelector<HTMLButtonElement>('[data-action="cook-mode"]');
+  if (!slug || !btn) return;
+  // Hide the button entirely if Wake Lock isn't supported — most of cook mode
+  // works without it but the headline benefit is the screen staying on.
+  if (!("wakeLock" in navigator)) {
+    btn.hidden = true;
+    return;
+  }
+
   const ingItems = Array.from(document.querySelectorAll<HTMLElement>(".ingredients-list li"));
   const stepItems = Array.from(document.querySelectorAll<HTMLElement>(".instructions-list li"));
-  if (!ingItems.length && !stepItems.length) return;
 
   let wakeLock: WakeLockSentinel | null = null;
   let active = false;
@@ -256,6 +240,10 @@ function installCookMode(): void {
     items.forEach((li, i) => {
       if (li.querySelector("input.tsm-check")) return;
       const id = `${prefix}-${i}`;
+      // Wrap original content in a <label> so the checkbox has an accessible name.
+      const wrapper = document.createElement("label");
+      wrapper.className = "tsm-check-label";
+      wrapper.style.display = "block";
       const cb = document.createElement("input");
       cb.type = "checkbox";
       cb.className = "tsm-check";
@@ -266,72 +254,62 @@ function installCookMode(): void {
         else { checked.delete(id); li.classList.remove("is-done"); }
         persist();
       });
-      li.prepend(cb);
+      wrapper.appendChild(cb);
+      while (li.firstChild) wrapper.appendChild(li.firstChild);
+      li.appendChild(wrapper);
     });
   };
 
   const acquireLock = async () => {
     try { wakeLock = (await navigator.wakeLock?.request("screen")) ?? null; }
-    catch {/* lock denied */}
+    catch { /* user-agent denied */ }
   };
-  const releaseLock = () => { wakeLock?.release(); wakeLock = null; };
 
   const toggle = () => {
     active = !active;
     document.body.classList.toggle("cook-mode", active);
+    btn.classList.toggle("is-active", active);
+    btn.setAttribute("aria-pressed", active ? "true" : "false");
     if (active) {
       addCheckboxes(ingItems, "ing");
       addCheckboxes(stepItems, "step");
       acquireLock();
     } else {
-      releaseLock();
+      wakeLock?.release(); wakeLock = null;
     }
   };
 
-  const toolbar = ensureToolbar();
-  const btn = document.createElement("button");
-  btn.className = "tsm-btn tsm-cook-btn";
-  btn.textContent = "Cook mode";
-  btn.addEventListener("click", () => {
-    toggle();
-    btn.classList.toggle("is-active", active);
-  });
-  toolbar.appendChild(btn);
-
+  btn.addEventListener("click", toggle);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && active) acquireLock();
   });
 }
 
-function installFavorites(): void {
-  const slug = recipeSlug();
-  if (!slug) return;
-  const toolbar = ensureToolbar();
+// --- Favorites + made-it -----------------------------------------------------
 
-  const heart = document.createElement("button");
-  heart.className = "tsm-btn tsm-fav";
+function installFavorites(): void {
+  const slug = RECIPE_SLUG;
+  const heart = document.querySelector<HTMLButtonElement>('[data-action="favorite"]');
+  const made = document.querySelector<HTMLButtonElement>('[data-action="made-it"]');
+  if (!slug || !heart || !made) return;
+
   const updateHeart = () => {
     const favs = loadJson<FavoritesStore>(STORAGE_KEYS.favorites, { favorites: [] });
     const isFav = favs.favorites.includes(slug);
     heart.textContent = isFav ? "♥ Saved" : "♡ Save";
     heart.classList.toggle("is-active", isFav);
+    heart.setAttribute("aria-pressed", isFav ? "true" : "false");
   };
   heart.addEventListener("click", () => {
     const favs = loadJson<FavoritesStore>(STORAGE_KEYS.favorites, { favorites: [] });
-    if (favs.favorites.includes(slug)) {
-      favs.favorites = favs.favorites.filter((s) => s !== slug);
-    } else {
-      favs.favorites.push(slug);
-    }
+    favs.favorites = favs.favorites.includes(slug)
+      ? favs.favorites.filter((s) => s !== slug)
+      : [...favs.favorites, slug];
     saveJson(STORAGE_KEYS.favorites, favs);
     updateHeart();
   });
   updateHeart();
-  toolbar.appendChild(heart);
 
-  const made = document.createElement("button");
-  made.className = "tsm-btn";
-  made.textContent = "I made this";
   made.addEventListener("click", () => {
     const note = prompt("Optional note (280 chars max):", "");
     if (note === null) return;
@@ -342,58 +320,101 @@ function installFavorites(): void {
     made.textContent = "Saved!";
     setTimeout(() => { made.textContent = "I made this"; }, 1500);
   });
-  toolbar.appendChild(made);
 }
 
-function installShoppingList(): void {
-  const slug = recipeSlug();
-  const recipeTitle = document.querySelector(".recipe-title")?.textContent || "";
-  if (!slug || !recipeTitle) return;
-  const ingItems = Array.from(document.querySelectorAll<HTMLElement>(".ingredients-list li"));
-  if (!ingItems.length) return;
+// --- Shopping list -----------------------------------------------------------
 
-  const toolbar = ensureToolbar();
-  const btn = document.createElement("button");
-  btn.className = "tsm-btn";
-  btn.textContent = "Add to list";
+function installShoppingList(): void {
+  const slug = RECIPE_SLUG;
+  const title = RECIPE_TITLE;
+  const btn = document.querySelector<HTMLButtonElement>('[data-action="add-to-list"]');
+  if (!slug || !title || !btn) return;
+  const ingItems = Array.from(document.querySelectorAll<HTMLElement>(".ingredients-list li"));
+  if (!ingItems.length) { btn.hidden = true; return; }
+
   btn.addEventListener("click", () => {
     const shop = loadJson<ShoppingStore>(STORAGE_KEYS.shoppingList, { items: [] });
     ingItems.forEach((li) => {
-      shop.items.push({ recipeSlug: slug, recipeTitle, text: (li.textContent || "").trim(), checked: false });
+      shop.items.push({ recipeSlug: slug, recipeTitle: title, text: (li.textContent || "").trim(), checked: false });
     });
     saveJson(STORAGE_KEYS.shoppingList, shop);
-    btn.textContent = "Added ✓";
-    setTimeout(() => { btn.textContent = "Add to list"; }, 1500);
+    btn.textContent = `Added ${ingItems.length} items ✓`;
+    setTimeout(() => { btn.textContent = "Add to list"; }, 1800);
   });
-  toolbar.appendChild(btn);
 }
 
+// --- Sticky mobile drawer ----------------------------------------------------
+
 function installDrawer(): void {
-  if (!document.querySelector(".recipe-ingredients")) return;
+  const ingredients = document.getElementById("recipe-ingredients");
+  if (!ingredients) return;
+
   const drawer = document.createElement("button");
+  drawer.type = "button";
   drawer.className = "tsm-drawer-toggle no-print";
   drawer.setAttribute("aria-label", "Show ingredients");
+  drawer.setAttribute("aria-controls", "recipe-ingredients");
+  drawer.setAttribute("aria-expanded", "false");
   drawer.textContent = "Ingredients ▲";
+  const close = () => {
+    document.body.classList.remove("drawer-open");
+    drawer.setAttribute("aria-expanded", "false");
+    drawer.textContent = "Ingredients ▲";
+  };
   drawer.addEventListener("click", () => {
-    document.body.classList.toggle("drawer-open");
-    drawer.textContent = document.body.classList.contains("drawer-open") ? "Hide ▼" : "Ingredients ▲";
+    const open = document.body.classList.toggle("drawer-open");
+    drawer.setAttribute("aria-expanded", open ? "true" : "false");
+    drawer.textContent = open ? "Hide ▼" : "Ingredients ▲";
+  });
+  // Resizing past the desktop breakpoint hides the toggle but the body class
+  // (and aria state) would otherwise stick — reset on transition.
+  matchMedia("(min-width: 1024px)").addEventListener("change", (e) => {
+    if (e.matches) close();
   });
   document.body.appendChild(drawer);
 }
 
+// --- Print recipe card (4×6) -------------------------------------------------
+
 function installPrintCard(): void {
-  if (!recipeSlug()) return;
-  const toolbar = ensureToolbar();
-  const btn = document.createElement("button");
-  btn.className = "tsm-btn";
-  btn.textContent = "Print card";
+  const btn = document.querySelector<HTMLButtonElement>('[data-action="print-card"]');
+  if (!btn || !RECIPE_SLUG) return;
   btn.addEventListener("click", () => {
+    // Inject a top-level @page rule because @page can't be selector-scoped via body.print-card.
+    const styleEl = document.createElement("style");
+    styleEl.id = "tsm-print-card-page";
+    styleEl.textContent = "@page { size: 4in 6in; margin: 0.25in; }";
+    document.head.appendChild(styleEl);
     document.body.classList.add("print-card");
     window.print();
-    setTimeout(() => document.body.classList.remove("print-card"), 200);
+    setTimeout(() => {
+      document.body.classList.remove("print-card");
+      styleEl.remove();
+    }, 200);
   });
-  toolbar.appendChild(btn);
 }
+
+// --- Recently viewed (records the visit; rendered on homepage) ---------------
+
+function recordRecent(): void {
+  const slug = RECIPE_SLUG;
+  const title = RECIPE_TITLE;
+  if (!slug || !title) return;
+  const store = loadJson<RecentStore>(STORAGE_KEYS.recent, { recent: [] });
+  // Skip the write if this recipe is already at the front and was recorded
+  // recently — avoids serializing the whole list on every refresh / back-nav.
+  const head = store.recent[0];
+  if (head?.slug === slug && Date.now() - new Date(head.visitedAt).getTime() < RECENT_DEDUPE_MS) {
+    return;
+  }
+  store.recent = [
+    { slug, title, visitedAt: new Date().toISOString() },
+    ...store.recent.filter((r) => r.slug !== slug),
+  ].slice(0, RECENT_LIMIT);
+  saveJson(STORAGE_KEYS.recent, store);
+}
+
+// --- Boot --------------------------------------------------------------------
 
 onReady(() => {
   installScaling();
@@ -404,4 +425,5 @@ onReady(() => {
   installShoppingList();
   installPrintCard();
   installDrawer();
+  recordRecent();
 });

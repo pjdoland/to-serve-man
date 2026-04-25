@@ -15,8 +15,8 @@ INGREDIENTS:
 INSTRUCTIONS:
 <h3 class="section-header">Brown the butter</h3>
 <ol>
-<li>In a <span class="cookware">saucepan</span>, melt <span class="ingredient" data-amount="3/4" data-unit="cup, 1.5 sticks">butter</span> over medium heat. Continue cooking, stirring frequently, until butter turns golden brown and smells nutty, about <span class="timer" data-value="5" data-unit="minutes">5 minutes</span>.</li>
-<li>Transfer browned butter to a <span class="cookware">large</span> bowl and let cool for <span class="timer" data-value="10" data-unit="minutes">10 minutes</span>.</li>
+<li>In a <span class="cookware">saucepan</span>, melt <span class="ingredient" data-amount="3/4" data-unit="cup, 1.5 sticks">butter</span> over medium heat. Continue cooking, stirring frequently, until butter turns golden brown and smells nutty, about <button type="button" class="timer" data-value="5" data-unit="minutes" aria-label="Start 5 minutes timer">5 minutes</button>.</li>
+<li>Transfer browned butter to a <span class="cookware">large</span> bowl and let cool for <button type="button" class="timer" data-value="10" data-unit="minutes" aria-label="Start 10 minutes timer">10 minutes</button>.</li>
 </ol>
 <h3 class="section-header">Make the dough</h3>
 <ol>
@@ -29,7 +29,7 @@ INSTRUCTIONS:
 <ol>
 <li>Preheat <span class="cookware">oven</span> to 375°F (190°C). Line <span class="cookware">baking</span> sheets with parchment paper.</li>
 <li>Scoop dough into 2 tablespoon-sized balls and place on prepared baking sheets, spacing them 3 inches apart.</li>
-<li>Bake for <span class="timer" data-value="11-13" data-unit="minutes">11-13 minutes</span> until edges are golden brown but centers still look slightly underdone.</li>
-<li>Let cool on baking sheet for <span class="timer" data-value="5" data-unit="minutes">5 minutes</span>, then transfer to a <span class="cookware">wire</span> rack.</li>
+<li>Bake for <button type="button" class="timer" data-value="11-13" data-unit="minutes" aria-label="Start 11-13 minutes timer">11-13 minutes</button> until edges are golden brown but centers still look slightly underdone.</li>
+<li>Let cool on baking sheet for <button type="button" class="timer" data-value="5" data-unit="minutes" aria-label="Start 5 minutes timer">5 minutes</button>, then transfer to a <span class="cookware">wire</span> rack.</li>
 <li>Sprinkle with extra <span class="ingredient">flaky sea salt</span> while still warm, if desired.</li>
 </ol>

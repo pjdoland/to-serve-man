@@ -15,7 +15,7 @@ INSTRUCTIONS:
 <ol>
 <li>In a shallow <span class="cookware">dish</span> or <span class="cookware">pie</span> plate, whisk together <span class="ingredient" data-amount="4" data-unit="">eggs</span>, <span class="ingredient" data-amount="1" data-unit="cup">whole milk</span>, <span class="ingredient" data-amount="1" data-unit="tsp">vanilla extract</span>, <span class="ingredient" data-amount="1/2" data-unit="tsp">ground cinnamon</span>, and <span class="ingredient" data-amount="1/4" data-unit="tsp">salt</span>.</li>
 <li>Heat a <span class="cookware">griddle</span> or large <span class="cookware">skillet</span> over medium heat. Add <span class="ingredient" data-amount="2" data-unit="tbsp">butter</span> and let it melt.</li>
-<li>Dip <span class="ingredient" data-amount="8" data-unit="slices, day-old">bread</span> into the egg mixture, letting each side soak for <span class="timer" data-value="3" data-unit="seconds">3 seconds</span>. Don't oversoak or the bread will fall apart.</li>
-<li>Place soaked bread on the hot griddle and cook for <span class="timer" data-value="3" data-unit="minutes">3 minutes</span> per side, until golden brown and cooked through.</li>
+<li>Dip <span class="ingredient" data-amount="8" data-unit="slices, day-old">bread</span> into the egg mixture, letting each side soak for <button type="button" class="timer" data-value="3" data-unit="seconds" aria-label="Start 3 seconds timer">3 seconds</button>. Don't oversoak or the bread will fall apart.</li>
+<li>Place soaked bread on the hot griddle and cook for <button type="button" class="timer" data-value="3" data-unit="minutes" aria-label="Start 3 minutes timer">3 minutes</button> per side, until golden brown and cooked through.</li>
 <li>Serve hot with <span class="ingredient">maple syrup</span> and <span class="ingredient">powdered sugar</span> for dusting, if desired.</li>
 </ol>

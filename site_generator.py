@@ -57,11 +57,10 @@ class SiteGenerator:
 
     def load_markdown_content(self, filename: str) -> str:
         """Load and convert markdown content to HTML."""
-        filepath = self.content_dir / filename
-        if filepath.exists():
-            with open(filepath, encoding="utf-8") as f:
-                return self.md.convert(f.read())
-        return ""
+        try:
+            return self.md.convert((self.content_dir / filename).read_text(encoding="utf-8"))
+        except FileNotFoundError:
+            return ""
 
     def clean_output_dir(self):
         """Remove and recreate output directory."""
@@ -159,8 +158,10 @@ class SiteGenerator:
             elif isinstance(tok, Cookware):
                 out.append(f'<span class="cookware">{tok.name}</span>')
             elif isinstance(tok, Timer):
+                # Native <button> so AT announces it as a control + meets WCAG 2.5.8 target size.
                 out.append(
-                    f'<span class="timer" data-value="{tok.value}" data-unit="{tok.unit}">{tok.display}</span>'
+                    f'<button type="button" class="timer" data-value="{tok.value}" data-unit="{tok.unit}" '
+                    f'aria-label="Start {tok.display} timer">{tok.display}</button>'
                 )
         return "".join(out)
 
@@ -229,12 +230,15 @@ class SiteGenerator:
         self.render_template("list.html", context, output_path)
 
     def generate_category_pages(self):
-        """Generate pages for each category."""
+        """Generate /food/<category>/ pages. Cocktails live under /cocktails/ (a single
+        category), so only food categories get their own pages here."""
         categories = self.collection.get_by_category()
 
         for category, recipes in categories.items():
+            if category == config.COCKTAIL_FOLDER:
+                continue
             title = category.replace("-", " ").title()
-            output_path = self.output_dir / category / "index.html"
+            output_path = self.output_dir / "food" / category / "index.html"
             self.generate_list_page(title, recipes, output_path)
 
     def generate_tag_pages(self):

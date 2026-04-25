@@ -1,6 +1,6 @@
-// Shared utilities for the TS bundle. All entry-point modules import from here
-// to avoid duplicating storage keys, JSON load/save shape, DOM-ready handling,
-// and HTML escaping (which several callers were doing via raw innerHTML).
+// Shared utilities and types for the TS bundle. All entry-point modules import
+// from here so storage keys, store shapes, JSON load/save, DOM-ready handling,
+// and HTML escaping have one source of truth.
 
 export const STORAGE_KEYS = {
   scale: (slug: string) => `tsm:scale:${slug}`,
@@ -9,7 +9,15 @@ export const STORAGE_KEYS = {
   favorites: "tsm:favorites",
   notes: "tsm:notes",
   shoppingList: "tsm:shopping",
+  recent: "tsm:recent",
 };
+
+export interface FavoritesStore { favorites: string[]; }
+export interface NotesStore { [slug: string]: { date?: string; note?: string }[]; }
+export interface ShoppingItem { recipeSlug: string; recipeTitle: string; text: string; checked: boolean; }
+export interface ShoppingStore { items: ShoppingItem[]; }
+export interface RecentEntry { slug: string; title: string; visitedAt: string; }
+export interface RecentStore { recent: RecentEntry[]; }
 
 export function loadJson<T>(key: string, fallback: T): T {
   const raw = localStorage.getItem(key);

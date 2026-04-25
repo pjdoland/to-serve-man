@@ -1,22 +1,24 @@
 {# Reusable recipe card component #}
 {% macro recipe_card(recipe, base_url) %}
-<article class="border-t border-cookbook-border pt-8">
-    <a href="{{ base_url }}/recipes/{{ recipe.slug }}/" class="block no-underline border-none group">
-        <h4 class="font-serif text-2xl mb-2 transition-colors duration-200 group-hover:text-cookbook-accent">{{ recipe.title }}</h4>
-        <p class="text-sm text-cookbook-light mb-4">
-            {% if recipe.is_cocktail %}
-                {{ recipe.glass|title if recipe.glass else 'Cocktail' }}
-                {% if recipe.spirit_base %}• {{ recipe.spirit_base|title }}{% endif %}
-            {% else %}
-                {{ recipe.cuisine if recipe.cuisine else recipe.category|title }}
-                {% if recipe.servings %}• {{ recipe.servings }} servings{% endif %}
-            {% endif %}
-        </p>
-        {% if recipe.description %}
-        <p class="text-base italic text-cookbook-light">{{ recipe.description }}</p>
+<a href="{{ base_url }}/recipes/{{ recipe.slug }}/" class="recipe-card group">
+    <div class="card-eyebrow">
+        {% if recipe.is_cocktail %}{{ recipe.spirit_base|title if recipe.spirit_base else 'Cocktail' }}{% else %}{{ recipe.cuisine if recipe.cuisine else recipe.category|title }}{% endif %}
+    </div>
+    <h3 class="card-title">{{ recipe.title }}</h3>
+    <div class="card-meta">
+        {% if recipe.is_cocktail %}
+            {% if recipe.glass %}<span>{{ recipe.glass|title }}</span>{% endif %}
+            {% if recipe.difficulty %}<span>{{ recipe.difficulty|title }}</span>{% endif %}
+        {% else %}
+            {% if recipe.total_time %}<span>{{ recipe.total_time }}</span>{% endif %}
+            {% if recipe.servings %}<span>{{ recipe.servings }} servings</span>{% endif %}
+            {% if recipe.difficulty %}<span>{{ recipe.difficulty|title }}</span>{% endif %}
         {% endif %}
-    </a>
-</article>
+    </div>
+    {% if recipe.description %}
+    <p class="card-description">{{ recipe.description }}</p>
+    {% endif %}
+</a>
 {% endmacro %}
 
 {# Page header component #}

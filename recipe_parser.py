@@ -36,6 +36,24 @@ def _as_list(value: Any) -> list[str]:
     return value if isinstance(value, list) else [value]
 
 
+_TIME_RE = re.compile(r"(\d+)\s*(h|hour|hours|m|min|mins|minute|minutes)\b", re.IGNORECASE)
+
+
+def _parse_minutes(value: str | None) -> int | None:
+    """Parse "20 minutes", "1 hour 30 minutes", "1h", "30 min" into total minutes.
+    Returns None if the value is missing or has no recognisable time tokens."""
+    if not value:
+        return None
+    total = 0
+    found = False
+    for match in _TIME_RE.finditer(value):
+        n = int(match.group(1))
+        unit = match.group(2).lower()
+        total += n * (60 if unit.startswith("h") else 1)
+        found = True
+    return total if found else None
+
+
 # --- Cooklang body parsing ---------------------------------------------------
 
 INGREDIENT_RE = re.compile(r"@([^{@#~]+?)\{([^}]*)\}")
@@ -293,6 +311,32 @@ class Recipe:
     @property
     def cook_time(self) -> str | None:
         return self.metadata.get("cook_time")
+
+    @cached_property
+    def total_time(self) -> str | None:
+        """Sum of prep+cook in minutes if both parse cleanly; otherwise display "Xh Ym"
+        when each piece is recognisable. Falls back to None for free-form ('overnight')."""
+        prep = _parse_minutes(self.prep_time)
+        cook = _parse_minutes(self.cook_time)
+        if prep is None and cook is None:
+            return None
+        total = (prep or 0) + (cook or 0)
+        if total == 0:
+            return None
+        h, m = divmod(total, 60)
+        if h and m:
+            return f"{h}h {m}m"
+        return f"{h}h" if h else f"{m} min"
+
+    @property
+    def hero_image(self) -> str | None:
+        """Path to hero photo, relative to site root (e.g. 'images/recipes/foo.jpg')."""
+        return self.metadata.get("hero_image")
+
+    @property
+    def hero_alt(self) -> str | None:
+        """Optional alt text for the hero image — required if hero_image is set."""
+        return self.metadata.get("hero_alt")
 
     @property
     def glass(self) -> str | None:

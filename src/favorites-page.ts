@@ -1,10 +1,20 @@
 // Renders the /favorites/ page from localStorage.
+//
+// Surfaces both saved-favorites (intent) and made-it counts (history) — kept as
+// distinct sections per IA's note that they're different mental models, but the
+// "made N times" count also appears as a badge on each favorite card so users
+// don't have to scan two lists for the same recipe.
 
-import { STORAGE_KEYS, escapeHtml, loadJson, onReady } from "./util.js";
+import {
+  type FavoritesStore,
+  type NotesStore,
+  STORAGE_KEYS,
+  escapeHtml,
+  loadJson,
+  onReady,
+} from "./util.js";
 
 interface RecipeIndexEntry { slug: string; title: string; url: string; }
-interface FavoritesStore { favorites: string[]; }
-interface NotesStore { [slug: string]: { date?: string; note?: string }[]; }
 
 function readIndex(): Record<string, RecipeIndexEntry> {
   const el = document.getElementById("tsm-recipe-index");
@@ -29,7 +39,14 @@ function init(): void {
     empty?.setAttribute("hidden", "");
     favList.removeAttribute("hidden");
     const ul = favList.querySelector("ul")!;
-    ul.innerHTML = validFavs.map((s) => `<li><a href="${escapeHtml(idx[s].url)}" class="block py-3 px-4 border border-cookbook-border rounded hover:border-cookbook-accent no-underline text-cookbook-text">${escapeHtml(idx[s].title)}</a></li>`).join("");
+    ul.innerHTML = validFavs.map((s) => {
+      const r = idx[s];
+      const madeCount = notes[s]?.length || 0;
+      const badge = madeCount
+        ? `<span class="text-xs text-cookbook-light italic ml-2">made ${madeCount}×</span>`
+        : "";
+      return `<li><a href="${escapeHtml(r.url)}" class="block py-3 px-4 border border-cookbook-rule rounded hover:border-cookbook-accent no-underline text-cookbook-text">${escapeHtml(r.title)}${badge}</a></li>`;
+    }).join("");
   }
 
   const madeEntries = Object.entries(notes).filter(([s]) => idx[s]);

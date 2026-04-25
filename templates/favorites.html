@@ -4,13 +4,14 @@
 {% block content %}
 <article class="pb-24" data-favorites-page="1">
     <div class="max-w-cookbook-narrow mx-auto px-8">
-        <header class="text-center py-16 mb-16 border-b border-cookbook-border">
+        <header class="text-center py-16 mb-12 border-b border-cookbook-rule">
             <h1 class="font-serif text-5xl mb-4">Favorites</h1>
             <p class="text-cookbook-light italic">Recipes you've saved and made.</p>
         </header>
 
-        <section id="tsm-favorites-empty" class="text-center text-cookbook-light italic">
-            <p>No favorites yet. Tap "♡ Save" on any recipe to add it here.</p>
+        <section id="tsm-favorites-empty" class="text-center text-cookbook-light italic py-12">
+            <p class="text-lg mb-2">No favorites yet.</p>
+            <p>Tap <strong>♡ Save</strong> on any recipe to keep it here. Your favorites live in this browser only.</p>
         </section>
 
         <section id="tsm-favorites-list" hidden>
@@ -19,7 +20,7 @@
         </section>
 
         <section id="tsm-made-list" hidden>
-            <h2 class="font-serif text-2xl mb-6">I made this</h2>
+            <h2 class="font-serif text-2xl mb-6">Made notes</h2>
             <ul class="list-none p-0"></ul>
         </section>
     </div>

@@ -28,10 +28,16 @@
         </div>
     </section>
 
+    <!-- Recently Viewed (populated client-side; hidden when empty) -->
+    <section class="recently-viewed mb-24" id="recently-viewed" data-has-items="0">
+        <h2 class="font-serif text-2xl mb-8 text-center">Recently Viewed</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" data-recently-viewed-list></div>
+    </section>
+
     <!-- Recent Recipes -->
     <section class="mb-24">
-        <h3 class="font-serif text-2xl mb-8 text-center">Recent Recipes</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
+        <h2 class="font-serif text-2xl mb-8 text-center">Recent Recipes</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {% for recipe in recipes[:12] %}
             {{ recipe_card(recipe, base_url) }}
             {% endfor %}
@@ -40,14 +46,14 @@
 
     <!-- Browse Links -->
     <section class="mb-24">
-        <h3 class="font-serif text-2xl mb-8 text-center">Browse</h3>
+        <h2 class="font-serif text-2xl mb-8 text-center">Browse</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16">
             <div>
-                <h4 class="font-serif text-xl mb-4">By Category</h4>
+                <h3 class="font-serif text-xl mb-4">By Category</h3>
                 <ul class="list-none pl-0">
                     {% for category, recipes in categories.items() %}
                     <li class="mb-2">
-                        <a href="{{ base_url }}/{{ category }}/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">{{ category|title }}</a>
+                        <a href="{{ base_url }}/food/{{ category }}/" class="no-underline border-none hover:text-cookbook-accent transition-colors duration-200">{{ category|title }}</a>
                         <span class="text-cookbook-light text-sm">({{ recipes|length }})</span>
                     </li>
                     {% endfor %}
@@ -55,7 +61,7 @@
             </div>
 
             <div>
-                <h4 class="font-serif text-xl mb-4">By Cuisine</h4>
+                <h3 class="font-serif text-xl mb-4">By Cuisine</h3>
                 <ul class="list-none pl-0">
                     {% for cuisine, recipes in cuisines.items() %}
                     <li class="mb-2">
@@ -67,7 +73,7 @@
             </div>
 
             <div>
-                <h4 class="font-serif text-xl mb-4">By Spirit</h4>
+                <h3 class="font-serif text-xl mb-4">By Spirit</h3>
                 <ul class="list-none pl-0">
                     {% for spirit, recipes in spirits.items() %}
                     <li class="mb-2">
@@ -79,7 +85,7 @@
             </div>
 
             <div>
-                <h4 class="font-serif text-xl mb-4">Popular Tags</h4>
+                <h3 class="font-serif text-xl mb-4">Popular Tags</h3>
                 <ul class="list-none pl-0">
                     {% for tag, recipes in tags.items() %}
                     {% if loop.index <= 10 %}

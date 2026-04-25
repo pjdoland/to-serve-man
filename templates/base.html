@@ -12,6 +12,7 @@
     {% if is_homepage %}
     <link rel="prefetch" href="{{ base_url }}/search-data.json?v={{ cache_bust }}" as="fetch" crossorigin>
     <script type="module" src="{{ base_url }}/static/js/search.js?v={{ cache_bust }}"></script>
+    <script type="module" src="{{ base_url }}/static/js/home-page.js?v={{ cache_bust }}"></script>
     {% endif %}
 
     {% block head_extra %}{% endblock %}
@@ -19,11 +20,11 @@
 <body class="font-sans font-light text-cookbook-text bg-cookbook-bg antialiased text-lg leading-relaxed">
     <a href="#main" class="skip-link">Skip to content</a>
 
-    <header class="border-b border-cookbook-border mb-16 no-print">
-        <div class="max-w-cookbook mx-auto px-8 py-8">
-            <div class="flex items-center justify-between">
-                <h1 class="font-serif font-semibold text-3xl m-0">
-                    <a href="{{ base_url }}/" class="no-underline border-none text-cookbook-text">{{ site_title }}</a>
+    <header class="bg-cookbook-warm border-b border-cookbook-border mb-16 no-print">
+        <div class="max-w-cookbook mx-auto px-8 py-7">
+            <div class="flex items-center justify-between flex-wrap gap-y-4">
+                <h1 class="m-0">
+                    <a href="{{ base_url }}/" class="wordmark no-underline border-none text-cookbook-text">{{ site_title }}</a>
                 </h1>
 
                 <button
@@ -39,25 +40,27 @@
                     </svg>
                 </button>
 
-                <nav class="hidden md:flex gap-8" aria-label="Primary">
-                    <a href="{{ base_url }}/" class="nav-link font-normal border-none text-cookbook-text">Home</a>
-                    <a href="{{ base_url }}/food/" class="nav-link font-normal border-none text-cookbook-text">Food</a>
-                    <a href="{{ base_url }}/cocktails/" class="nav-link font-normal border-none text-cookbook-text">Cocktails</a>
-                    <a href="{{ base_url }}/favorites/" class="nav-link font-normal border-none text-cookbook-text">Favorites</a>
-                    <a href="{{ base_url }}/shopping-list/" class="nav-link font-normal border-none text-cookbook-text">List</a>
-                    <a href="{{ base_url }}/about/" class="nav-link font-normal border-none text-cookbook-text">About</a>
-                    <a href="{{ base_url }}/cookbook.pdf" class="nav-link font-normal border-none text-cookbook-text" download>PDF</a>
+                {# One source of truth for primary nav. PDF is mobile-only — desktop has it in the footer. #}
+                {% set nav_items = [
+                    ("/",              "Home",          false),
+                    ("/food/",         "Food",          false),
+                    ("/cocktails/",    "Cocktails",     false),
+                    ("/favorites/",    "Favorites",     false),
+                    ("/shopping-list/","Shopping List", false),
+                    ("/about/",        "About",         false),
+                    ("/cookbook.pdf",  "Download PDF",  true),
+                ] %}
+                <nav class="hidden md:flex gap-7" aria-label="Primary">
+                    {% for href, label, mobile_only in nav_items if not mobile_only %}
+                    <a href="{{ base_url }}{{ href }}" class="nav-link">{{ label }}</a>
+                    {% endfor %}
                 </nav>
             </div>
 
-            <nav id="mobile-menu" class="hidden md:hidden mt-4 pb-4 flex flex-col gap-4" aria-label="Mobile">
-                <a href="{{ base_url }}/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Home</a>
-                <a href="{{ base_url }}/food/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Food</a>
-                <a href="{{ base_url }}/cocktails/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Cocktails</a>
-                <a href="{{ base_url }}/favorites/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Favorites</a>
-                <a href="{{ base_url }}/shopping-list/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Shopping List</a>
-                <a href="{{ base_url }}/about/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">About</a>
-                <a href="{{ base_url }}/cookbook.pdf" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline" download>Download PDF</a>
+            <nav id="mobile-menu" class="hidden md:hidden mt-4 pb-2 flex flex-col gap-3" aria-label="Mobile">
+                {% for href, label, mobile_only in nav_items %}
+                <a href="{{ base_url }}{{ href }}" class="py-2 border-b border-cookbook-rule hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline"{% if mobile_only %} download{% endif %}>{{ label }}</a>
+                {% endfor %}
             </nav>
         </div>
     </header>
@@ -66,9 +69,10 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="mt-24 py-8 border-t border-cookbook-border text-cookbook-light text-sm no-print">
-        <div class="max-w-cookbook mx-auto px-8">
-            <p class="mb-4">Generated with <a href="https://cooklang.org/" class="text-cookbook-light border-b border-cookbook-border hover:border-cookbook-accent transition-colors duration-200 no-underline">Cooklang</a></p>
+    <footer class="mt-24 py-8 border-t border-cookbook-rule text-cookbook-light text-sm no-print">
+        <div class="max-w-cookbook mx-auto px-8 flex flex-wrap gap-x-8 gap-y-2 justify-between">
+            <p class="m-0">Generated with <a href="https://cooklang.org/" class="text-cookbook-light border-b border-cookbook-rule hover:border-cookbook-accent transition-colors duration-200 no-underline">Cooklang</a></p>
+            <p class="m-0"><a href="{{ base_url }}/cookbook.pdf" class="text-cookbook-light border-b border-cookbook-rule hover:border-cookbook-accent transition-colors duration-200 no-underline" download>Download the cookbook (PDF)</a></p>
         </div>
     </footer>
 
