@@ -79,15 +79,21 @@ function installScaling(): void {
 
     ingItems.forEach((li) => {
       const orig = li.dataset.origHtml || "";
+      // Match every numeric token (mixed fraction, fraction, decimal, integer) inside
+      // the (qty unit) parens — recipes like "5 cups, 22 1/2 oz" carry parallel
+      // measurements and we need to scale all of them, not just the first.
       li.innerHTML = orig.replace(/\(([^)]+)\)/, (full, body) => {
-        const m = body.match(/^([^\s]+)(?:\s+(.+))?$/);
-        if (!m) return full;
-        const amount = parseAmount(m[1]);
-        if (amount === null) return full;
-        const scaled = amount * factor;
-        const isCount = !m[2] && scaled < 20;
-        const display = isCount ? Math.max(1, Math.round(scaled)).toString() : smartFraction(scaled);
-        return `(${display}${m[2] ? " " + m[2] : ""})`;
+        // Bare-number bodies (e.g. "(3)" eggs) round to a whole count.
+        const bare = body.trim().match(/^\d+(?:\.\d+)?$/);
+        if (bare) {
+          return `(${Math.max(1, Math.round(parseFloat(bare[0]) * factor))})`;
+        }
+        const NUMBER_RE = /\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?/g;
+        const scaled = body.replace(NUMBER_RE, (match: string) => {
+          const amt = parseAmount(match);
+          return amt === null ? match : smartFraction(amt * factor);
+        });
+        return `(${scaled})`;
       });
     });
   };
