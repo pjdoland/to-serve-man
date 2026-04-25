@@ -22,16 +22,13 @@ class RecipeSearch {
   private resultsContainer: HTMLDivElement | null = null;
   private searchTimeout: number | null = null;
   private selectedIndex: number = -1;
+  private dataPromise: Promise<void> | null = null;
 
   constructor() {
     this.init();
   }
 
-  private async init(): Promise<void> {
-    // Load search data
-    await this.loadSearchData();
-
-    // Get DOM elements
+  private init(): void {
     this.searchInput = document.getElementById('recipe-search') as HTMLInputElement;
     this.resultsContainer = document.getElementById('search-results') as HTMLDivElement;
 
@@ -40,50 +37,43 @@ class RecipeSearch {
       return;
     }
 
-    // Attach event listeners
+    // Hint to the browser without committing to a fetch yet — the actual fetch
+    // is kicked off on first focus or pointerover (loadSearchData()).
+    this.searchInput.addEventListener('pointerover', () => this.loadSearchData(), { once: true });
+
     this.attachEventListeners();
   }
 
-  private async loadSearchData(): Promise<void> {
-    try {
-      const baseUrl = document.documentElement.dataset.baseUrl || '';
-      const cacheBust = document.documentElement.dataset.cacheBust || '';
-      const response = await fetch(`${baseUrl}/search-data.json?v=${cacheBust}`);
-      const data: SearchData = await response.json();
-      this.recipes = data.recipes;
-    } catch (error) {
-      console.error('Failed to load search data:', error);
-    }
+  private loadSearchData(): Promise<void> {
+    if (this.dataPromise) return this.dataPromise;
+    const baseUrl = document.documentElement.dataset.baseUrl || '';
+    const cacheBust = document.documentElement.dataset.cacheBust || '';
+    this.dataPromise = fetch(`${baseUrl}/search-data.json?v=${cacheBust}`)
+      .then(r => r.json())
+      .then((data: SearchData) => { this.recipes = data.recipes; })
+      .catch(error => { console.error('Failed to load search data:', error); });
+    return this.dataPromise;
   }
 
   private attachEventListeners(): void {
     if (!this.searchInput) return;
 
-    // Input event (typing)
     this.searchInput.addEventListener('input', (e) => this.handleInput(e));
-
-    // Keyboard navigation
     this.searchInput.addEventListener('keydown', (e) => this.handleKeydown(e));
-
-    // Focus/blur events
-    this.searchInput.addEventListener('focus', () => this.handleFocus());
+    this.searchInput.addEventListener('focus', () => { this.loadSearchData(); this.handleFocus(); });
     this.searchInput.addEventListener('blur', () => this.handleBlur());
-
-    // Click outside to close
     document.addEventListener('click', (e) => this.handleClickOutside(e));
   }
 
   private handleInput(event: Event): void {
     const query = (event.target as HTMLInputElement).value;
 
-    // Clear previous timeout
     if (this.searchTimeout !== null) {
       clearTimeout(this.searchTimeout);
     }
 
-    // Debounce search
     this.searchTimeout = window.setTimeout(() => {
-      this.performSearch(query);
+      this.loadSearchData().then(() => this.performSearch(query));
     }, 300);
   }
 
@@ -165,28 +155,29 @@ class RecipeSearch {
   }
 
   private displayResults(results: Recipe[], query: string): void {
-    if (!this.resultsContainer) return;
+    if (!this.resultsContainer || !this.searchInput) return;
 
-    // Clear previous results
     this.resultsContainer.innerHTML = '';
     this.selectedIndex = -1;
+    this.searchInput.removeAttribute('aria-activedescendant');
 
     if (results.length === 0) {
       this.showNoResults(query);
       return;
     }
 
-    // Create result items
     const resultsList = document.createElement('div');
+    resultsList.id = 'search-listbox';
     resultsList.className = 'search-results-list';
     resultsList.setAttribute('role', 'listbox');
+    // Combobox owns the listbox directly so AT can announce highlighted options.
+    this.searchInput.setAttribute('aria-controls', 'search-listbox');
 
     results.forEach((recipe, index) => {
       const item = this.createResultItem(recipe, index);
       resultsList.appendChild(item);
     });
 
-    // Add result count
     const resultCount = document.createElement('div');
     resultCount.className = 'search-result-count';
     resultCount.textContent = `${results.length} recipe${results.length === 1 ? '' : 's'} found`;
@@ -196,15 +187,16 @@ class RecipeSearch {
     this.resultsContainer.appendChild(resultCount);
     this.resultsContainer.appendChild(resultsList);
 
-    // Show results
     this.showResults();
   }
 
   private createResultItem(recipe: Recipe, index: number): HTMLElement {
     const item = document.createElement('a');
     item.href = recipe.url;
+    item.id = `search-option-${index}`;
     item.className = 'search-result-item';
     item.setAttribute('role', 'option');
+    item.setAttribute('aria-selected', 'false');
     item.setAttribute('data-index', index.toString());
 
     // Title
@@ -313,11 +305,17 @@ class RecipeSearch {
         result.classList.add('selected');
         result.setAttribute('aria-selected', 'true');
         result.scrollIntoView({ block: 'nearest' });
+        if (this.searchInput) {
+          this.searchInput.setAttribute('aria-activedescendant', (result as HTMLElement).id);
+        }
       } else {
         result.classList.remove('selected');
         result.setAttribute('aria-selected', 'false');
       }
     });
+    if (this.selectedIndex < 0 && this.searchInput) {
+      this.searchInput.removeAttribute('aria-activedescendant');
+    }
   }
 
   private handleFocus(): void {

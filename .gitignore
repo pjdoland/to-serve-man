@@ -45,6 +45,9 @@ Thumbs.db
 static/js/search.js
 static/js/search.js.map
 
+# Built Tailwind CSS
+static/css/tailwind.css
+
 # Node modules
 node_modules/
 package-lock.json

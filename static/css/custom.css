@@ -3,6 +3,54 @@
    Elements that cannot use Tailwind utilities
    ========================================== */
 
+/* Self-hosted EB Garamond (variable font: one file covers 400-700 normal). */
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../fonts/eb-garamond-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+2000-206F, U+20AC, U+2122, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../fonts/eb-garamond-latin-italic.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+2000-206F, U+20AC, U+2122, U+FEFF, U+FFFD;
+}
+
+/* Skip-to-content link for keyboard / screen-reader users. */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 8px;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  background: #1a1816;
+  color: #fdfcfb;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.skip-link:focus {
+  top: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Navigation animated underline */
 .nav-link {
   position: relative;
@@ -176,8 +224,8 @@ article em {
 }
 
 .search-input::placeholder {
-  color: #6b6560;
-  opacity: 0.6;
+  color: #5a544f;
+  opacity: 1;
 }
 
 /* Search results container */
@@ -203,7 +251,7 @@ article em {
 .search-result-count {
   padding: 0.75rem 1.5rem;
   font-size: 0.875rem;
-  color: #6b6560;
+  color: #5a544f;
   border-bottom: 1px solid #e8e4df;
 }
 
@@ -251,7 +299,7 @@ article em {
 /* Result meta */
 .search-result-meta {
   font-size: 0.875rem;
-  color: #6b6560;
+  color: #5a544f;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -266,7 +314,7 @@ article em {
 .search-no-results {
   padding: 2rem 1.5rem;
   text-align: center;
-  color: #6b6560;
+  color: #5a544f;
 }
 
 .search-no-results p {

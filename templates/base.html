@@ -6,68 +6,40 @@
     <title>{% block title %}{{ site_title }}{% endblock %}</title>
     <meta name="description" content="{% block description %}{{ site_description }}{% endblock %}">
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              'cookbook-bg': '#fdfcfb',
-              'cookbook-text': '#1a1816',
-              'cookbook-light': '#6b6560',
-              'cookbook-accent': '#c1121f',
-              'cookbook-border': '#e8e4df',
-            },
-            fontFamily: {
-              'serif': ['EB Garamond', 'Palatino', 'Georgia', 'serif'],
-              'sans': ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
-            },
-            maxWidth: {
-              'cookbook': '1200px',
-              'cookbook-narrow': '800px',
-            },
-          }
-        }
-      }
-    </script>
-
-    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ base_url }}/static/css/tailwind.css?v={{ cache_bust }}">
     <link rel="stylesheet" href="{{ base_url }}/static/css/custom.css?v={{ cache_bust }}">
+
+    {% if is_homepage %}
+    <link rel="prefetch" href="{{ base_url }}/search-data.json?v={{ cache_bust }}" as="fetch" crossorigin>
+    <script defer src="{{ base_url }}/static/js/search.js?v={{ cache_bust }}"></script>
+    {% endif %}
 
     {% block head_extra %}{% endblock %}
 </head>
 <body class="font-sans font-light text-cookbook-text bg-cookbook-bg antialiased text-lg leading-relaxed">
-    <!-- Header with desktop/mobile nav -->
+    <a href="#main" class="skip-link">Skip to content</a>
+
     <header class="border-b border-cookbook-border mb-16 no-print">
         <div class="max-w-cookbook mx-auto px-8 py-8">
-            <!-- Desktop header: flex row -->
             <div class="flex items-center justify-between">
-                <!-- Site title -->
                 <h1 class="font-serif font-semibold text-3xl m-0">
                     <a href="{{ base_url }}/" class="no-underline border-none text-cookbook-text">{{ site_title }}</a>
                 </h1>
 
-                <!-- Hamburger button (mobile only) -->
                 <button
                     id="mobile-menu-toggle"
                     class="md:hidden p-2 text-cookbook-text hover:text-cookbook-accent transition-colors duration-200"
                     aria-label="Toggle menu"
                     aria-expanded="false"
+                    aria-controls="mobile-menu"
                 >
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path id="hamburger-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         <path id="close-icon" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
 
-                <!-- Desktop nav (hidden on mobile) -->
-                <nav class="hidden md:flex gap-8">
+                <nav class="hidden md:flex gap-8" aria-label="Primary">
                     <a href="{{ base_url }}/" class="nav-link font-normal border-none text-cookbook-text">Home</a>
                     <a href="{{ base_url }}/food/" class="nav-link font-normal border-none text-cookbook-text">Food</a>
                     <a href="{{ base_url }}/cocktails/" class="nav-link font-normal border-none text-cookbook-text">Cocktails</a>
@@ -76,8 +48,7 @@
                 </nav>
             </div>
 
-            <!-- Mobile nav (hidden by default) -->
-            <nav id="mobile-menu" class="hidden md:hidden mt-4 pb-4 flex flex-col gap-4">
+            <nav id="mobile-menu" class="hidden md:hidden mt-4 pb-4 flex flex-col gap-4" aria-label="Mobile">
                 <a href="{{ base_url }}/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Home</a>
                 <a href="{{ base_url }}/food/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Food</a>
                 <a href="{{ base_url }}/cocktails/" class="py-2 border-b border-cookbook-border hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline">Cocktails</a>
@@ -87,7 +58,7 @@
         </div>
     </header>
 
-    <main>
+    <main id="main">
         {% block content %}{% endblock %}
     </main>
 
@@ -97,23 +68,17 @@
         </div>
     </footer>
 
-    <!-- Mobile menu toggle script -->
     <script>
         (function() {
             'use strict';
-
             const toggle = document.getElementById('mobile-menu-toggle');
             const menu = document.getElementById('mobile-menu');
             const hamburgerIcon = document.getElementById('hamburger-icon');
             const closeIcon = document.getElementById('close-icon');
-
-            if (!toggle || !menu || !hamburgerIcon || !closeIcon) {
-                return;
-            }
+            if (!toggle || !menu || !hamburgerIcon || !closeIcon) return;
 
             function toggleMenu() {
                 const isHidden = menu.classList.contains('hidden');
-
                 menu.classList.toggle('hidden');
                 hamburgerIcon.classList.toggle('hidden');
                 closeIcon.classList.toggle('hidden');
@@ -121,28 +86,16 @@
             }
 
             toggle.addEventListener('click', toggleMenu);
-
-            const menuLinks = menu.querySelectorAll('a');
-            menuLinks.forEach(function(link) {
+            menu.querySelectorAll('a').forEach(function(link) {
                 link.addEventListener('click', function() {
-                    if (!menu.classList.contains('hidden')) {
-                        toggleMenu();
-                    }
+                    if (!menu.classList.contains('hidden')) toggleMenu();
                 });
             });
-
             document.addEventListener('click', function(event) {
                 const isClickInside = toggle.contains(event.target) || menu.contains(event.target);
-                if (!isClickInside && !menu.classList.contains('hidden')) {
-                    toggleMenu();
-                }
+                if (!isClickInside && !menu.classList.contains('hidden')) toggleMenu();
             });
         })();
     </script>
-
-    <!-- Search functionality (homepage only) -->
-    {% if is_homepage %}
-    <script src="{{ base_url }}/static/js/search.js?v={{ cache_bust }}"></script>
-    {% endif %}
 </body>
 </html>

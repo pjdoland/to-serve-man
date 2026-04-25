@@ -53,25 +53,30 @@ def validate_recipes():
     return False
 
 
-def build_typescript():
-    """Compile TypeScript files."""
+def _run_npm(script: str, label: str) -> bool:
     try:
-        logger.info("  Compiling TypeScript...")
-        subprocess.run(["npm", "run", "build:ts"], check=True, capture_output=True)
-        logger.info("  ✓ TypeScript compiled successfully")
+        logger.info(f"  Building {label}...")
+        subprocess.run(["npm", "run", script], check=True, capture_output=True)
+        logger.info(f"  ✓ {label} built")
         return True
     except subprocess.CalledProcessError as e:
-        logger.error(f"  ✗ Error compiling TypeScript: {e}")
+        logger.error(f"  ✗ Error building {label}: {e}")
         return False
     except FileNotFoundError:
-        logger.warning("  ⚠ npm not found, skipping TypeScript compilation")
+        logger.warning(f"  ⚠ npm not found, skipping {label}")
         return False
+
+
+def build_assets():
+    """Compile TypeScript and Tailwind CSS."""
+    _run_npm("build:ts", "TypeScript")
+    _run_npm("build:css", "Tailwind CSS")
 
 
 def build_site(base_url: str = None):
     """Generate static website."""
     try:
-        build_typescript()
+        build_assets()
         generate_site(base_url=base_url)
         return True
     except Exception:
