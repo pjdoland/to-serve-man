@@ -105,12 +105,16 @@ function installScaling(): void {
 
 // --- Units (US ↔ metric, temperatures only) ----------------------------------
 
+const PAIRED_F_C = /(\d+(?:\.\d+)?)\s*°\s*F\s*\(\s*(\d+(?:\.\d+)?)\s*°\s*C\s*\)/gi;
+const PAIRED_C_F = /(\d+(?:\.\d+)?)\s*°\s*C\s*\(\s*(\d+(?:\.\d+)?)\s*°\s*F\s*\)/gi;
+const STANDALONE_F = /(\d+(?:\.\d+)?)\s*°\s*F\b/gi;
+const STANDALONE_C = /(\d+(?:\.\d+)?)\s*°\s*C\b/gi;
+
 function installUnits(): void {
   const stepLis = Array.from(document.querySelectorAll<HTMLElement>(".instructions-list li"));
-  const hasTemps = stepLis.some((li) => /(\d+(?:\.\d+)?)\s*°\s*([FC])/i.test(li.textContent || ""));
+  const hasTemps = stepLis.some((li) => /\d+\s*°\s*[FC]/i.test(li.textContent || ""));
   const tool = document.querySelector<HTMLElement>('[data-feature="units"]');
-  if (!tool) return;
-  if (!hasTemps) return; // leave the SSR'd shell hidden — recipe has no convertible temps
+  if (!tool || !hasTemps) return; // leave the SSR'd shell hidden when there's nothing to convert
 
   tool.removeAttribute("hidden");
   const buttons = Array.from(tool.querySelectorAll<HTMLButtonElement>("button"));
@@ -120,12 +124,20 @@ function installUnits(): void {
     document.body.classList.toggle("is-metric", metric);
     stepLis.forEach((li) => {
       if (li.dataset.origHtmlUnits === undefined) li.dataset.origHtmlUnits = li.innerHTML;
-      li.innerHTML = li.dataset.origHtmlUnits.replace(/(\d+(?:\.\d+)?)\s*°\s*([FC])/gi, (full, n, unit) => {
-        const num = parseFloat(n);
-        if (metric && /F/i.test(unit)) return `${Math.round((num - 32) * 5 / 9)}°C`;
-        if (!metric && /C/i.test(unit)) return `${Math.round(num * 9 / 5 + 32)}°F`;
-        return full;
-      });
+      let html = li.dataset.origHtmlUnits;
+      // Recipes commonly carry both units in parallel ("375°F (190°C)") — collapse
+      // to a single measurement matching the user's preference. Reset every apply()
+      // because origHtmlUnits is the always-paired source of truth.
+      html = html.replace(PAIRED_F_C, (_full, f, c) => (metric ? `${c}°C` : `${f}°F`));
+      html = html.replace(PAIRED_C_F, (_full, c, f) => (metric ? `${c}°C` : `${f}°F`));
+      // Anything still standalone gets converted on the fly.
+      html = html.replace(STANDALONE_F, (full, n) =>
+        metric ? `${Math.round((parseFloat(n) - 32) * 5 / 9)}°C` : full,
+      );
+      html = html.replace(STANDALONE_C, (full, n) =>
+        metric ? full : `${Math.round(parseFloat(n) * 9 / 5 + 32)}°F`,
+      );
+      li.innerHTML = html;
     });
     buttons.forEach((b) => {
       const isActive = (b.dataset.units === "metric") === metric;
@@ -139,7 +151,8 @@ function installUnits(): void {
     localStorage.setItem(STORAGE_KEYS.units, metric ? "metric" : "us");
     apply();
   }));
-  if (metric) apply();
+  // Always run on boot so paired temps collapse to the chosen single unit.
+  apply();
 }
 
 // --- Timers ------------------------------------------------------------------
@@ -260,6 +273,23 @@ function installCookMode(): void {
     });
   };
 
+  const removeCheckboxes = (items: HTMLElement[]) => {
+    items.forEach((li) => {
+      const wrapper = li.querySelector<HTMLLabelElement>("label.tsm-check-label");
+      if (!wrapper) return;
+      // Move the original step content back out, then drop the wrapper + checkbox.
+      while (wrapper.firstChild) {
+        if ((wrapper.firstChild as HTMLElement).matches?.("input.tsm-check")) {
+          wrapper.removeChild(wrapper.firstChild);
+        } else {
+          li.appendChild(wrapper.firstChild);
+        }
+      }
+      wrapper.remove();
+      li.classList.remove("is-done");
+    });
+  };
+
   const acquireLock = async () => {
     try { wakeLock = (await navigator.wakeLock?.request("screen")) ?? null; }
     catch { /* user-agent denied */ }
@@ -275,6 +305,8 @@ function installCookMode(): void {
       addCheckboxes(stepItems, "step");
       acquireLock();
     } else {
+      removeCheckboxes(ingItems);
+      removeCheckboxes(stepItems);
       wakeLock?.release(); wakeLock = null;
     }
   };
