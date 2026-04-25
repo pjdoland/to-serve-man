@@ -7,6 +7,7 @@ Handles discovery, parsing, and validation of Cooklang recipe files.
 import logging
 import re
 from dataclasses import dataclass, field
+from functools import cached_property
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +17,23 @@ from slugify import slugify
 import config
 
 logger = logging.getLogger("tsm.parser")
+
+FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
+
+# (field, label) pairs rendered in the recipe-notes block on both web and PDF.
+RECIPE_NOTE_FIELDS: tuple[tuple[str, str], ...] = (
+    ("yield_notes", "Yield"),
+    ("make_ahead", "Make ahead"),
+    ("storage", "Keeps"),
+    ("reheats", "Reheat"),
+)
+
+
+def _as_list(value: Any) -> list[str]:
+    """Normalize a YAML field that may be a string or list into list[str]."""
+    if not value:
+        return []
+    return value if isinstance(value, list) else [value]
 
 
 # --- Cooklang body parsing ---------------------------------------------------
@@ -102,7 +120,7 @@ class Callout:
 
 
 CALLOUT_KINDS = ("note", "tip", "warning")
-_CALLOUT_RE = re.compile(r"^>(note|tip|warning)\s+(.+)$", re.IGNORECASE)
+_CALLOUT_RE = re.compile(rf"^>({'|'.join(CALLOUT_KINDS)})\s+(.+)$", re.IGNORECASE)
 
 
 @dataclass
@@ -122,7 +140,8 @@ def _split_qty(raw: str) -> tuple[str, str]:
 
 
 def _strip_frontmatter(raw: str) -> str:
-    return re.sub(r"^---\s*\n.*?\n---\s*\n", "", raw, flags=re.DOTALL)
+    match = FRONTMATTER_RE.match(raw)
+    return raw[match.end() :] if match else raw
 
 
 def parse_body(raw_content: str) -> ParsedBody:
@@ -225,7 +244,7 @@ class Recipe:
 
     @staticmethod
     def _extract_metadata(raw_content: str) -> dict[str, Any]:
-        match = re.match(r"^---\s*\n(.*?)\n---\s*\n", raw_content, re.DOTALL)
+        match = FRONTMATTER_RE.match(raw_content)
         if not match:
             return {}
         try:
@@ -329,18 +348,21 @@ class Recipe:
     @property
     def season(self) -> list[str]:
         """One or more of: spring, summer, fall, winter, year-round."""
-        raw = self.metadata.get("season") or []
-        return raw if isinstance(raw, list) else [raw]
+        return _as_list(self.metadata.get("season"))
 
     @property
     def occasion(self) -> list[str]:
         """One or more of: weeknight, dinner-party, holiday, brunch, hangover, etc."""
-        raw = self.metadata.get("occasion") or []
-        return raw if isinstance(raw, list) else [raw]
+        return _as_list(self.metadata.get("occasion"))
+
+    @cached_property
+    def parsed(self) -> ParsedBody:
+        """The parsed Cooklang body (sections, steps, callouts, ingredients)."""
+        return parse_body(self.raw_content)
 
     def parsed_body(self) -> ParsedBody:
-        """Return the body parsed into structured tokens."""
-        return parse_body(self.raw_content)
+        """Backwards-compatible alias for `parsed`."""
+        return self.parsed
 
     def validate(self) -> list[str]:
         errors = []

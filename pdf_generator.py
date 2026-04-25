@@ -10,6 +10,7 @@ from pathlib import Path
 
 import config
 from recipe_parser import (
+    RECIPE_NOTE_FIELDS,
     Callout,
     Cookware,
     Ingredient,
@@ -70,12 +71,13 @@ class PDFGenerator:
 
         return text
 
-    def parse_recipe_content(self, recipe: Recipe) -> tuple[list[str], list[tuple[str, str]]]:
-        """Render the recipe body to (ingredients_latex, instructions).
+    def parse_recipe_content(self, recipe: Recipe) -> tuple[list[str], list[Section | Callout | str]]:
+        """Render the recipe body to (ingredients_latex, blocks).
 
-        instructions is a list of `(kind, text)` tuples where kind is "section" or "step".
+        Each block is a `Section` (header), a `Callout` (typed kind+text),
+        or a plain LaTeX-escaped string (a step).
         """
-        parsed = recipe.parsed_body()
+        parsed = recipe.parsed
 
         unique_ingredients: list[str] = []
         for ing in parsed.ingredients:
@@ -88,16 +90,14 @@ class PDFGenerator:
             else:
                 unique_ingredients.append(f"\\textbf{{{name_latex}}}")
 
-        instructions: list[tuple[str, str]] = []
+        blocks: list[Section | Callout | str] = []
         for block in parsed.blocks:
-            if isinstance(block, Section):
-                instructions.append(("section", block.name))
-            elif isinstance(block, Callout):
-                instructions.append(("callout", f"{block.kind}|{self.escape_latex(block.text)}"))
+            if isinstance(block, (Section, Callout)):
+                blocks.append(block)
             else:
-                instructions.append(("step", self._render_step_latex(block)))
+                blocks.append(self._render_step_latex(block))
 
-        return unique_ingredients, instructions
+        return unique_ingredients, blocks
 
     def _render_step_latex(self, step: Step) -> str:
         """Render a step to plain LaTeX text — Cooklang markers stripped, special chars escaped."""
@@ -161,7 +161,7 @@ class PDFGenerator:
             latex.append(f"\\recipeheadnote{{{self.escape_latex(recipe.headnote)}}}")
 
         # Parse content
-        ingredients, instructions = self.parse_recipe_content(recipe)
+        ingredients, blocks = self.parse_recipe_content(recipe)
 
         # Ingredients section
         if ingredients:
@@ -172,10 +172,10 @@ class PDFGenerator:
             latex.append("\\end{ingredients}")
 
         # Instructions section
-        if instructions:
+        if blocks:
             latex.append("\\subsection*{Instructions}")
 
-            # Group by sections; callouts are emitted between sections.
+            # Group steps under their preceding section; callouts break the group.
             current_section_items: list[str] = []
 
             def flush_steps():
@@ -186,29 +186,24 @@ class PDFGenerator:
                     latex.append("\\end{enumerate}")
                     current_section_items.clear()
 
-            for item_type, item_content in instructions:
-                if item_type == "section":
+            for block in blocks:
+                if isinstance(block, Section):
                     flush_steps()
-                    latex.append(f"\\subsubsection*{{{self.escape_latex(item_content)}}}")
-                elif item_type == "callout":
+                    latex.append(f"\\subsubsection*{{{self.escape_latex(block.name)}}}")
+                elif isinstance(block, Callout):
                     flush_steps()
-                    kind, escaped = item_content.split("|", 1)
-                    latex.append(f"\\callout{{{kind}}}{{{escaped}}}")
+                    latex.append(f"\\callout{{{block.kind}}}{{{self.escape_latex(block.text)}}}")
                 else:
-                    current_section_items.append(item_content)
+                    current_section_items.append(block)
 
             flush_steps()
 
         # Phase 3: storage / make-ahead / yield notes / variations
         notes_lines: list[str] = []
-        if recipe.yield_notes:
-            notes_lines.append(f"\\textbf{{Yield:}} {self.escape_latex(recipe.yield_notes)}")
-        if recipe.make_ahead:
-            notes_lines.append(f"\\textbf{{Make ahead:}} {self.escape_latex(recipe.make_ahead)}")
-        if recipe.storage:
-            notes_lines.append(f"\\textbf{{Keeps:}} {self.escape_latex(recipe.storage)}")
-        if recipe.reheats:
-            notes_lines.append(f"\\textbf{{Reheat:}} {self.escape_latex(recipe.reheats)}")
+        for field_name, label in RECIPE_NOTE_FIELDS:
+            value = getattr(recipe, field_name)
+            if value:
+                notes_lines.append(f"\\textbf{{{label}:}} {self.escape_latex(value)}")
         if notes_lines:
             latex.append("\\recipenotes{" + " \\\\ ".join(notes_lines) + "}")
 

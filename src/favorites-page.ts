@@ -1,6 +1,6 @@
-export {}; // module isolation
-
 // Renders the /favorites/ page from localStorage.
+
+import { STORAGE_KEYS, escapeHtml, loadJson, onReady } from "./util.js";
 
 interface RecipeIndexEntry { slug: string; title: string; url: string; }
 interface FavoritesStore { favorites: string[]; }
@@ -17,8 +17,8 @@ function readIndex(): Record<string, RecipeIndexEntry> {
 
 function init(): void {
   const idx = readIndex();
-  const favs: FavoritesStore = JSON.parse(localStorage.getItem("tsm:favorites") || '{"favorites":[]}');
-  const notes: NotesStore = JSON.parse(localStorage.getItem("tsm:notes") || "{}");
+  const favs = loadJson<FavoritesStore>(STORAGE_KEYS.favorites, { favorites: [] });
+  const notes = loadJson<NotesStore>(STORAGE_KEYS.notes, {});
 
   const empty = document.getElementById("tsm-favorites-empty");
   const favList = document.getElementById("tsm-favorites-list");
@@ -29,7 +29,7 @@ function init(): void {
     empty?.setAttribute("hidden", "");
     favList.removeAttribute("hidden");
     const ul = favList.querySelector("ul")!;
-    ul.innerHTML = validFavs.map((s) => `<li><a href="${idx[s].url}" class="block py-3 px-4 border border-cookbook-border rounded hover:border-cookbook-accent no-underline text-cookbook-text">${idx[s].title}</a></li>`).join("");
+    ul.innerHTML = validFavs.map((s) => `<li><a href="${escapeHtml(idx[s].url)}" class="block py-3 px-4 border border-cookbook-border rounded hover:border-cookbook-accent no-underline text-cookbook-text">${escapeHtml(idx[s].title)}</a></li>`).join("");
   }
 
   const madeEntries = Object.entries(notes).filter(([s]) => idx[s]);
@@ -41,16 +41,12 @@ function init(): void {
       const r = idx[slug];
       const items = entries.map((e) => {
         const date = e.date ? new Date(e.date).toLocaleDateString() : "";
-        const note = e.note ? ` — ${e.note}` : "";
-        return `<div class="text-sm text-cookbook-light">${date}${note}</div>`;
+        const note = e.note ? ` — ${escapeHtml(e.note)}` : "";
+        return `<div class="text-sm text-cookbook-light">${escapeHtml(date)}${note}</div>`;
       }).join("");
-      return `<li class="mb-6"><a href="${r.url}" class="font-serif text-xl no-underline text-cookbook-text border-none">${r.title}</a>${items}</li>`;
+      return `<li class="mb-6"><a href="${escapeHtml(r.url)}" class="font-serif text-xl no-underline text-cookbook-text border-none">${escapeHtml(r.title)}</a>${items}</li>`;
     }).join("");
   }
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", init);
-} else {
-  init();
-}
+onReady(init);

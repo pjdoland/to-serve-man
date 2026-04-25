@@ -1,4 +1,4 @@
-export {}; // module isolation
+import { onReady } from "./util.js";
 
 // Type definitions
 interface Recipe {
@@ -350,11 +350,4 @@ class RecipeSearch {
   }
 }
 
-// Initialize on DOM ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    new RecipeSearch();
-  });
-} else {
-  new RecipeSearch();
-}
+onReady(() => { new RecipeSearch(); });

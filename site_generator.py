@@ -8,6 +8,7 @@ import json
 import logging
 import secrets
 import shutil
+from functools import cached_property
 from pathlib import Path
 
 import markdown
@@ -16,6 +17,7 @@ from slugify import slugify
 
 import config
 from recipe_parser import (
+    RECIPE_NOTE_FIELDS,
     Callout,
     Cookware,
     Ingredient,
@@ -41,8 +43,10 @@ class SiteGenerator:
         # New token each build so CDNs/browsers don't serve a stale copy after a recipe is added.
         self.cache_bust = secrets.token_hex(5)
 
-        # Set up Jinja2 environment
+        # Set up Jinja2 environment. Register `slugify` so templates produce the same
+        # URL fragments as Python (`{{ tag|slugify }}` matches `slugify(tag)`).
         self.jinja_env = Environment(loader=FileSystemLoader(config.TEMPLATES_DIR), autoescape=True)
+        self.jinja_env.filters["slugify"] = slugify
 
         # Markdown processor
         self.md = markdown.Markdown(extensions=["extra", "nl2br"])
@@ -103,7 +107,7 @@ class SiteGenerator:
 
     def parse_recipe_content(self, recipe: Recipe) -> tuple[str, str]:
         """Render the recipe body to (ingredients_html, instructions_html)."""
-        parsed = recipe.parsed_body()
+        parsed = recipe.parsed
 
         # Ingredients list — only @x{...} appear (matches legacy: bare @x stays inline-only).
         ing_items: list[str] = []
@@ -160,15 +164,18 @@ class SiteGenerator:
                 )
         return "".join(out)
 
+    @cached_property
+    def _by_slug(self) -> dict[str, Recipe]:
+        return {r.slug: r for r in self.collection.recipes}
+
     def _resolve_cross_refs(self, recipe: Recipe) -> dict[str, list[Recipe]]:
         """Resolve serve_with/pairs_with/uses slugs to Recipe objects; warn on misses."""
-        by_slug = {r.slug: r for r in self.collection.recipes}
         resolved: dict[str, list[Recipe]] = {}
         for field_name in ("serve_with", "pairs_with", "uses"):
             slugs = getattr(recipe, field_name)
             hits: list[Recipe] = []
             for s in slugs:
-                target = by_slug.get(s)
+                target = self._by_slug.get(s)
                 if target:
                     hits.append(target)
                 else:
@@ -181,11 +188,15 @@ class SiteGenerator:
         """Generate individual recipe page."""
         ingredients_html, instructions_html = self.parse_recipe_content(recipe)
         cross_refs = self._resolve_cross_refs(recipe)
+        notes = [
+            (label, getattr(recipe, field)) for field, label in RECIPE_NOTE_FIELDS if getattr(recipe, field)
+        ]
         context = {
             "recipe": recipe,
             "ingredients_html": ingredients_html,
             "instructions_html": instructions_html,
             "cross_refs": cross_refs or None,
+            "notes": notes,
         }
         output_path = self.output_dir / "recipes" / recipe.slug / "index.html"
         self.render_template("recipe.html", context, output_path)

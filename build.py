@@ -53,24 +53,28 @@ def validate_recipes():
     return False
 
 
-def _run_npm(script: str, label: str) -> bool:
-    try:
-        logger.info(f"  Building {label}...")
-        subprocess.run(["npm", "run", script], check=True, capture_output=True)
-        logger.info(f"  ✓ {label} built")
-        return True
-    except subprocess.CalledProcessError as e:
-        logger.error(f"  ✗ Error building {label}: {e}")
-        return False
-    except FileNotFoundError:
-        logger.warning(f"  ⚠ npm not found, skipping {label}")
-        return False
-
-
 def build_assets():
-    """Compile TypeScript and Tailwind CSS."""
-    _run_npm("build:ts", "TypeScript")
-    _run_npm("build:css", "Tailwind CSS")
+    """Compile TypeScript and Tailwind CSS in parallel — independent pipelines."""
+    jobs = [("build:ts", "TypeScript"), ("build:css", "Tailwind CSS")]
+    procs: list[tuple[subprocess.Popen, str]] = []
+    try:
+        for script, label in jobs:
+            logger.info(f"  Building {label}...")
+            procs.append(
+                (
+                    subprocess.Popen(["npm", "run", script], stdout=subprocess.PIPE, stderr=subprocess.PIPE),
+                    label,
+                )
+            )
+    except FileNotFoundError:
+        logger.warning("  ⚠ npm not found, skipping asset build")
+        return
+    for proc, label in procs:
+        _, stderr = proc.communicate()
+        if proc.returncode == 0:
+            logger.info(f"  ✓ {label} built")
+        else:
+            logger.error(f"  ✗ Error building {label}: {stderr.decode().strip()}")
 
 
 def build_site(base_url: str = None):
