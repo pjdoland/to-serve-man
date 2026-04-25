@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import empty_state %}
 {% block title %}Shopping List — {{ site_title }}{% endblock %}
 
 {% block content %}
@@ -15,10 +16,11 @@
             <button id="tsm-shop-clear" type="button" class="tsm-btn">Clear all</button>
         </div>
 
-        <section id="tsm-shop-empty" class="text-center text-cookbook-light italic py-12">
-            <p class="text-lg mb-2">Nothing on your list yet.</p>
-            <p>Open any recipe and tap <strong>Add to list</strong>. Your list lives in this browser only — nothing is uploaded.</p>
-        </section>
+        <div id="tsm-shop-empty">
+            {{ empty_state("Nothing on your list yet.",
+                           "Open any recipe and tap Add to list. Your list lives in this browser only — nothing is uploaded.",
+                           base_url) }}
+        </div>
 
         <section id="tsm-shop-list" hidden>
             <ul class="list-none p-0"></ul>

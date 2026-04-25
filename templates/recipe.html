@@ -26,7 +26,9 @@
 {% endblock %}
 
 {% block content %}
+{% from "macros.html" import breadcrumbs as breadcrumb_trail %}
 <script type="module" src="{{ base_url }}/static/js/recipe-app.js?v={{ cache_bust }}"></script>
+{{ breadcrumb_trail(breadcrumbs) }}
 <article class="pb-24" data-recipe-slug="{{ recipe.slug }}" data-recipe-title="{{ recipe.title }}">
     <div class="max-w-cookbook mx-auto px-8">
         <!-- Recipe Header -->
@@ -101,7 +103,7 @@
                 </div>
             </div>
             <div class="tsm-group" data-group="action">
-                <button class="tsm-btn" type="button" data-action="cook-mode" aria-pressed="false">Cook view</button>
+                <button class="tsm-btn tsm-btn-primary" type="button" data-action="cook-mode" aria-pressed="false">Cook view</button>
                 <button class="tsm-btn tsm-fav" type="button" data-action="favorite" aria-pressed="false">♡ Save</button>
                 <button class="tsm-btn" type="button" data-action="add-to-list">Add to list</button>
             </div>

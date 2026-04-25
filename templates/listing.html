@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "macros.html" import recipe_card, page_header, breadcrumbs as breadcrumb_trail %}
+
+{% block title %}{{ title }} — To Serve Man{% endblock %}
+
+{% block content %}
+{% if breadcrumbs %}{{ breadcrumb_trail(breadcrumbs) }}{% endif %}
+<div class="max-w-cookbook mx-auto px-8">
+    {{ page_header(title, subtitle) }}
+
+    {% if facets %}
+    <section class="facet-rail mb-12 no-print" aria-label="Filter recipes">
+        {% for facet in facets %}
+        <fieldset class="facet-group">
+            <legend>{{ facet.name }}</legend>
+            <button type="button" class="facet-chip is-active" data-facet="{{ facet.key }}" data-value="">All</button>
+            {% for v in facet.options %}
+            <button type="button" class="facet-chip" data-facet="{{ facet.key }}" data-value="{{ v }}">{{ v|title if facet.key in ('spirit_base', 'glass', 'category') else v }}</button>
+            {% endfor %}
+        </fieldset>
+        {% endfor %}
+        <p class="facet-count" id="facet-count" aria-live="polite"></p>
+    </section>
+    {% endif %}
+
+    <section class="mb-24">
+        {% if recipes %}
+        <div class="recipe-grid" id="facet-results">
+            {% set facet_keys = facets|map(attribute='key')|list if facets else [] %}
+            {% for recipe in recipes %}
+            <div class="recipe-card-wrapper"{% for k in facet_keys %} data-{{ k|replace('_', '-') }}="{{ recipe[k] or '' }}"{% endfor %}>
+                {{ recipe_card(recipe, base_url) }}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-center text-cookbook-light italic">No recipes found.</p>
+        {% endif %}
+    </section>
+</div>
+
+{% if facets %}
+<script type="module" src="{{ base_url }}/static/js/facets.js?v={{ cache_bust }}"></script>
+{% endif %}
+{% endblock %}

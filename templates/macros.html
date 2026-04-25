@@ -30,3 +30,28 @@
     {% endif %}
 </header>
 {% endmacro %}
+
+{# Empty state with title, body markup, and Browse food/cocktails CTAs. #}
+{% macro empty_state(title, body, base_url) %}
+<section class="text-center text-cookbook-light py-12 max-w-md mx-auto">
+    <p class="text-lg italic mb-2">{{ title }}</p>
+    <p class="italic mb-6">{{ body }}</p>
+    <div class="flex gap-3 justify-center flex-wrap">
+        <a href="{{ base_url }}/food/" class="tsm-btn tsm-btn-primary no-underline">Browse food</a>
+        <a href="{{ base_url }}/cocktails/" class="tsm-btn no-underline">Browse cocktails</a>
+    </div>
+</section>
+{% endmacro %}
+
+{# Breadcrumb trail. `items` is a list of (label, href|None); the last item is rendered as plain text. #}
+{% macro breadcrumbs(items) %}
+<nav class="breadcrumbs no-print" aria-label="Breadcrumb">
+    <ol>
+        {% for label, href in items %}
+        <li>
+            {% if href and not loop.last %}<a href="{{ href }}">{{ label }}</a>{% else %}<span aria-current="page">{{ label }}</span>{% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+</nav>
+{% endmacro %}

@@ -290,19 +290,41 @@ function installCookMode(): void {
     catch { /* user-agent denied */ }
   };
 
+  // Lazy-built aria-live region so AT users get a status announcement on toggle.
+  // Created on first toggle so non-cook-view page loads don't grow the DOM.
+  let liveRegion: HTMLDivElement | null = null;
+  const announce = (msg: string) => {
+    if (!liveRegion) {
+      liveRegion = document.createElement("div");
+      liveRegion.setAttribute("role", "status"); // implies aria-live=polite
+      liveRegion.className = "sr-only";
+      document.body.appendChild(liveRegion);
+    }
+    liveRegion.textContent = msg;
+  };
+
   const toggle = () => {
     active = !active;
     document.body.classList.toggle("cook-mode", active);
     btn.classList.toggle("is-active", active);
     btn.setAttribute("aria-pressed", active ? "true" : "false");
+    btn.textContent = active ? "Exit cook view" : "Cook view";
     if (active) {
       addCheckboxes(ingItems, "ing");
       addCheckboxes(stepItems, "step");
       acquireLock();
+      // Scroll instructions into view — they're the primary cook-view surface.
+      // rAF lets the mobile order-swap reflow settle first.
+      const instructions = document.querySelector<HTMLElement>(".recipe-instructions");
+      if (instructions) {
+        requestAnimationFrame(() => instructions.scrollIntoView({ behavior: "smooth", block: "start" }));
+      }
+      announce("Cook view on. Steps are at the top; tap Ingredients to peek the list.");
     } else {
       removeCheckboxes(ingItems);
       removeCheckboxes(stepItems);
       wakeLock?.release(); wakeLock = null;
+      announce("Cook view off.");
     }
   };
 

@@ -20,16 +20,16 @@
 <body class="font-sans font-light text-cookbook-text bg-cookbook-bg antialiased text-lg leading-relaxed">
     <a href="#main" class="skip-link">Skip to content</a>
 
-    <header class="bg-cookbook-warm border-b border-cookbook-border mb-16 no-print">
+    <header class="site-header mb-16 no-print">
         <div class="max-w-cookbook mx-auto px-8 py-7">
             <div class="flex items-center justify-between flex-wrap gap-y-4">
                 <h1 class="m-0">
-                    <a href="{{ base_url }}/" class="wordmark no-underline border-none text-cookbook-text">{{ site_title }}</a>
+                    <a href="{{ base_url }}/" class="wordmark no-underline border-none">{{ site_title }}</a>
                 </h1>
 
                 <button
                     id="mobile-menu-toggle"
-                    class="md:hidden p-2 text-cookbook-text hover:text-cookbook-accent transition-colors duration-200"
+                    class="touch-target md:hidden p-2 hover:text-cookbook-focus transition-colors duration-200"
                     aria-label="Toggle menu"
                     aria-expanded="false"
                     aria-controls="mobile-menu"
@@ -57,9 +57,9 @@
                 </nav>
             </div>
 
-            <nav id="mobile-menu" class="hidden md:hidden mt-4 pb-2 flex flex-col gap-3" aria-label="Mobile">
+            <nav id="mobile-menu" class="hidden md:hidden mt-4 pb-2 flex flex-col gap-1" aria-label="Mobile">
                 {% for href, label, mobile_only in nav_items %}
-                <a href="{{ base_url }}{{ href }}" class="py-2 border-b border-cookbook-rule hover:text-cookbook-accent transition-colors duration-200 text-cookbook-text no-underline"{% if mobile_only %} download{% endif %}>{{ label }}</a>
+                <a href="{{ base_url }}{{ href }}" class="mobile-nav-link"{% if mobile_only %} download{% endif %}>{{ label }}</a>
                 {% endfor %}
             </nav>
         </div>

@@ -185,6 +185,16 @@ class SiteGenerator:
                 resolved[field_name] = hits
         return resolved
 
+    def _recipe_breadcrumbs(self, recipe: Recipe) -> list[tuple[str, str | None]]:
+        """Build the breadcrumb trail for a recipe page; last item has no href."""
+        if recipe.is_cocktail:
+            return [("Cocktails", f"{self.base_url}/cocktails/"), (recipe.title, None)]
+        return [
+            ("Food", f"{self.base_url}/food/"),
+            (recipe.category.replace("-", " ").title(), f"{self.base_url}/food/{recipe.category}/"),
+            (recipe.title, None),
+        ]
+
     def generate_recipe_page(self, recipe: Recipe):
         """Generate individual recipe page."""
         ingredients_html, instructions_html = self.parse_recipe_content(recipe)
@@ -194,6 +204,7 @@ class SiteGenerator:
         ]
         context = {
             "recipe": recipe,
+            "breadcrumbs": self._recipe_breadcrumbs(recipe),
             "ingredients_html": ingredients_html,
             "instructions_html": instructions_html,
             "cross_refs": cross_refs or None,
@@ -219,15 +230,27 @@ class SiteGenerator:
         output_path = self.output_dir / "index.html"
         self.render_template("index.html", context, output_path)
 
-    def generate_list_page(self, title: str, recipes: list[Recipe], output_path: Path, subtitle: str = None):
-        """Generate a list page (category, tag, etc.)."""
+    def generate_list_page(
+        self,
+        title: str,
+        recipes: list[Recipe],
+        output_path: Path,
+        subtitle: str = None,
+        facets: list[dict] | None = None,
+        breadcrumbs: list[tuple[str, str | None]] | None = None,
+    ):
+        """Render a recipe-grid page (category, tag, cuisine, season, food landing, etc.).
+
+        `facets` enables the client-side filter rail; `breadcrumbs` shows the trail.
+        """
         context = {
             "title": title,
             "subtitle": subtitle,
             "recipes": recipes,
+            "facets": facets,
+            "breadcrumbs": breadcrumbs,
         }
-
-        self.render_template("list.html", context, output_path)
+        self.render_template("listing.html", context, output_path)
 
     def generate_category_pages(self):
         """Generate /food/<category>/ pages. Cocktails live under /cocktails/ (a single
@@ -239,7 +262,8 @@ class SiteGenerator:
                 continue
             title = category.replace("-", " ").title()
             output_path = self.output_dir / "food" / category / "index.html"
-            self.generate_list_page(title, recipes, output_path)
+            crumbs = [("Food", f"{self.base_url}/food/"), (title, None)]
+            self.generate_list_page(title, recipes, output_path, breadcrumbs=crumbs)
 
     def generate_tag_pages(self):
         """Generate pages for each tag."""
@@ -248,7 +272,8 @@ class SiteGenerator:
         for tag, recipes in tags.items():
             slug = slugify(tag)
             output_path = self.output_dir / "tags" / slug / "index.html"
-            self.generate_list_page(f"#{tag}", recipes, output_path)
+            crumbs = [("Home", f"{self.base_url}/"), (f"#{tag}", None)]
+            self.generate_list_page(f"#{tag}", recipes, output_path, breadcrumbs=crumbs)
 
     def generate_cuisine_pages(self):
         """Generate pages for each cuisine."""
@@ -257,7 +282,10 @@ class SiteGenerator:
         for cuisine, recipes in cuisines.items():
             slug = slugify(cuisine)
             output_path = self.output_dir / "cuisine" / slug / "index.html"
-            self.generate_list_page(cuisine, recipes, output_path, subtitle="Food recipes")
+            crumbs = [("Food", f"{self.base_url}/food/"), (cuisine, None)]
+            self.generate_list_page(
+                cuisine, recipes, output_path, subtitle="Food recipes", breadcrumbs=crumbs
+            )
 
     def generate_spirit_pages(self):
         """Generate pages for each spirit."""
@@ -266,7 +294,8 @@ class SiteGenerator:
         for spirit, recipes in spirits.items():
             slug = slugify(spirit)
             output_path = self.output_dir / "spirit" / slug / "index.html"
-            self.generate_list_page(f"{spirit.title()} Cocktails", recipes, output_path)
+            crumbs = [("Cocktails", f"{self.base_url}/cocktails/"), (spirit.title(), None)]
+            self.generate_list_page(f"{spirit.title()} Cocktails", recipes, output_path, breadcrumbs=crumbs)
 
     def generate_facet_pages(self, attr: str, segment: str, label: str):
         """Generate /<segment>/<value>/ pages for a multi-value Recipe facet (e.g. season, occasion)."""
@@ -305,16 +334,38 @@ class SiteGenerator:
         self.render_template("about.html", context, output_path)
 
     def generate_food_page(self):
-        """Generate main food page."""
+        """Generate main food page with facet rail (cuisine + category)."""
         recipes = self.collection.food_recipes
+        cuisines = sorted({r.cuisine for r in recipes if r.cuisine})
+        categories = config.order_food_categories(sorted({r.category for r in recipes}))
         output_path = self.output_dir / "food" / "index.html"
-        self.generate_list_page("Food", recipes, output_path, subtitle="All food recipes")
+        context = {
+            "title": "Food",
+            "subtitle": f"{len(recipes)} food recipes",
+            "recipes": recipes,
+            "facets": [
+                {"name": "Cuisine", "key": "cuisine", "options": cuisines},
+                {"name": "Category", "key": "category", "options": categories},
+            ],
+        }
+        self.render_template("listing.html", context, output_path)
 
     def generate_cocktails_page(self):
-        """Generate main cocktails page."""
+        """Generate main cocktails page with facet rail (spirit + glass)."""
         recipes = self.collection.cocktail_recipes
+        spirits = sorted({r.spirit_base for r in recipes if r.spirit_base})
+        glasses = sorted({r.glass for r in recipes if r.glass})
         output_path = self.output_dir / "cocktails" / "index.html"
-        self.generate_list_page("Cocktails", recipes, output_path, subtitle="All cocktail recipes")
+        context = {
+            "title": "Cocktails",
+            "subtitle": f"{len(recipes)} cocktail recipes",
+            "recipes": recipes,
+            "facets": [
+                {"name": "Spirit", "key": "spirit_base", "options": spirits},
+                {"name": "Glass", "key": "glass", "options": glasses},
+            ],
+        }
+        self.render_template("listing.html", context, output_path)
 
     def generate_search_data(self):
         """Generate JSON search data for client-side search."""
