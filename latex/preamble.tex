@@ -251,6 +251,13 @@
     \vspace{0.4\baselineskip}%
 }
 
+% Bare note (no kind label): \note{text}. Used for cookbook headnotes.
+\newcommand{\note}[1]{%
+    \par\vspace{0.4\baselineskip}%
+    \begin{quote}\small\itshape #1\end{quote}%
+    \vspace{0.4\baselineskip}%
+}
+
 % Recipe attribution - right-aligned, italic, smaller
 \newcommand{\recipeattribution}[1]{%
     \vspace{1\baselineskip}%

@@ -19,11 +19,13 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 #   - cocktail with garnish
 #   - LaTeX special chars + multiple sections
 #   - plain food recipe
+#   - bare `>` headnotes (Mai Tai has two before the steps)
 SNAPSHOT_RECIPES = [
     "pasta-carbonara",
     "negroni",
     "chocolate-chip-cookies",
     "french-toast",
+    "01-mai-tai",
 ]
 
 

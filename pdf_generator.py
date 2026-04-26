@@ -5,6 +5,7 @@ Generates a beautifully typeset LaTeX cookbook and compiles it to PDF.
 """
 
 import logging
+import re
 import subprocess
 from pathlib import Path
 
@@ -39,37 +40,30 @@ class PDFGenerator:
         self.collection = RecipeCollection(self.recipes_dir)
         self.collection.load_recipes(use_cooklang_parser=False)
 
+    _LATEX_ESCAPES = {
+        "\\": r"\textbackslash{}",
+        "&": r"\&",
+        "%": r"\%",
+        "$": r"\$",
+        "#": r"\#",
+        "_": r"\_",
+        "{": r"\{",
+        "}": r"\}",
+        "~": r"\textasciitilde{}",
+        "^": r"\^{}",
+    }
+    _LATEX_ESCAPE_RE = re.compile("|".join(re.escape(c) for c in _LATEX_ESCAPES))
+
     def escape_latex(self, text: str) -> str:
-        """
-        Escape special LaTeX characters.
+        """Escape LaTeX special characters in a single pass.
 
-        Args:
-            text: Raw text string
-
-        Returns:
-            LaTeX-safe string
+        Sequential `str.replace` would re-escape the backslashes inserted by
+        earlier substitutions (e.g. `&` → `\\&`, then `\\` → `\\textbackslash{}`
+        produces `\\textbackslash{}&`).
         """
         if not text:
             return ""
-
-        # Replace special characters
-        replacements = {
-            "&": r"\&",
-            "%": r"\%",
-            "$": r"\$",
-            "#": r"\#",
-            "_": r"\_",
-            "{": r"\{",
-            "}": r"\}",
-            "~": r"\textasciitilde{}",
-            "^": r"\^{}",
-            "\\": r"\textbackslash{}",
-        }
-
-        for char, replacement in replacements.items():
-            text = text.replace(char, replacement)
-
-        return text
+        return self._LATEX_ESCAPE_RE.sub(lambda m: self._LATEX_ESCAPES[m.group()], text)
 
     def parse_recipe_content(self, recipe: Recipe) -> tuple[list[str], list[Section | Callout | str]]:
         """Render the recipe body to (ingredients_latex, blocks).
@@ -192,7 +186,10 @@ class PDFGenerator:
                     latex.append(f"\\subsubsection*{{{self.escape_latex(block.name)}}}")
                 elif isinstance(block, Callout):
                     flush_steps()
-                    latex.append(f"\\callout{{{block.kind}}}{{{self.escape_latex(block.text)}}}")
+                    if block.labeled:
+                        latex.append(f"\\callout{{{block.kind}}}{{{self.escape_latex(block.text)}}}")
+                    else:
+                        latex.append(f"\\note{{{self.escape_latex(block.text)}}}")
                 else:
                     current_section_items.append(block)
 

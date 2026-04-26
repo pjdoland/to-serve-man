@@ -1,0 +1,27 @@
+\needspace{4\baselineskip}
+\section{Mai Tai}
+\recipemeta{Double Old-Fashioned · Rum · Garnish: spent lime shell and mint sprig}
+\recipedescription{Trader Vic's 1944 rum sour with orgeat and orange curaçao, structurally a refined Jamaican planter's-punch sour built around a specific lost Jamaican rum.}
+\subsection*{Ingredients}
+\begin{ingredients}
+\item \textbf{fresh lime juice} -- 1 oz
+\item \textbf{rock candy syrup} -- 0.25 oz
+\item \textbf{orgeat} -- 0.25 oz
+\item \textbf{orange curacao} -- 0.5 oz
+\item \textbf{aged Martinique agricole} -- 1 oz
+\item \textbf{aged pot-still Jamaican rum} -- 1 oz
+\item \textbf{crushed ice} -- 1 cup
+\item \textbf{lime shell} -- 1
+\item \textbf{mint sprig} -- 1
+\end{ingredients}
+\subsection*{Instructions}
+\note{Vic's 1944 spec called for a single 17-year J. Wray \& Nephew Jamaican rum; modern reconstructions split the base between aged pot-still Jamaican and aged Martinique agricole to approximate the lost rum's profile. The Mai Tai's structural bones are the Jamaican planter's-punch sour tradition (one of sour, two of sweet, three of strong) — it descends from West Indian punch, not Polynesian invention.}
+\note{Brand recommendations. Best: Smith \& Cross or Hamilton Pot Still Black for the Jamaican; Rhum J.M. VSOP or Clément VSOP for the agricole; Pierre Ferrand Dry Curaçao; Small Hand Foods or BG Reynolds orgeat. Economical: Appleton Estate 8 + Plantation 3 Stars (or Denizen Merchant's Reserve as a single-bottle stand-in); Cointreau; Liber \& Co. orgeat. Single-bottle alternative: Denizen Merchant's Reserve, an 8-year blend of Plummer-style Jamaican pot-still rum and Martinique rhum grand arôme. It was developed by Nick Pelis with Martin Cate of Smuggler's Cove specifically to fill the slot of the lost J. Wray \& Nephew 17, approximating the blend Vic himself reached for in the "second adjusted" Mai Tai recipe after the original Jamaican rum stock dried up. Pour 2 oz of Merchant's Reserve in place of the split rum bill.}
+\begin{enumerate}
+\item In a shaker combine fresh lime juice, rock candy syrup, orgeat, orange curacao, aged Martinique agricole, and aged pot-still Jamaican rum.
+\item Add crushed ice and shake until chilled, about 10 seconds.
+\item Pour unstrained into a double old-fashioned glass.
+\item Garnish with the spent lime shell and a mint sprig.
+\end{enumerate}
+\recipeattribution{Recipe by Victor "Trader Vic" Bergeron (1944, Trader Vic's, Oakland)}
+\vspace{3\baselineskip}

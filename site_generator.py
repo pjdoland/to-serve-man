@@ -134,11 +134,14 @@ class SiteGenerator:
                 parts.append(f'<h3 class="section-header">{block.name}</h3>')
             elif isinstance(block, Callout):
                 flush_steps()
-                label = block.kind.capitalize()
+                label_html = (
+                    f'<strong class="callout-label">{block.kind.capitalize()}</strong> '
+                    if block.labeled
+                    else ""
+                )
                 parts.append(
                     f'<aside class="callout callout-{block.kind}" role="note">'
-                    f'<strong class="callout-label">{label}</strong> '
-                    f"<span>{block.text}</span></aside>"
+                    f"{label_html}<span>{block.text}</span></aside>"
                 )
             else:
                 current_steps.append(self._render_step_html(block))

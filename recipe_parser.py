@@ -131,14 +131,23 @@ class Section:
 
 @dataclass
 class Callout:
-    """A `>note ...`, `>tip ...`, or `>warning ...` line — promoted to a styled aside."""
+    """A `>note ...`, `>tip ...`, `>warning ...`, or bare `> ...` line — promoted to a styled aside.
+
+    `labeled=False` is used for bare-`>` headnotes that should render without
+    the small "NOTE" eyebrow (the box styling alone is enough signal).
+    """
 
     kind: str  # "note" | "tip" | "warning"
     text: str
+    labeled: bool = True
 
 
 CALLOUT_KINDS = ("note", "tip", "warning")
 _CALLOUT_RE = re.compile(rf"^>({'|'.join(CALLOUT_KINDS)})\s+(.+)$", re.IGNORECASE)
+# Bare `> prose` (no kind word) is treated as an unlabeled note — used as a
+# Markdown-style headnote/blockquote. Must match after `>>` (sections) and the
+# kinded callout regex so those win.
+_BARE_NOTE_RE = re.compile(r"^>\s+(.+)$")
 
 
 @dataclass
@@ -185,6 +194,10 @@ def parse_body(raw_content: str) -> ParsedBody:
         callout_match = _CALLOUT_RE.match(line)
         if callout_match:
             blocks.append(Callout(kind=callout_match.group(1).lower(), text=callout_match.group(2).strip()))
+            continue
+        bare_note = _BARE_NOTE_RE.match(line)
+        if bare_note:
+            blocks.append(Callout(kind="note", text=bare_note.group(1).strip(), labeled=False))
             continue
 
         tokens: list[StepToken] = []
