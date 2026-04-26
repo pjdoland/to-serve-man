@@ -9,13 +9,13 @@ module.exports = {
         "cookbook-warm": "#f5f1ec",     // body surface wash (used on listing backgrounds, hover)
         "cookbook-text": "#1a1816",
         "cookbook-light": "#3d3936",    // darkened from #5a544f to clear WCAG 1.4.3 (4.5:1 vs cream)
-        "cookbook-accent": "#c1121f",   // reserved for interactive (links, tags, save) — never chrome
+        "cookbook-accent": "#a8121c",   // deeper link red — defers to the masthead so two reds don't fight
         "cookbook-border": "#a39a90",   // 3:1+ for interactive controls (WCAG 1.4.11)
         "cookbook-rule": "#e8e4df",     // decorative separators only
-        "cookbook-success": "#2f7a3a",  // tip callouts / completed timers
-        "cookbook-header": "#5C1A1C",   // cordovan; AAA on white text + cream body
+        "cookbook-success": "#1f6b34",  // darker green so callouts don't sit at the same loudness as the new red
+        "cookbook-header": "#c8102e",   // Pantone 199 magazine red (Roger Black lineage); 4.83:1 on off-white text
         "cookbook-on-header": "#FAF7F0",// warm off-white for text on header
-        "cookbook-focus": "#F5B14A",    // warm amber; ≥3:1 on cordovan AND cream
+        "cookbook-focus": "#FFD166",    // warm amber; 3.74:1 on the new red (old #f5b14a failed at 2.85:1)
       },
       fontFamily: {
         serif: ['"EB Garamond"', "Palatino", "Georgia", "serif"],

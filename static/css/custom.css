@@ -9,13 +9,13 @@
   --cb-warm: #f5f1ec;          /* body surface wash (listings, hover) */
   --cb-text: #1a1816;
   --cb-light: #3d3936;         /* nav text + meta on cream — ≥7:1 contrast */
-  --cb-accent: #c1121f;        /* interactive accent — links, tags, save heart */
+  --cb-accent: #a8121c;        /* deeper link red — defers to the masthead */
   --cb-border: #a39a90;        /* interactive controls (3:1+ vs bg) */
   --cb-rule: #e8e4df;          /* decorative separators only */
-  --cb-success: #2f7a3a;       /* tip callout / completed-timer */
-  --cb-header: #5c1a1c;        /* cordovan masthead */
-  --cb-on-header: #faf7f0;     /* warm off-white text on cordovan */
-  --cb-focus: #f5b14a;         /* warm-amber focus ring; ≥3:1 on cordovan AND cream */
+  --cb-success: #1f6b34;       /* tip callout / completed-timer */
+  --cb-header: #c8102e;        /* Pantone 199 magazine red (Roger Black lineage) */
+  --cb-on-header: #faf7f0;     /* warm off-white text on header — 4.83:1 on header red */
+  --cb-focus: #ffd166;         /* warm-amber focus ring; ≥3:1 on header red AND cream */
 }
 
 /* Self-hosted EB Garamond (variable font: one file covers 400-700 normal). */
@@ -74,7 +74,7 @@
   outline: 2px solid var(--cb-focus);
   outline-offset: 2px;
   border-radius: 2px;
-  box-shadow: 0 0 0 4px rgba(245, 177, 74, 0.25);
+  box-shadow: 0 0 0 4px rgba(255, 209, 102, 0.25);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -86,10 +86,12 @@
   }
 }
 
-/* Header (cordovan masthead) */
+/* Header (Roger Black-style magazine red masthead). The 2px black bottom rule
+   is the Newsweek/NY-Mag signature — anchors the loud red against cream paper. */
 .site-header {
   background: var(--cb-header);
   color: var(--cb-on-header);
+  border-bottom: 2px solid var(--cb-text);
 }
 .site-header a { color: var(--cb-on-header); }
 .site-header .wordmark { color: var(--cb-on-header); }
@@ -213,13 +215,13 @@
   margin: 1.5rem 0;
   padding: 1rem 1.25rem;
   border-left: 3px solid var(--cb-accent);
-  background: rgba(193, 18, 31, 0.04);
+  background: rgba(168, 18, 28, 0.04);
   font-size: 0.95rem;
   line-height: 1.5;
 }
 .callout-note    { border-left-color: var(--cb-light);  background: rgba(90, 84, 79, 0.05); }
-.callout-tip     { border-left-color: var(--cb-success); background: rgba(47, 122, 58, 0.05); }
-.callout-warning { border-left-color: var(--cb-accent); background: rgba(193, 18, 31, 0.06); }
+.callout-tip     { border-left-color: var(--cb-success); background: rgba(31, 107, 52, 0.05); }
+.callout-warning { border-left-color: var(--cb-accent); background: rgba(168, 18, 28, 0.06); }
 .callout-label {
   display: block;
   font-size: 0.75rem;
@@ -517,7 +519,7 @@ article em     { font-style: italic; }
 
 .search-input:focus {
   border-color: var(--cb-focus);
-  box-shadow: 0 0 0 3px rgba(245, 177, 74, 0.25);
+  box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.25);
 }
 
 .search-input::placeholder {
