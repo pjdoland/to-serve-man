@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "macros.html" import empty_state %}
+{% from "icons.html" import icon %}
 {% block title %}Favorites — {{ site_title }}{% endblock %}
 
 {% block content %}
@@ -12,7 +13,7 @@
 
         <div id="tsm-favorites-empty">
             {{ empty_state("No favorites yet.",
-                           "Tap ♡ Save on any recipe to keep it here. Your favorites live in this browser only.",
+                           "Tap " ~ icon('heart', size=14) ~ " Save on any recipe to keep it here. Your favorites live in this browser only.",
                            base_url) }}
         </div>
 

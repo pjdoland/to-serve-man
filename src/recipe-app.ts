@@ -18,6 +18,18 @@ import {
 const RECENT_LIMIT = 8;
 const RECENT_DEDUPE_MS = 5 * 60 * 1000; // skip re-recording the same recipe within 5 min
 
+// Inline SVG icon strings — mirrors templates/icons.html. Used by elements whose
+// state JS owns (cook-mode/exit toggle, heart fill, drawer up/down chevron).
+const ICON_SVG_ATTRS = 'width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+const ICONS = {
+  play: `<svg ${ICON_SVG_ATTRS}><polygon points="6 3 20 12 6 21 6 3"/></svg>`,
+  x: `<svg ${ICON_SVG_ATTRS}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`,
+  heart: `<svg ${ICON_SVG_ATTRS}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`,
+  heartFilled: `<svg ${ICON_SVG_ATTRS}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" fill="currentColor"/></svg>`,
+  chevronUp: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>`,
+  chevronDown: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>`,
+} as const;
+
 const article = document.querySelector<HTMLElement>("article[data-recipe-slug]");
 const RECIPE_SLUG = article?.dataset.recipeSlug || "";
 const RECIPE_TITLE = article?.dataset.recipeTitle || "";
@@ -113,6 +125,12 @@ const PAIRED_F_C = /(\d+(?:\.\d+)?)\s*°\s*F\s*\(\s*(\d+(?:\.\d+)?)\s*°\s*C\s*\
 const PAIRED_C_F = /(\d+(?:\.\d+)?)\s*°\s*C\s*\(\s*(\d+(?:\.\d+)?)\s*°\s*F\s*\)/gi;
 
 function installUnits(): void {
+  // Toggle stays hidden unless the recipe is dual-authored for temperatures
+  // (paired pattern like "375°F (190°C)" in the instructions). The gate is
+  // intentionally narrow: extending it to paired weights/volumes without also
+  // implementing the conversion swap in apply() would surface a no-op toggle,
+  // which is worse UX than no toggle at all. Loosen this only when apply()
+  // grows weight/volume swap support too.
   const stepLis = Array.from(document.querySelectorAll<HTMLElement>(".instructions-list li"));
   const hasPairedTemps = stepLis.some((li) => {
     const text = li.textContent || "";
@@ -311,7 +329,7 @@ function installCookMode(): void {
     document.body.classList.toggle("cook-mode", active);
     btn.classList.toggle("is-active", active);
     btn.setAttribute("aria-pressed", active ? "true" : "false");
-    if (cookIcon) cookIcon.textContent = active ? "✕" : "▶";
+    if (cookIcon) cookIcon.innerHTML = active ? ICONS.x : ICONS.play;
     if (cookLabel) cookLabel.textContent = active ? "Exit cook view" : "Start cook view";
     if (active) {
       addCheckboxes(ingItems, "ing");
@@ -351,7 +369,7 @@ function installFavorites(): void {
   const updateHeart = () => {
     const favs = loadJson<FavoritesStore>(STORAGE_KEYS.favorites, { favorites: [] });
     const isFav = favs.favorites.includes(slug);
-    if (heartIcon) heartIcon.textContent = isFav ? "♥" : "♡";
+    if (heartIcon) heartIcon.innerHTML = isFav ? ICONS.heartFilled : ICONS.heart;
     if (heartLabel) heartLabel.textContent = isFav ? "Saved" : "Save";
     heart.classList.toggle("is-active", isFav);
     heart.setAttribute("aria-pressed", isFav ? "true" : "false");
@@ -411,16 +429,16 @@ function installDrawer(): void {
   drawer.setAttribute("aria-label", "Show ingredients");
   drawer.setAttribute("aria-controls", "recipe-ingredients");
   drawer.setAttribute("aria-expanded", "false");
-  drawer.textContent = "Ingredients ▲";
+  drawer.innerHTML = `Ingredients ${ICONS.chevronUp}`;
   const close = () => {
     document.body.classList.remove("drawer-open");
     drawer.setAttribute("aria-expanded", "false");
-    drawer.textContent = "Ingredients ▲";
+    drawer.innerHTML = `Ingredients ${ICONS.chevronUp}`;
   };
   drawer.addEventListener("click", () => {
     const open = document.body.classList.toggle("drawer-open");
     drawer.setAttribute("aria-expanded", open ? "true" : "false");
-    drawer.textContent = open ? "Hide ▼" : "Ingredients ▲";
+    drawer.innerHTML = open ? `Hide ${ICONS.chevronDown}` : `Ingredients ${ICONS.chevronUp}`;
   });
   // Resizing past the desktop breakpoint hides the toggle but the body class
   // (and aria state) would otherwise stick — reset on transition.

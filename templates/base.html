@@ -20,7 +20,7 @@
 <body class="font-sans font-light text-cookbook-text bg-cookbook-bg antialiased text-lg leading-relaxed">
     <a href="#main" class="skip-link">Skip to content</a>
 
-    <header class="site-header mb-16 no-print">
+    <header class="site-header no-print">
         <div class="max-w-cookbook mx-auto px-8 py-7">
             <div class="flex items-center justify-between flex-wrap gap-y-4">
                 {# Wordmark is brand chrome, not document structure — leaving the
@@ -40,26 +40,27 @@
                     </svg>
                 </button>
 
-                {# One source of truth for primary nav. PDF is mobile-only — desktop has it in the footer. #}
+                {# One source of truth for primary nav. Each tuple is (slug, href, label, mobile_only).
+                   `slug` is matched against the `nav_active` context var to set aria-current. #}
                 {% set nav_items = [
-                    ("/",              "Home",          false),
-                    ("/food/",         "Food",          false),
-                    ("/cocktails/",    "Cocktails",     false),
-                    ("/favorites/",    "Favorites",     false),
-                    ("/shopping-list/","Shopping List", false),
-                    ("/about/",        "About",         false),
-                    ("/cookbook.pdf",  "Download PDF",  true),
+                    ("home",          "/",              "Home",          false),
+                    ("food",          "/food/",         "Food",          false),
+                    ("cocktails",     "/cocktails/",    "Cocktails",     false),
+                    ("favorites",     "/favorites/",    "Favorites",     false),
+                    ("shopping-list", "/shopping-list/","Shopping List", false),
+                    ("about",         "/about/",        "About",         false),
+                    ("pdf",           "/cookbook.pdf",  "Download PDF",  true),
                 ] %}
                 <nav class="hidden md:flex gap-7" aria-label="Primary">
-                    {% for href, label, mobile_only in nav_items if not mobile_only %}
-                    <a href="{{ base_url }}{{ href }}" class="nav-link">{{ label }}</a>
+                    {% for slug, href, label, mobile_only in nav_items if not mobile_only %}
+                    <a href="{{ base_url }}{{ href }}" class="nav-link"{% if nav_active == slug %} aria-current="page"{% endif %}>{{ label }}</a>
                     {% endfor %}
                 </nav>
             </div>
 
             <nav id="mobile-menu" class="hidden md:hidden mt-4 pb-2 flex flex-col gap-1" aria-label="Mobile">
-                {% for href, label, mobile_only in nav_items %}
-                <a href="{{ base_url }}{{ href }}" class="mobile-nav-link"{% if mobile_only %} download{% endif %}>{{ label }}</a>
+                {% for slug, href, label, mobile_only in nav_items %}
+                <a href="{{ base_url }}{{ href }}" class="mobile-nav-link"{% if mobile_only %} download{% endif %}{% if nav_active == slug %} aria-current="page"{% endif %}>{{ label }}</a>
                 {% endfor %}
             </nav>
         </div>

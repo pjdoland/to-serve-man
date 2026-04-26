@@ -212,6 +212,7 @@ class SiteGenerator:
             "instructions_html": instructions_html,
             "cross_refs": cross_refs or None,
             "notes": notes,
+            "nav_active": "cocktails" if recipe.is_cocktail else "food",
         }
         output_path = self.output_dir / "recipes" / recipe.slug / "index.html"
         self.render_template("recipe.html", context, output_path)
@@ -228,6 +229,7 @@ class SiteGenerator:
             "spirits": self.collection.get_by_spirit(),
             "hero_content": hero_content,
             "is_homepage": True,
+            "nav_active": "home",
         }
 
         output_path = self.output_dir / "index.html"
@@ -241,10 +243,12 @@ class SiteGenerator:
         subtitle: str = None,
         facets: list[dict] | None = None,
         breadcrumbs: list[tuple[str, str | None]] | None = None,
+        nav_active: str | None = None,
     ):
         """Render a recipe-grid page (category, tag, cuisine, season, food landing, etc.).
 
         `facets` enables the client-side filter rail; `breadcrumbs` shows the trail.
+        `nav_active` is the slug of the primary-nav item to mark with aria-current.
         """
         context = {
             "title": title,
@@ -252,6 +256,7 @@ class SiteGenerator:
             "recipes": recipes,
             "facets": facets,
             "breadcrumbs": breadcrumbs,
+            "nav_active": nav_active,
         }
         self.render_template("listing.html", context, output_path)
 
@@ -266,7 +271,7 @@ class SiteGenerator:
             title = category.replace("-", " ").title()
             output_path = self.output_dir / "food" / category / "index.html"
             crumbs = [("Food", f"{self.base_url}/food/"), (title, None)]
-            self.generate_list_page(title, recipes, output_path, breadcrumbs=crumbs)
+            self.generate_list_page(title, recipes, output_path, breadcrumbs=crumbs, nav_active="food")
 
     def generate_tag_pages(self):
         """Generate pages for each tag."""
@@ -287,7 +292,7 @@ class SiteGenerator:
             output_path = self.output_dir / "cuisine" / slug / "index.html"
             crumbs = [("Food", f"{self.base_url}/food/"), (cuisine, None)]
             self.generate_list_page(
-                cuisine, recipes, output_path, subtitle="Food recipes", breadcrumbs=crumbs
+                cuisine, recipes, output_path, subtitle="Food recipes", breadcrumbs=crumbs, nav_active="food"
             )
 
     def generate_spirit_pages(self):
@@ -298,7 +303,13 @@ class SiteGenerator:
             slug = slugify(spirit)
             output_path = self.output_dir / "spirit" / slug / "index.html"
             crumbs = [("Cocktails", f"{self.base_url}/cocktails/"), (spirit.title(), None)]
-            self.generate_list_page(f"{spirit.title()} Cocktails", recipes, output_path, breadcrumbs=crumbs)
+            self.generate_list_page(
+                f"{spirit.title()} Cocktails",
+                recipes,
+                output_path,
+                breadcrumbs=crumbs,
+                nav_active="cocktails",
+            )
 
     def generate_facet_pages(self, attr: str, segment: str, label: str):
         """Generate /<segment>/<value>/ pages for a multi-value Recipe facet (e.g. season, occasion)."""
@@ -317,14 +328,14 @@ class SiteGenerator:
             {"slug": r.slug, "title": r.title, "url": f"{self.base_url}/recipes/{r.slug}/"}
             for r in self.collection.recipes
         ]
-        context = {"recipe_index": recipe_index}
+        context = {"recipe_index": recipe_index, "nav_active": "favorites"}
         output_path = self.output_dir / "favorites" / "index.html"
         self.render_template("favorites.html", context, output_path)
 
     def generate_shopping_list_page(self):
         """Generate /shopping-list/ shell — content populated client-side from localStorage."""
         output_path = self.output_dir / "shopping-list" / "index.html"
-        self.render_template("shopping-list.html", {}, output_path)
+        self.render_template("shopping-list.html", {"nav_active": "shopping-list"}, output_path)
 
     def generate_about_page(self):
         """Generate about page."""
@@ -332,6 +343,7 @@ class SiteGenerator:
 
         context = {
             "about_content": about_content,
+            "nav_active": "about",
         }
         output_path = self.output_dir / "about" / "index.html"
         self.render_template("about.html", context, output_path)
@@ -357,6 +369,7 @@ class SiteGenerator:
                 self._facet("Cuisine", "cuisine", cuisines),
                 self._facet("Category", "category", categories),
             ],
+            "nav_active": "food",
         }
         self.render_template("listing.html", context, output_path)
 
@@ -374,6 +387,7 @@ class SiteGenerator:
                 self._facet("Spirit", "spirit_base", spirits),
                 self._facet("Glass", "glass", glasses),
             ],
+            "nav_active": "cocktails",
         }
         self.render_template("listing.html", context, output_path)
 

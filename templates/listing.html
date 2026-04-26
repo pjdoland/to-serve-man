@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "macros.html" import recipe_card, page_header, breadcrumbs as breadcrumb_trail %}
+{% from "icons.html" import icon %}
 
 {% block title %}{{ title }} — To Serve Man{% endblock %}
 
@@ -20,7 +21,7 @@
             {% else %}
                 {# Multi-select dropdown for facets with >7 options. #}
                 <details class="facet-dropdown">
-                    <summary><span class="facet-dropdown-label">Any</span><span aria-hidden="true"> ▾</span></summary>
+                    <summary><span class="facet-dropdown-label">Any</span><span class="tsm-btn-icon">{{ icon('chevron-down', size=14) }}</span></summary>
                     <div class="facet-dropdown-popover" role="listbox">
                         {% for v in facet.options %}
                         <label class="facet-dropdown-option">
