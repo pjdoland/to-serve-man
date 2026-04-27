@@ -9,9 +9,13 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+# Repo root — the directory this file lives in. Use for resolving asset paths
+# from frontmatter (e.g. `hero_image: images/recipes/foo.jpg`) so resolution
+# doesn't depend on the current working directory or recipe nesting depth.
+PROJECT_ROOT = Path(__file__).resolve().parent
+
 # Load .env file
-env_path = Path(__file__).parent / ".env"
-load_dotenv(dotenv_path=env_path)
+load_dotenv(dotenv_path=PROJECT_ROOT / ".env")
 
 
 def get_config(key: str, default: str = "") -> str:

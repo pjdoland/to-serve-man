@@ -31,14 +31,16 @@
 <script type="module" src="{{ base_url }}/static/js/recipe-app.js?v={{ cache_bust }}"></script>
 {{ breadcrumb_trail(breadcrumbs) }}
 <article class="pb-24" data-recipe-slug="{{ recipe.slug }}" data-recipe-title="{{ recipe.title }}">
-    <div class="max-w-cookbook mx-auto">
+    <div class="max-w-cookbook mx-auto px-8">
       {# Single grid wraps header/hero/toolbar/ingredients/instructions. On mobile
          it's a one-column stack with hero above the title (via grid-template-areas,
          so DOM order stays header-first for screen readers). On desktop the hero
-         sits in a sticky right rail spanning all rows. #}
+         sits in a sticky right rail spanning all rows. The hero <figure> uses
+         `margin-inline: calc(50% - 50vw)` on mobile to break out of this px-8
+         padding for the full-bleed effect. #}
       <div class="recipe-layout">
         <!-- Recipe Header -->
-        <header class="recipe-head text-center pt-8 pb-12 mb-8 border-b border-cookbook-rule px-8">
+        <header class="recipe-head text-center pt-8 pb-12 mb-8 border-b border-cookbook-rule">
             {% if recipe.is_cocktail %}
                 {% if recipe.spirit_base %}<div class="recipe-eyebrow">{{ recipe.spirit_base|title }}</div>{% endif %}
             {% else %}
@@ -96,7 +98,7 @@
         {% endif %}
 
         {# Three groups: Adjust (transforms), Mode (Cook view), Action (writes to user state). #}
-        <section id="tsm-toolbar" class="no-print px-8" aria-label="Recipe tools">
+        <section id="tsm-toolbar" class="no-print" aria-label="Recipe tools">
             <div class="tsm-toolbar-inner">
                 <div class="tsm-group" data-group="adjust">
                     <div class="tsm-tool">
@@ -142,14 +144,14 @@
             </div>
         </section>
 
-        <section class="recipe-ingredients px-8" id="recipe-ingredients">
+        <section class="recipe-ingredients" id="recipe-ingredients">
             <h2 class="font-serif text-2xl mb-8">Ingredients</h2>
             <div class="ingredients-list">
                 {{ ingredients_html|safe }}
             </div>
         </section>
 
-        <section class="recipe-instructions px-8">
+        <section class="recipe-instructions">
             {% if headnotes_html %}<div class="recipe-headnotes">{{ headnotes_html|safe }}</div>{% endif %}
             <h2 class="font-serif text-2xl mb-8">Instructions</h2>
             <div class="instructions-list">
@@ -162,7 +164,6 @@
         </section>
       </div>
 
-      <div class="px-8">
         {% if notes %}
         <dl class="recipe-notes">
             {% for label, value in notes %}<dt>{{ label }}</dt><dd>{{ value }}</dd>{% endfor %}
@@ -205,7 +206,6 @@
             </p>
         </footer>
         {% endif %}
-      </div>
     </div>
 </article>
 {% endblock %}

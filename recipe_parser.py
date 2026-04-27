@@ -27,6 +27,13 @@ def _read_image_dimensions(path: Path) -> tuple[int, int]:
     PNG: width + height live at bytes 16-24 as big-endian uint32s.
     JPEG: scan APP/SOF markers from the SOI; SOF carries height then width.
     """
+
+    def need(n: int, label: str) -> bytes:
+        chunk = f.read(n)
+        if len(chunk) < n:
+            raise ValueError(f"unexpected EOF reading {label}")
+        return chunk
+
     with path.open("rb") as f:
         header = f.read(24)
         if header.startswith(b"\x89PNG\r\n\x1a\n"):
@@ -35,23 +42,22 @@ def _read_image_dimensions(path: Path) -> tuple[int, int]:
         if header[:2] == b"\xff\xd8":
             f.seek(2)
             while True:
-                while True:
-                    byte = f.read(1)
-                    if not byte:
-                        raise ValueError("unexpected EOF scanning JPEG markers")
-                    if byte == b"\xff":
-                        break
-                marker = f.read(1)
+                # Scan to the next 0xFF byte that begins a marker.
+                while need(1, "marker prefix") != b"\xff":
+                    pass
+                # 0xFF can pad before the marker code itself.
+                marker = need(1, "marker code")
                 while marker == b"\xff":
-                    marker = f.read(1)
+                    marker = need(1, "marker code")
                 m = marker[0]
                 # SOF0..SOF15 carry frame dimensions; skip DHT/JPG/DAC.
                 if 0xC0 <= m <= 0xCF and m not in (0xC4, 0xC8, 0xCC):
-                    f.read(3)  # length(2) + precision(1)
-                    h, w = struct.unpack(">HH", f.read(4))
+                    need(3, "SOF length+precision")
+                    h, w = struct.unpack(">HH", need(4, "SOF dimensions"))
                     return w, h
-                # Other markers carry a length we can skip past.
-                seg_len = struct.unpack(">H", f.read(2))[0]
+                seg_len = struct.unpack(">H", need(2, "segment length"))[0]
+                if seg_len < 2:
+                    raise ValueError("invalid JPEG segment length")
                 f.seek(seg_len - 2, 1)
     raise ValueError(f"unsupported image format: {path}")
 
@@ -413,7 +419,7 @@ class Recipe:
             return None
         path = Path(self.hero_image)
         if not path.is_absolute():
-            path = self.filepath.parent.parent.parent / path
+            path = config.PROJECT_ROOT / path
         try:
             return _read_image_dimensions(path)
         except (OSError, ValueError):

@@ -482,27 +482,18 @@
 }
 
 @media (min-width: 1024px) {
+  /* Title and toolbar span full width; the 3-col split (ingredients | instructions | hero)
+     starts at the content rows only. Hero scrolls naturally with the content — no sticky. */
   .recipe-layout {
     grid-template-columns: 4fr 5fr 3fr;
     grid-template-areas:
-      "head head hero"
-      "tools tools hero"
-      "ing inst hero";
+      "head  head  head"
+      "tools tools tools"
+      "ing   inst  hero";
     column-gap: 4rem;
     row-gap: 3rem;
   }
-  /* Sticky right rail: image pins as the user scrolls long instructions, but
-     a max-height clamp prevents it from floating in white space when the
-     recipe body is shorter than the viewport. */
-  .recipe-hero {
-    align-self: start;
-    position: sticky;
-    top: 5rem;
-    max-height: calc(100vh - 6rem);
-  }
-  .recipe-hero img {
-    max-height: calc(100vh - 7rem);
-  }
+  .recipe-hero { align-self: start; }
 }
 
 /* About page styling */
