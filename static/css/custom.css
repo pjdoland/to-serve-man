@@ -439,18 +439,70 @@
 }
 .recipe-attribution a:hover { border-bottom-color: var(--cb-accent); }
 
-/* Hero photo on recipe page. Fixed 16:10 frame with object-fit:cover so any
-   source aspect ratio (square, portrait, landscape) crops predictably and the
-   image never dominates above-the-fold on mobile. Per-recipe cropping can be
-   done via inline `object-position` if a future hero needs offsetting. */
-.recipe-hero {
+/* Recipe page layout. CSS Grid + grid-template-areas lets a single <img> live
+   at its DOM position (after <header>, for screen-reader order: H1 first) but
+   appear visually above the title on mobile and in a right-rail aside on
+   desktop. NO aspect-ratio crop — images render at their intrinsic ratio. */
+.recipe-layout {
+  display: grid;
+  grid-template-areas:
+    "hero"
+    "head"
+    "tools"
+    "ing"
+    "inst";
+  row-gap: 1.5rem;
+}
+.recipe-head        { grid-area: head; }
+.recipe-hero        { grid-area: hero; margin: 0; }
+#tsm-toolbar        { grid-area: tools; }
+.recipe-ingredients { grid-area: ing; }
+.recipe-instructions{ grid-area: inst; }
+
+/* Hero <figure>. Mobile: full-bleed edge-to-edge with a 2px black bottom rule
+   that echoes the masthead anchor. Desktop: same intrinsic-ratio image, sized
+   to its column. Never cropped — uploaders' aspect choices are respected. */
+.recipe-hero img {
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-  object-position: center;
-  margin: 1rem auto 1.5rem;
-  border-radius: 4px;
+  height: auto;
+  max-width: 100%;
+  margin-inline: auto;
+}
+@media (max-width: 1023px) {
+  .recipe-hero {
+    /* Break out of the article's content padding to span the full viewport. */
+    margin-inline: calc(50% - 50vw);
+    border-bottom: 2px solid var(--cb-text);
+  }
+  .recipe-hero img {
+    max-height: 55vh; /* Keeps the H1 above the fold on a 390×844 viewport. */
+    width: auto;       /* Tall portraits hit the height ceiling and shrink width to match. */
+  }
+}
+
+@media (min-width: 1024px) {
+  .recipe-layout {
+    grid-template-columns: 4fr 5fr 3fr;
+    grid-template-areas:
+      "head head hero"
+      "tools tools hero"
+      "ing inst hero";
+    column-gap: 4rem;
+    row-gap: 3rem;
+  }
+  /* Sticky right rail: image pins as the user scrolls long instructions, but
+     a max-height clamp prevents it from floating in white space when the
+     recipe body is shorter than the viewport. */
+  .recipe-hero {
+    align-self: start;
+    position: sticky;
+    top: 5rem;
+    max-height: calc(100vh - 6rem);
+  }
+  .recipe-hero img {
+    max-height: calc(100vh - 7rem);
+  }
 }
 
 /* About page styling */

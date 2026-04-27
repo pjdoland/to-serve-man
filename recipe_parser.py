@@ -6,6 +6,7 @@ Handles discovery, parsing, and validation of Cooklang recipe files.
 
 import logging
 import re
+import struct
 from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
@@ -17,6 +18,43 @@ from slugify import slugify
 import config
 
 logger = logging.getLogger("tsm.parser")
+
+
+def _read_image_dimensions(path: Path) -> tuple[int, int]:
+    """Return (width, height) for a PNG or JPEG. Stdlib only — avoids a
+    Pillow dependency for the one thing we need it for.
+
+    PNG: width + height live at bytes 16-24 as big-endian uint32s.
+    JPEG: scan APP/SOF markers from the SOI; SOF carries height then width.
+    """
+    with path.open("rb") as f:
+        header = f.read(24)
+        if header.startswith(b"\x89PNG\r\n\x1a\n"):
+            w, h = struct.unpack(">II", header[16:24])
+            return w, h
+        if header[:2] == b"\xff\xd8":
+            f.seek(2)
+            while True:
+                while True:
+                    byte = f.read(1)
+                    if not byte:
+                        raise ValueError("unexpected EOF scanning JPEG markers")
+                    if byte == b"\xff":
+                        break
+                marker = f.read(1)
+                while marker == b"\xff":
+                    marker = f.read(1)
+                m = marker[0]
+                # SOF0..SOF15 carry frame dimensions; skip DHT/JPG/DAC.
+                if 0xC0 <= m <= 0xCF and m not in (0xC4, 0xC8, 0xCC):
+                    f.read(3)  # length(2) + precision(1)
+                    h, w = struct.unpack(">HH", f.read(4))
+                    return w, h
+                # Other markers carry a length we can skip past.
+                seg_len = struct.unpack(">H", f.read(2))[0]
+                f.seek(seg_len - 2, 1)
+    raise ValueError(f"unsupported image format: {path}")
+
 
 FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 
@@ -363,6 +401,24 @@ class Recipe:
     def hero_alt(self) -> str | None:
         """Optional alt text for the hero image — required if hero_image is set."""
         return self.metadata.get("hero_alt")
+
+    @cached_property
+    def hero_dimensions(self) -> tuple[int, int] | None:
+        """Intrinsic (width, height) of the hero image. Read once at build
+        time so the <img> can carry explicit width/height attributes — those
+        reserve aspect-ratio space and prevent CLS WITHOUT imposing a CSS
+        crop. Returns None if the image is missing or unreadable.
+        """
+        if not self.hero_image:
+            return None
+        path = Path(self.hero_image)
+        if not path.is_absolute():
+            path = self.filepath.parent.parent.parent / path
+        try:
+            return _read_image_dimensions(path)
+        except (OSError, ValueError):
+            logger.warning(f"{self.filepath}: could not read hero dimensions for {self.hero_image}")
+            return None
 
     @property
     def glass(self) -> str | None:
