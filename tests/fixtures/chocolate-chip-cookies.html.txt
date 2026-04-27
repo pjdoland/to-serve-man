@@ -12,6 +12,9 @@ INGREDIENTS:
 <li>flaky sea salt</li>
 </ul>
 
+HEADNOTES:
+
+
 INSTRUCTIONS:
 <h3 class="section-header">Brown the butter</h3>
 <ol>

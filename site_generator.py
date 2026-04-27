@@ -104,8 +104,14 @@ class SiteGenerator:
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(html)
 
-    def parse_recipe_content(self, recipe: Recipe) -> tuple[str, str]:
-        """Render the recipe body to (ingredients_html, instructions_html)."""
+    def parse_recipe_content(self, recipe: Recipe) -> tuple[str, str, str]:
+        """Render the recipe body to (ingredients_html, headnotes_html, instructions_html).
+
+        Leading bare-`>` callouts before the first Step or Section split off as
+        cookbook-style "headnotes" so the "Instructions" heading can sit
+        directly above the numbered steps. Mid-recipe callouts (between or
+        after Steps) stay inline with the instructions.
+        """
         parsed = recipe.parsed
 
         # Ingredients list — only @x{...} appear (matches legacy: bare @x stays inline-only).
@@ -116,6 +122,20 @@ class SiteGenerator:
             qty = ing.qty_display
             ing_items.append(f"<li>{ing.name} ({qty})</li>" if qty else f"<li>{ing.name}</li>")
         ingredients_html = "<ul>\n" + "\n".join(ing_items) + "\n</ul>"
+
+        # Split off leading callouts as headnotes; everything from the first
+        # Step/Section onward becomes the instructions body.
+        headnote_blocks: list[Callout] = []
+        body_blocks: list[Section | Step | Callout] = []
+        seen_non_callout = False
+        for block in parsed.blocks:
+            if not seen_non_callout and isinstance(block, Callout):
+                headnote_blocks.append(block)
+            else:
+                seen_non_callout = True
+                body_blocks.append(block)
+
+        headnotes_html = "\n".join(self._render_callout_html(c) for c in headnote_blocks)
 
         # Instructions — sections become <h3>, steps go into the surrounding <ol>.
         parts: list[str] = []
@@ -128,26 +148,28 @@ class SiteGenerator:
                 parts.append("</ol>")
                 current_steps.clear()
 
-        for block in parsed.blocks:
+        for block in body_blocks:
             if isinstance(block, Section):
                 flush_steps()
                 parts.append(f'<h3 class="section-header">{block.name}</h3>')
             elif isinstance(block, Callout):
                 flush_steps()
-                label_html = (
-                    f'<strong class="callout-label">{block.kind.capitalize()}</strong> '
-                    if block.labeled
-                    else ""
-                )
-                parts.append(
-                    f'<aside class="callout callout-{block.kind}" role="note">'
-                    f"{label_html}<span>{block.text}</span></aside>"
-                )
+                parts.append(self._render_callout_html(block))
             else:
                 current_steps.append(self._render_step_html(block))
         flush_steps()
 
-        return ingredients_html, "\n".join(parts)
+        return ingredients_html, headnotes_html, "\n".join(parts)
+
+    @staticmethod
+    def _render_callout_html(block: Callout) -> str:
+        label_html = (
+            f'<strong class="callout-label">{block.kind.capitalize()}</strong> ' if block.labeled else ""
+        )
+        return (
+            f'<aside class="callout callout-{block.kind}" role="note">'
+            f"{label_html}<span>{block.text}</span></aside>"
+        )
 
     @staticmethod
     def _render_step_html(step: Step) -> str:
@@ -200,7 +222,7 @@ class SiteGenerator:
 
     def generate_recipe_page(self, recipe: Recipe):
         """Generate individual recipe page."""
-        ingredients_html, instructions_html = self.parse_recipe_content(recipe)
+        ingredients_html, headnotes_html, instructions_html = self.parse_recipe_content(recipe)
         cross_refs = self._resolve_cross_refs(recipe)
         notes = [
             (label, getattr(recipe, field)) for field, label in RECIPE_NOTE_FIELDS if getattr(recipe, field)
@@ -209,6 +231,7 @@ class SiteGenerator:
             "recipe": recipe,
             "breadcrumbs": self._recipe_breadcrumbs(recipe),
             "ingredients_html": ingredients_html,
+            "headnotes_html": headnotes_html,
             "instructions_html": instructions_html,
             "cross_refs": cross_refs or None,
             "notes": notes,

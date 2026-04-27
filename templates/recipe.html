@@ -143,6 +143,7 @@
             </section>
 
             <section class="recipe-instructions lg:col-span-2">
+                {% if headnotes_html %}<div class="recipe-headnotes">{{ headnotes_html|safe }}</div>{% endif %}
                 <h2 class="font-serif text-2xl mb-8">Instructions</h2>
                 <div class="instructions-list">
                     {{ instructions_html|safe }}

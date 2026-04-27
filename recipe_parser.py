@@ -188,6 +188,11 @@ def parse_body(raw_content: str) -> ParsedBody:
         line = raw_line.strip()
         if not line or line.startswith("--"):
             continue
+        # Bare `>` with no content is a Markdown-style blockquote paragraph
+        # separator (used between two `> prose` headnotes). Drop it; the
+        # surrounding callouts render as two adjacent asides.
+        if line == ">":
+            continue
         if line.startswith(">>"):
             blocks.append(Section(name=line[2:].strip()))
             continue

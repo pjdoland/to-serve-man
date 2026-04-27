@@ -60,6 +60,16 @@ class ParseBodyBlocks(unittest.TestCase):
         self.assertEqual(len(blocks), 1)
         self.assertIsInstance(blocks[0], Step)
 
+    def test_bare_gt_separator_is_dropped(self):
+        # Markdown-style `>` blockquote paragraph separator between two
+        # headnotes — drop it; surrounding bare-note lines stay as their own
+        # callouts. Without this skip, `>` falls through to the step parser.
+        body = "\n".join(["> Headnote one.", ">", "> Headnote two."])
+        blocks = _blocks(body)
+        self.assertEqual(len(blocks), 2)
+        self.assertEqual(blocks[0], Callout(kind="note", text="Headnote one.", labeled=False))
+        self.assertEqual(blocks[1], Callout(kind="note", text="Headnote two.", labeled=False))
+
 
 class ParseBodyTokens(unittest.TestCase):
     def test_braced_ingredient_parses_qty_and_unit(self):
