@@ -166,10 +166,8 @@ class SiteGenerator:
         label_html = (
             f'<strong class="callout-label">{block.kind.capitalize()}</strong> ' if block.labeled else ""
         )
-        return (
-            f'<aside class="callout callout-{block.kind}" role="note">'
-            f"{label_html}<span>{block.text}</span></aside>"
-        )
+        body_html = "".join(f"<p>{p}</p>" for p in block.text.split("\n\n"))
+        return f'<aside class="callout callout-{block.kind}" role="note">{label_html}{body_html}</aside>'
 
     @staticmethod
     def _render_step_html(step: Step) -> str:

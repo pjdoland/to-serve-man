@@ -60,15 +60,35 @@ class ParseBodyBlocks(unittest.TestCase):
         self.assertEqual(len(blocks), 1)
         self.assertIsInstance(blocks[0], Step)
 
-    def test_bare_gt_separator_is_dropped(self):
-        # Markdown-style `>` blockquote paragraph separator between two
-        # headnotes — drop it; surrounding bare-note lines stay as their own
-        # callouts. Without this skip, `>` falls through to the step parser.
+    def test_consecutive_bare_notes_merge_with_paragraph_separator(self):
+        # Two `> prose` lines separated by a `>` blockquote-paragraph marker
+        # become ONE multi-paragraph callout (Markdown semantics), not two
+        # adjacent asides. Paragraphs are joined with a "\n\n" sentinel that
+        # the renderer expands into <p>...</p>.
         body = "\n".join(["> Headnote one.", ">", "> Headnote two."])
         blocks = _blocks(body)
-        self.assertEqual(len(blocks), 2)
-        self.assertEqual(blocks[0], Callout(kind="note", text="Headnote one.", labeled=False))
-        self.assertEqual(blocks[1], Callout(kind="note", text="Headnote two.", labeled=False))
+        self.assertEqual(len(blocks), 1)
+        self.assertEqual(
+            blocks[0], Callout(kind="note", text="Headnote one.\n\nHeadnote two.", labeled=False)
+        )
+
+    def test_consecutive_bare_notes_merge_without_separator(self):
+        # Two adjacent `> prose` lines (no `>` between them) also merge — the
+        # only way to author distinct paragraphs in this scheme is one note
+        # per line. Visual outcome: one aside with two paragraphs.
+        body = "\n".join(["> Para 1.", "> Para 2."])
+        blocks = _blocks(body)
+        self.assertEqual(len(blocks), 1)
+        self.assertEqual(blocks[0].text, "Para 1.\n\nPara 2.")
+
+    def test_kinded_callout_breaks_bare_note_merge(self):
+        # `>tip` between two bare notes resets the merge — bare note 2 starts
+        # a fresh aside rather than appending to bare note 1.
+        body = "\n".join(["> Bare 1.", ">tip Use ice.", "> Bare 2."])
+        blocks = _blocks(body)
+        self.assertEqual(len(blocks), 3)
+        self.assertEqual(blocks[0].text, "Bare 1.")
+        self.assertEqual(blocks[2].text, "Bare 2.")
 
 
 class ParseBodyTokens(unittest.TestCase):

@@ -202,7 +202,15 @@ def parse_body(raw_content: str) -> ParsedBody:
             continue
         bare_note = _BARE_NOTE_RE.match(line)
         if bare_note:
-            blocks.append(Callout(kind="note", text=bare_note.group(1).strip(), labeled=False))
+            text = bare_note.group(1).strip()
+            # Merge consecutive bare-`>` notes into a single multi-paragraph
+            # callout (Markdown blockquote semantics). The `>` separator on
+            # its own line is already skipped above; this catches both
+            # `> p1\n>\n> p2` and the compact `> p1\n> p2` form.
+            if blocks and isinstance(blocks[-1], Callout) and not blocks[-1].labeled:
+                blocks[-1].text += "\n\n" + text
+            else:
+                blocks.append(Callout(kind="note", text=text, labeled=False))
             continue
 
         tokens: list[StepToken] = []

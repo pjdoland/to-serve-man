@@ -186,10 +186,12 @@ class PDFGenerator:
                     latex.append(f"\\subsubsection*{{{self.escape_latex(block.name)}}}")
                 elif isinstance(block, Callout):
                     flush_steps()
+                    # Escape per-paragraph so the injected \par survives.
+                    body = " \\par ".join(self.escape_latex(p) for p in block.text.split("\n\n"))
                     if block.labeled:
-                        latex.append(f"\\callout{{{block.kind}}}{{{self.escape_latex(block.text)}}}")
+                        latex.append(f"\\callout{{{block.kind}}}{{{body}}}")
                     else:
-                        latex.append(f"\\note{{{self.escape_latex(block.text)}}}")
+                        latex.append(f"\\note{{{body}}}")
                 else:
                     current_section_items.append(block)
 

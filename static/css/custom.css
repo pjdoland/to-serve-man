@@ -218,6 +218,8 @@
 .callout-note    { border-left-color: var(--cb-light);  background: rgba(90, 84, 79, 0.05); }
 .callout-tip     { border-left-color: var(--cb-success); background: rgba(31, 107, 52, 0.05); }
 .callout-warning { border-left-color: var(--cb-accent); background: rgba(168, 18, 28, 0.06); }
+.callout p { margin: 0; }
+.callout p + p { margin-top: 0.75rem; }
 .callout-label {
   display: block;
   font-size: 0.75rem;
