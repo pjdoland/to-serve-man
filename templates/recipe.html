@@ -144,6 +144,10 @@
             </div>
         </section>
 
+        {% if headnotes_html %}
+        <div class="recipe-headnotes">{{ headnotes_html|safe }}</div>
+        {% endif %}
+
         <section class="recipe-ingredients" id="recipe-ingredients">
             <h2 class="font-serif text-2xl mb-8">Ingredients</h2>
             <div class="ingredients-list">
@@ -152,7 +156,6 @@
         </section>
 
         <section class="recipe-instructions">
-            {% if headnotes_html %}<div class="recipe-headnotes">{{ headnotes_html|safe }}</div>{% endif %}
             <h2 class="font-serif text-2xl mb-8">Instructions</h2>
             <div class="instructions-list">
                 {{ instructions_html|safe }}

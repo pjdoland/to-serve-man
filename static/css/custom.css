@@ -449,6 +449,7 @@
     "hero"
     "head"
     "tools"
+    "notes"
     "ing"
     "inst";
   row-gap: 1.5rem;
@@ -456,6 +457,7 @@
 .recipe-head        { grid-area: head; }
 .recipe-hero        { grid-area: hero; margin: 0; }
 #tsm-toolbar        { grid-area: tools; }
+.recipe-headnotes   { grid-area: notes; max-width: 70ch; margin-inline: auto; }
 .recipe-ingredients { grid-area: ing; }
 .recipe-instructions{ grid-area: inst; }
 
@@ -482,13 +484,16 @@
 }
 
 @media (min-width: 1024px) {
-  /* Title and toolbar span full width; the 3-col split (ingredients | instructions | hero)
-     starts at the content rows only. Hero scrolls naturally with the content — no sticky. */
+  /* Title, toolbar, and headnotes (when present) span full width.
+     The 3-col split kicks in at the content rows so all three columns
+     start at the same Y. Ingredients narrow, instructions wide, hero
+     a sidebar. Hero scrolls naturally with the content — no sticky. */
   .recipe-layout {
-    grid-template-columns: 4fr 5fr 3fr;
+    grid-template-columns: 3fr 6fr 3fr;
     grid-template-areas:
       "head  head  head"
       "tools tools tools"
+      "notes notes notes"
       "ing   inst  hero";
     column-gap: 4rem;
     row-gap: 3rem;
