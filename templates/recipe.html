@@ -38,7 +38,7 @@
          sits in a sticky right rail spanning all rows. The hero <figure> uses
          `margin-inline: calc(50% - 50vw)` on mobile to break out of this px-8
          padding for the full-bleed effect. #}
-      <div class="recipe-layout">
+      <div class="recipe-layout {% if not recipe.hero_image %}no-hero{% endif %}">
         <!-- Recipe Header -->
         <header class="recipe-head text-center pt-8 pb-12 mb-8 border-b border-cookbook-rule">
             {% if recipe.is_cocktail %}
@@ -144,10 +144,6 @@
             </div>
         </section>
 
-        {% if headnotes_html %}
-        <div class="recipe-headnotes">{{ headnotes_html|safe }}</div>
-        {% endif %}
-
         <section class="recipe-ingredients" id="recipe-ingredients">
             <h2 class="font-serif text-2xl mb-8">Ingredients</h2>
             <div class="ingredients-list">
@@ -156,6 +152,7 @@
         </section>
 
         <section class="recipe-instructions">
+            {% if headnotes_html %}<div class="recipe-headnotes">{{ headnotes_html|safe }}</div>{% endif %}
             <h2 class="font-serif text-2xl mb-8">Instructions</h2>
             <div class="instructions-list">
                 {{ instructions_html|safe }}

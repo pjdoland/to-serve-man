@@ -449,7 +449,6 @@
     "hero"
     "head"
     "tools"
-    "notes"
     "ing"
     "inst";
   row-gap: 1.5rem;
@@ -457,9 +456,12 @@
 .recipe-head        { grid-area: head; }
 .recipe-hero        { grid-area: hero; margin: 0; }
 #tsm-toolbar        { grid-area: tools; }
-.recipe-headnotes   { grid-area: notes; max-width: 70ch; margin-inline: auto; }
 .recipe-ingredients { grid-area: ing; }
 .recipe-instructions{ grid-area: inst; }
+/* Headnotes live inside the instructions column. The first callout's natural
+   margin-top is zeroed so its visible box top aligns with the Ingredients h2
+   and the hero image — all three columns start at the same Y. */
+.recipe-instructions > .recipe-headnotes:first-child > .callout:first-child { margin-top: 0; }
 
 /* Hero <figure>. Mobile: full-bleed edge-to-edge with a 2px black bottom rule
    that echoes the masthead anchor. Desktop: same intrinsic-ratio image, sized
@@ -484,19 +486,24 @@
 }
 
 @media (min-width: 1024px) {
-  /* Title, toolbar, and headnotes (when present) span full width.
-     The 3-col split kicks in at the content rows so all three columns
-     start at the same Y. Ingredients narrow, instructions wide, hero
-     a sidebar. Hero scrolls naturally with the content — no sticky. */
+  /* Title and toolbar span full width; the 3-col split (ingredients | instructions | hero)
+     starts at the content rows so all three columns top-align. With no hero image,
+     drop the third column and rebalance to 4/8 so the freed space goes to instructions. */
   .recipe-layout {
     grid-template-columns: 3fr 6fr 3fr;
     grid-template-areas:
       "head  head  head"
       "tools tools tools"
-      "notes notes notes"
       "ing   inst  hero";
     column-gap: 4rem;
     row-gap: 3rem;
+  }
+  .recipe-layout.no-hero {
+    grid-template-columns: 4fr 8fr;
+    grid-template-areas:
+      "head  head"
+      "tools tools"
+      "ing   inst";
   }
   .recipe-hero { align-self: start; }
 }
