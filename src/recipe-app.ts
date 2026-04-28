@@ -1,5 +1,5 @@
 // Recipe page client app: cook view (wake-lock + sticky toolbar + drawer + checkboxes),
-// timers, scaling, units, favorites, shopping list, sticky drawer, print card.
+// timers, scaling, favorites, shopping list, sticky drawer, print card.
 // Toolbar buttons are server-rendered in templates/recipe.html — this module only
 // wires up handlers and toggles state. Each feature self-installs only when its
 // DOM markers are present so the file stays one network round-trip.
@@ -113,59 +113,6 @@ function installScaling(): void {
   // means the SSR'd ingredient HTML is already correct — just light up 1×.
   if (factor !== 1) apply();
   else syncButtons();
-}
-
-// --- Units (US ↔ metric, temperatures only) ----------------------------------
-//
-// Strict author-only policy: the toggle appears only when the recipe carries
-// double-authored temperatures (e.g. "375°F (190°C)"). Standalone temps are
-// left untouched — if you want a recipe converted, double-author it at import.
-
-const PAIRED_F_C = /(\d+(?:\.\d+)?)\s*°\s*F\s*\(\s*(\d+(?:\.\d+)?)\s*°\s*C\s*\)/gi;
-const PAIRED_C_F = /(\d+(?:\.\d+)?)\s*°\s*C\s*\(\s*(\d+(?:\.\d+)?)\s*°\s*F\s*\)/gi;
-
-function installUnits(): void {
-  // Toggle stays hidden unless the recipe is dual-authored for temperatures
-  // (paired pattern like "375°F (190°C)" in the instructions). The gate is
-  // intentionally narrow: extending it to paired weights/volumes without also
-  // implementing the conversion swap in apply() would surface a no-op toggle,
-  // which is worse UX than no toggle at all. Loosen this only when apply()
-  // grows weight/volume swap support too.
-  const stepLis = Array.from(document.querySelectorAll<HTMLElement>(".instructions-list li"));
-  const hasPairedTemps = stepLis.some((li) => {
-    const text = li.textContent || "";
-    PAIRED_F_C.lastIndex = 0; PAIRED_C_F.lastIndex = 0;
-    return PAIRED_F_C.test(text) || PAIRED_C_F.test(text);
-  });
-  const tool = document.querySelector<HTMLElement>('[data-feature="units"]');
-  if (!tool || !hasPairedTemps) return;
-
-  tool.removeAttribute("hidden");
-  const buttons = Array.from(tool.querySelectorAll<HTMLButtonElement>("button"));
-  let metric = localStorage.getItem(STORAGE_KEYS.units) === "metric";
-
-  const apply = () => {
-    document.body.classList.toggle("is-metric", metric);
-    stepLis.forEach((li) => {
-      if (li.dataset.origHtmlUnits === undefined) li.dataset.origHtmlUnits = li.innerHTML;
-      let html = li.dataset.origHtmlUnits;
-      html = html.replace(PAIRED_F_C, (_full, f, c) => (metric ? `${c}°C` : `${f}°F`));
-      html = html.replace(PAIRED_C_F, (_full, c, f) => (metric ? `${c}°C` : `${f}°F`));
-      li.innerHTML = html;
-    });
-    buttons.forEach((b) => {
-      const isActive = (b.dataset.units === "metric") === metric;
-      b.classList.toggle("is-active", isActive);
-      b.setAttribute("aria-pressed", isActive ? "true" : "false");
-    });
-  };
-
-  buttons.forEach((btn) => btn.addEventListener("click", () => {
-    metric = btn.dataset.units === "metric";
-    localStorage.setItem(STORAGE_KEYS.units, metric ? "metric" : "us");
-    apply();
-  }));
-  apply();
 }
 
 // --- Timers ------------------------------------------------------------------
@@ -443,7 +390,7 @@ function installDrawer(): void {
   // Resizing past the desktop breakpoint hides the toggle but the body class
   // (and aria state) would otherwise stick — reset on transition.
   matchMedia("(min-width: 1024px)").addEventListener("change", (e) => {
-    if (e.matches) close();
+    if (e.matches && document.body.classList.contains("drawer-open")) close();
   });
   document.body.appendChild(drawer);
 }
@@ -504,7 +451,6 @@ function recordRecent(): void {
 
 onReady(() => {
   installScaling();
-  installUnits();
   installTimers();
   installCookMode();
   installFavorites();

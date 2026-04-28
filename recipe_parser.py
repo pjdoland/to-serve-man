@@ -10,7 +10,7 @@ import struct
 from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from slugify import slugify
@@ -181,12 +181,12 @@ class Callout:
     the small "NOTE" eyebrow (the box styling alone is enough signal).
     """
 
-    kind: str  # "note" | "tip" | "warning"
+    kind: Literal["note", "tip", "warning"]
     text: str
     labeled: bool = True
 
 
-CALLOUT_KINDS = ("note", "tip", "warning")
+CALLOUT_KINDS: tuple[Literal["note", "tip", "warning"], ...] = ("note", "tip", "warning")
 _CALLOUT_RE = re.compile(rf"^>({'|'.join(CALLOUT_KINDS)})\s+(.+)$", re.IGNORECASE)
 # Bare `> prose` (no kind word) is treated as an unlabeled note — used as a
 # Markdown-style headnote/blockquote. Must match after `>>` (sections) and the

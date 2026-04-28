@@ -462,16 +462,21 @@
    margin-top is zeroed so its visible box top aligns with the Ingredients h2
    and the hero image — all three columns start at the same Y. */
 .recipe-instructions > .recipe-headnotes:first-child > .callout:first-child { margin-top: 0; }
+/* Last headnote callout sits tight against the Instructions h2 below it. */
+.recipe-instructions > .recipe-headnotes:first-child > .callout:last-child { margin-bottom: 0.5rem; }
 
 /* Hero <figure>. Mobile: full-bleed edge-to-edge with a 2px black bottom rule
    that echoes the masthead anchor. Desktop: same intrinsic-ratio image, sized
-   to its column. Never cropped — uploaders' aspect choices are respected. */
+   to its column with a 1px black frame. Never cropped — uploaders' aspect
+   choices are respected. */
 .recipe-hero img {
   display: block;
   width: 100%;
   height: auto;
   max-width: 100%;
   margin-inline: auto;
+  border: 1px solid var(--cb-text);
+  box-sizing: border-box;
 }
 @media (max-width: 1023px) {
   .recipe-hero {
@@ -482,6 +487,7 @@
   .recipe-hero img {
     max-height: 55vh; /* Keeps the H1 above the fold on a 390×844 viewport. */
     width: auto;       /* Tall portraits hit the height ceiling and shrink width to match. */
+    border: 0;         /* Mobile uses the full-bleed bottom rule instead. */
   }
 }
 
@@ -529,7 +535,7 @@ article h2 {
   font-family: "EB Garamond", serif;
   font-size: 1.5rem;
   font-weight: 600;
-  margin-top: 4rem;
+  margin-top: 0;
   margin-bottom: 2rem;
 }
 
@@ -725,7 +731,7 @@ article em     { font-style: italic; }
 }
 
 /* Mobile (≤700px): collapse to two tight rows.
-   Row 1: Adjust group (Scale + Units, compact, full-width).
+   Row 1: Adjust group (Scale, compact, full-width).
    Row 2: Mode + Action groups together (Cook view + Save + Shopping list + Print).
    Action buttons drop their text labels and become icon-only at the smallest sizes. */
 /* Wrapper: groups Mode + Action so they share one row on mobile. Desktop keeps
@@ -743,8 +749,8 @@ article em     { font-style: italic; }
   }
 }
 
-/* Mobile (≤700px): two tight rows. Row 1 = Adjust (Scale + Units side-by-side
-   without text labels). Row 2 = Mode (Cook view) + Action (♡ + ⎙) all icons. */
+/* Mobile (≤700px): two tight rows. Row 1 = Adjust (Scale, no text label).
+   Row 2 = Mode (Cook view) + Action (♡ + ⎙) all icons. */
 @media (max-width: 700px) {
   .tsm-toolbar-inner {
     flex-direction: column;
@@ -764,7 +770,7 @@ article em     { font-style: italic; }
     border-top: 1px solid var(--cb-rule);
     padding-top: 0.5rem;
   }
-  /* Hide SCALE/UNITS labels on mobile — the segmented controls speak for themselves. */
+  /* Hide SCALE label on mobile — the segmented control speaks for itself. */
   .tsm-tool-label { display: none; }
   /* Mode + Action groups share a single row at narrow widths. */
   .tsm-group[data-group="mode"],
@@ -810,7 +816,7 @@ article em     { font-style: italic; }
   margin-right: 0.25rem;
 }
 
-/* Segmented control: Scale + Units. One continuous border, internal dividers. */
+/* Segmented control: Scale. One continuous border, internal dividers. */
 .tsm-segmented {
   display: inline-flex;
   border: 1px solid var(--cb-border);
@@ -1000,12 +1006,14 @@ body.cook-mode .tsm-check-label input.tsm-check {
 /* On mobile in cook view, instructions render above ingredients so steps are
    the primary surface; ingredients stay one tap away via the drawer toggle. */
 @media (max-width: 1023px) {
-  body.cook-mode .recipe-content {
-    display: flex;
-    flex-direction: column;
+  body.cook-mode .recipe-layout {
+    grid-template-areas:
+      "hero"
+      "head"
+      "tools"
+      "inst"
+      "ing";
   }
-  body.cook-mode .recipe-content .recipe-instructions { order: 1; }
-  body.cook-mode .recipe-content .recipe-ingredients   { order: 2; }
   body.cook-mode .recipe-instructions h2 { font-size: 1.5rem; }
 }
 
@@ -1029,9 +1037,14 @@ body.cook-mode .tsm-check-label input.tsm-check {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   min-height: 44px;
   min-width: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  white-space: nowrap;
 }
+.tsm-drawer-toggle svg { display: inline-block; vertical-align: middle; }
 @media (max-width: 1023px) {
-  .tsm-drawer-toggle { display: block; }
+  .tsm-drawer-toggle { display: inline-flex; }
   /* Reserve room at the bottom of the page so the FAB never covers content. */
   main { padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px)); }
   body.drawer-open .recipe-ingredients {
@@ -1274,10 +1287,7 @@ body.cook-mode .tsm-check-label input.tsm-check {
   body { font-size: 12pt; line-height: 1.5; }
   .no-print { display: none !important; }
   .recipe-title { font-size: 24pt; margin-bottom: 12pt; }
-  .recipe-content {
-    display: block !important;
-    grid-template-columns: 1fr !important;
-  }
+  .recipe-layout { display: block !important; }
   .recipe-ingredients,
   .recipe-instructions { margin-bottom: 24pt; }
   .recipe-ingredients h2,
@@ -1308,9 +1318,10 @@ body.print-card #tsm-toolbar { display: none !important; }
 @media print {
   body.print-card { font-size: 7pt; line-height: 1.25; }
   body.print-card .recipe-title { font-size: 12pt; margin: 0 0 4pt; }
-  body.print-card .recipe-content {
+  body.print-card .recipe-layout {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
+    grid-template-areas: "ing inst" !important;
     gap: 6pt !important;
   }
   body.print-card .recipe-ingredients h2,

@@ -4,7 +4,6 @@
 
 export const STORAGE_KEYS = {
   scale: (slug: string) => `tsm:scale:${slug}`,
-  units: "tsm:units",
   cookMode: (slug: string) => `tsm:cook:${slug}`,
   favorites: "tsm:favorites",
   notes: "tsm:notes",
