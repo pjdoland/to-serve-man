@@ -542,7 +542,6 @@ article h2 {
 
 article p {
   margin-bottom: 2rem;
-  line-height: 1.6;
 }
 
 article ul {
@@ -1078,18 +1077,14 @@ body.cook-mode .tsm-check-label input.tsm-check {
   font-size: 0.8rem;
   color: var(--cb-light);
 }
-.breadcrumbs > ol {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding-inline: 2rem;
-}
 @media (min-width: 768px) {
   .breadcrumbs { padding-block: 1.25rem 0.75rem; }
 }
 .breadcrumbs ol {
   list-style: none;
-  padding: 0;
-  margin: 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
