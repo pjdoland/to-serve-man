@@ -205,21 +205,21 @@
   padding-left: 0;
 }
 
-/* Inline callouts (>note / >tip / >warning) */
+/* Inline callouts (>note / >tip / >warning). Type matches step body — same
+   font-family/size/line-height as `.instructions-list li`, just framed in the
+   gray-box-with-left-rule treatment. */
 .callout {
   display: block;
   margin: 1.5rem 0;
   padding: 1rem 1.25rem;
   border-left: 3px solid var(--cb-accent);
   background: rgba(168, 18, 28, 0.04);
-  font-size: 0.95rem;
-  line-height: 1.5;
 }
 .callout-note    { border-left-color: var(--cb-light);  background: rgba(90, 84, 79, 0.05); }
 .callout-tip     { border-left-color: var(--cb-success); background: rgba(31, 107, 52, 0.05); }
 .callout-warning { border-left-color: var(--cb-accent); background: rgba(168, 18, 28, 0.06); }
 .callout p { margin: 0; }
-.callout p + p { margin-top: 0.75rem; }
+.callout p + p { margin-top: 1rem; }
 .callout-label {
   display: block;
   font-size: 0.75rem;
@@ -462,8 +462,9 @@
    margin-top is zeroed so its visible box top aligns with the Ingredients h2
    and the hero image — all three columns start at the same Y. */
 .recipe-instructions > .recipe-headnotes:first-child > .callout:first-child { margin-top: 0; }
-/* Last headnote callout sits tight against the Instructions h2 below it. */
-.recipe-instructions > .recipe-headnotes:first-child > .callout:last-child { margin-bottom: 0.5rem; }
+/* Last headnote callout — match the h2's `mb-8` so spacing above and below
+   the Instructions header is symmetric. */
+.recipe-instructions > .recipe-headnotes:first-child > .callout:last-child { margin-bottom: 2rem; }
 
 /* Hero <figure>. Mobile: full-bleed edge-to-edge with a 2px black bottom rule
    that echoes the masthead anchor. Desktop: same intrinsic-ratio image, sized
@@ -1066,10 +1067,12 @@ body.cook-mode .tsm-check-label input.tsm-check {
 .recently-viewed[data-has-items="1"] { display: block; }
 
 /* Breadcrumbs sit in their own band immediately below the masthead's 2px black
-   rule — the seam reads as a single header complex. Tighter on mobile. */
+   rule — the seam reads as a single header complex. The inner `<ol>` mirrors
+   the header's `max-w-cookbook + px-8` so the first crumb left-aligns with the
+   wordmark on wide viewports. Tighter on mobile. */
 .breadcrumbs {
   margin: 0;
-  padding: 0.75rem 2rem 0.5rem;
+  padding-block: 0.75rem 0.5rem;
   border-bottom: 1px solid var(--cb-rule);
   font-family: "Helvetica Neue", sans-serif;
   font-size: 0.8rem;
@@ -1078,9 +1081,10 @@ body.cook-mode .tsm-check-label input.tsm-check {
 .breadcrumbs > ol {
   max-width: 1200px;
   margin: 0 auto;
+  padding-inline: 2rem;
 }
 @media (min-width: 768px) {
-  .breadcrumbs { padding: 1.25rem 2rem 0.75rem; }
+  .breadcrumbs { padding-block: 1.25rem 0.75rem; }
 }
 .breadcrumbs ol {
   list-style: none;

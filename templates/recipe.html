@@ -40,7 +40,7 @@
          padding for the full-bleed effect. #}
       <div class="recipe-layout {% if not recipe.hero_image %}no-hero{% endif %}">
         <!-- Recipe Header -->
-        <header class="recipe-head text-center pt-8 pb-12 mb-8 border-b border-cookbook-rule">
+        <header class="recipe-head text-center pt-8 pb-4">
             {% if recipe.is_cocktail %}
                 {% if recipe.spirit_base %}<div class="recipe-eyebrow">{{ recipe.spirit_base|title }}</div>{% endif %}
             {% else %}
