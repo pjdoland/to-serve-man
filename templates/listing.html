@@ -14,24 +14,17 @@
         {% for facet in facets %}
         <fieldset class="facet-group">
             <legend>{{ facet.name }}</legend>
-            {% if facet.mode == "pills" %}
-                {% for v in facet.options %}
-                <button type="button" class="facet-chip" data-facet="{{ facet.key }}" data-value="{{ v }}" aria-pressed="false">{{ v|title if facet.key in ('spirit_base', 'glass', 'category') else v }}</button>
-                {% endfor %}
-            {% else %}
-                {# Multi-select dropdown for facets with >7 options. #}
-                <details class="facet-dropdown">
-                    <summary><span class="facet-dropdown-label">Any</span><span class="tsm-btn-icon">{{ icon('chevron-down', size=14) }}</span></summary>
-                    <div class="facet-dropdown-popover" role="listbox">
-                        {% for v in facet.options %}
-                        <label class="facet-dropdown-option">
-                            <input type="checkbox" data-facet="{{ facet.key }}" data-value="{{ v }}">
-                            <span>{{ v|title if facet.key in ('spirit_base', 'glass', 'category') else v }}</span>
-                        </label>
-                        {% endfor %}
-                    </div>
-                </details>
-            {% endif %}
+            <details class="facet-dropdown">
+                <summary><span class="facet-dropdown-label">Any</span><span class="tsm-btn-icon">{{ icon('chevron-down', size=14) }}</span></summary>
+                <div class="facet-dropdown-popover" role="listbox">
+                    {% for v in facet.options %}
+                    <label class="facet-dropdown-option">
+                        <input type="checkbox" data-facet="{{ facet.key }}" data-value="{{ v }}">
+                        <span>{{ v|title if facet.key in ('spirit_base', 'glass', 'category') else v }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </details>
         </fieldset>
         {% endfor %}
         <button type="button" id="facet-clear" class="facet-clear" hidden>Clear filters</button>

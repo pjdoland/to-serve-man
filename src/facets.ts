@@ -1,15 +1,17 @@
 // Client-side facet filter for /food/ and /cocktails/ landings.
-// Two control modes per facet:
-//   - "pills"    (≤7 options): single-value chip selection
-//   - "dropdown" (>7 options): multi-select checkbox list inside <details>
+// Each facet renders as a multi-select dropdown (<details> + checkboxes).
 // All non-empty filters are AND-combined across groups; values within one
-// dropdown group are OR-combined (same vocabulary, multi-select).
+// group are OR-combined (same vocabulary, multi-select).
 
 import { onReady } from "./util.js";
 
 function snakeToCamel(s: string): string {
   return s.replace(/_(\w)/g, (_, c) => c.toUpperCase());
 }
+
+// Show selected values in the trigger up to this many; past that, fall back
+// to a count so the trigger doesn't grow unboundedly wide.
+const MAX_INLINE_SELECTIONS = 2;
 
 function installFacets(): void {
   const rail = document.querySelector<HTMLElement>(".facet-rail");
@@ -47,28 +49,25 @@ function installFacets(): void {
     clearBtn?.toggleAttribute("hidden", active.length === 0);
   };
 
-  // Pills: single-value-per-group (clicking another value replaces; clicking
-  // the same value deselects).
-  rail.querySelectorAll<HTMLButtonElement>(".facet-chip").forEach((chip) => {
-    chip.addEventListener("click", () => {
-      const facet = chip.dataset.facet || "";
-      const value = chip.dataset.value || "";
-      const set = filters.get(facet) ?? new Set<string>();
-      const wasActive = set.has(value);
-      set.clear();
-      if (!wasActive) set.add(value);
-      filters.set(facet, set);
-      const group = chip.closest("fieldset");
-      group?.querySelectorAll<HTMLButtonElement>(".facet-chip").forEach((c) => {
-        const isActive = c === chip && !wasActive;
-        c.classList.toggle("is-active", isActive);
-        c.setAttribute("aria-pressed", isActive ? "true" : "false");
-      });
-      apply();
-    });
-  });
+  const updateLabel = (fieldset: HTMLElement) => {
+    const trigger = fieldset.querySelector<HTMLElement>(".facet-dropdown-label");
+    if (!trigger) return;
+    const checked = Array.from(
+      fieldset.querySelectorAll<HTMLInputElement>(".facet-dropdown-option input:checked"),
+    );
+    if (checked.length === 0) {
+      trigger.textContent = "Any";
+    } else if (checked.length <= MAX_INLINE_SELECTIONS) {
+      // Use the visible <span> next to the checkbox so we get the title-cased
+      // label as authored in the template, not the raw data-value.
+      trigger.textContent = checked
+        .map((cb) => cb.parentElement?.querySelector("span")?.textContent?.trim() || cb.dataset.value || "")
+        .join(", ");
+    } else {
+      trigger.textContent = `${checked.length} selected`;
+    }
+  };
 
-  // Dropdown mode: checkbox toggles add/remove from the value set.
   rail.querySelectorAll<HTMLInputElement>(".facet-dropdown-option input").forEach((cb) => {
     cb.addEventListener("change", () => {
       const facet = cb.dataset.facet || "";
@@ -78,10 +77,8 @@ function installFacets(): void {
       else set.delete(value);
       filters.set(facet, set);
 
-      const trigger = cb.closest("fieldset")?.querySelector<HTMLElement>(".facet-dropdown-label");
-      if (trigger) {
-        trigger.textContent = set.size === 0 ? "Any" : `${set.size} selected`;
-      }
+      const fieldset = cb.closest<HTMLElement>("fieldset");
+      if (fieldset) updateLabel(fieldset);
       apply();
     });
   });
@@ -96,10 +93,6 @@ function installFacets(): void {
 
   clearBtn?.addEventListener("click", () => {
     filters.clear();
-    rail.querySelectorAll<HTMLButtonElement>(".facet-chip.is-active").forEach((c) => {
-      c.classList.remove("is-active");
-      c.setAttribute("aria-pressed", "false");
-    });
     rail.querySelectorAll<HTMLInputElement>(".facet-dropdown-option input:checked").forEach((cb) => {
       cb.checked = false;
     });

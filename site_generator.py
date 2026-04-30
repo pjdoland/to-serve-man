@@ -371,10 +371,8 @@ class SiteGenerator:
 
     @staticmethod
     def _facet(name: str, key: str, options: list[str]) -> dict:
-        """Build a facet definition; mode tells the template which control to render."""
-        # Pills work to ~7 options; past that, a multi-select dropdown scales better.
-        mode = "pills" if len(options) <= 7 else "dropdown"
-        return {"name": name, "key": key, "options": options, "mode": mode}
+        """Build a facet definition rendered as a multi-select dropdown."""
+        return {"name": name, "key": key, "options": options}
 
     def generate_food_page(self):
         """Generate main food page with facet rail (cuisine + category)."""
