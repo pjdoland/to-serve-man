@@ -442,9 +442,13 @@
 /* Recipe page layout. CSS Grid + grid-template-areas lets a single <img> live
    at its DOM position (after <header>, for screen-reader order: H1 first) but
    appear visually above the title on mobile and in a right-rail aside on
-   desktop. NO aspect-ratio crop — images render at their intrinsic ratio. */
+   desktop. NO aspect-ratio crop — images render at their intrinsic ratio.
+   `minmax(0, 1fr)` prevents an oversized grid item (e.g. cook-mode's full-bleed
+   sticky toolbar at width: 100vw) from blowing out the column track and
+   dragging every sibling to the viewport edge. */
 .recipe-layout {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
     "hero"
     "head"
