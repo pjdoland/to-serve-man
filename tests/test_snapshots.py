@@ -25,7 +25,7 @@ SNAPSHOT_RECIPES = [
     "negroni",
     "chocolate-chip-cookies",
     "french-toast",
-    "01-mai-tai",
+    "001-mai-tai",
 ]
 
 
