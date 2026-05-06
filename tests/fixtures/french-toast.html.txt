@@ -22,3 +22,6 @@ INSTRUCTIONS:
 <li>Place soaked bread on the hot griddle and cook for <button type="button" class="timer" data-value="3" data-unit="minutes" aria-label="Start 3 minutes timer">3 minutes</button> per side, until golden brown and cooked through.</li>
 <li>Serve hot with <span class="ingredient">maple syrup</span> and <span class="ingredient">powdered sugar</span> for dusting, if desired.</li>
 </ol>
+
+FOOTNOTES:
+

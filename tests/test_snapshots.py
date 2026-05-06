@@ -69,11 +69,14 @@ class SnapshotTests(unittest.TestCase):
             with self.subTest(slug=slug):
                 recipe = self.recipes_by_slug.get(slug)
                 self.assertIsNotNone(recipe, f"recipe {slug} not found")
-                ingredients_html, headnotes_html, instructions_html = self.site.parse_recipe_content(recipe)
+                ingredients_html, headnotes_html, instructions_html, footnotes_html = (
+                    self.site.parse_recipe_content(recipe)
+                )
                 rendered = (
                     f"INGREDIENTS:\n{ingredients_html}\n\n"
                     f"HEADNOTES:\n{headnotes_html}\n\n"
-                    f"INSTRUCTIONS:\n{instructions_html}\n"
+                    f"INSTRUCTIONS:\n{instructions_html}\n\n"
+                    f"FOOTNOTES:\n{footnotes_html}\n"
                 )
                 self._check(slug, ".html.txt", rendered)
 

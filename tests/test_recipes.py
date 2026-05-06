@@ -26,7 +26,7 @@ class RecipeSmokeTests(unittest.TestCase):
     def test_site_renders_every_recipe(self):
         for recipe in self.recipes:
             with self.subTest(recipe=recipe.filepath.name):
-                _, _, instructions_html = self.site.parse_recipe_content(recipe)
+                _, _, instructions_html, _ = self.site.parse_recipe_content(recipe)
                 self.assertTrue(instructions_html, f"{recipe.filepath} produced no instructions HTML")
 
     def test_pdf_latex_renders_every_recipe(self):

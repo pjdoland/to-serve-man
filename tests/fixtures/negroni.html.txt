@@ -17,3 +17,6 @@ INSTRUCTIONS:
 <li>Strain into a <span class="cookware">rocks</span> glass over <span class="ingredient" data-amount="1" data-unit="">large ice cube</span>.</li>
 <li>Express the oils from an <span class="ingredient">orange peel</span> over the drink by holding it over the glass and giving it a good twist. Rub the peel around the rim of the glass, then drop it in.</li>
 </ol>
+
+FOOTNOTES:
+

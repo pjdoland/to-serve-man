@@ -25,3 +25,6 @@ INSTRUCTIONS:
 <li>Reserve <span class="ingredient" data-amount="1" data-unit="cup">pasta water</span>, then drain pasta. Off heat, add pasta to skillet, then quickly stir in egg mixture. Toss vigorously, adding pasta water as needed to create a creamy sauce.</li>
 <li>Serve immediately with additional pecorino and black pepper.</li>
 </ol>
+
+FOOTNOTES:
+

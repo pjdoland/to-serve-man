@@ -36,3 +36,6 @@ INSTRUCTIONS:
 <li>Let cool on baking sheet for <button type="button" class="timer" data-value="5" data-unit="minutes" aria-label="Start 5 minutes timer">5 minutes</button>, then transfer to a <span class="cookware">wire</span> rack.</li>
 <li>Sprinkle with extra <span class="ingredient">flaky sea salt</span> while still warm, if desired.</li>
 </ol>
+
+FOOTNOTES:
+

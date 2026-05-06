@@ -155,6 +155,8 @@
                 <button type="button" data-action="made-it" class="post-cook-link">Made this? Mark it →</button>
             </p>
         </section>
+
+        {% if footnotes_html %}{{ footnotes_html|safe }}{% endif %}
       </div>
 
         {% if notes %}

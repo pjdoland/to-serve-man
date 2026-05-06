@@ -6,6 +6,7 @@ Generates a complete static website from Cooklang recipes.
 
 import json
 import logging
+import re
 import secrets
 import shutil
 from functools import cached_property
@@ -16,6 +17,8 @@ from jinja2 import Environment, FileSystemLoader
 from slugify import slugify
 
 import config
+from footnotes import FOOTNOTE_REF_RE, Footnote
+from footnotes import extract as extract_footnotes
 from recipe_parser import (
     RECIPE_NOTE_FIELDS,
     Callout,
@@ -28,6 +31,8 @@ from recipe_parser import (
     Text,
     Timer,
 )
+
+ITALIC_RE = re.compile(r"\*([^*\n]+?)\*")
 
 logger = logging.getLogger("tsm.site")
 
@@ -104,13 +109,14 @@ class SiteGenerator:
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(html)
 
-    def parse_recipe_content(self, recipe: Recipe) -> tuple[str, str, str]:
-        """Render the recipe body to (ingredients_html, headnotes_html, instructions_html).
+    def parse_recipe_content(self, recipe: Recipe) -> tuple[str, str, str, str]:
+        """Render the recipe body to (ingredients_html, headnotes_html, instructions_html, footnotes_html).
 
         Leading bare-`>` callouts before the first Step or Section split off as
         cookbook-style "headnotes" so the "Instructions" heading can sit
         directly above the numbered steps. Mid-recipe callouts (between or
-        after Steps) stay inline with the instructions.
+        after Steps) stay inline with the instructions. `[^N]: ...` paragraphs
+        in any callout are extracted into a separate Sources section.
         """
         parsed = recipe.parsed
 
@@ -135,7 +141,14 @@ class SiteGenerator:
                 seen_non_callout = True
                 body_blocks.append(block)
 
-        headnotes_html = "\n".join(self._render_callout_html(c) for c in headnote_blocks)
+        # Pull footnote defs out of every callout (head + body). Empty callouts
+        # (those that contained only defs) drop out entirely.
+        all_callouts = headnote_blocks + [b for b in body_blocks if isinstance(b, Callout)]
+        _, footnotes, referenced = extract_footnotes(all_callouts)
+        defined_nums = {fn.num for fn in footnotes}
+
+        headnote_blocks, _, _ = extract_footnotes(headnote_blocks)
+        headnotes_html = "\n".join(self._render_callout_html(c, defined_nums) for c in headnote_blocks)
 
         # Instructions — sections become <h3>, steps go into the surrounding <ol>.
         parts: list[str] = []
@@ -153,21 +166,63 @@ class SiteGenerator:
                 flush_steps()
                 parts.append(f'<h3 class="section-header">{block.name}</h3>')
             elif isinstance(block, Callout):
+                cleaned, _, _ = extract_footnotes([block])
+                if not cleaned:
+                    continue
                 flush_steps()
-                parts.append(self._render_callout_html(block))
+                parts.append(self._render_callout_html(cleaned[0], defined_nums))
             else:
                 current_steps.append(self._render_step_html(block))
         flush_steps()
 
-        return ingredients_html, headnotes_html, "\n".join(parts)
+        footnotes_html = self._render_footnotes_html(footnotes, referenced)
+        return ingredients_html, headnotes_html, "\n".join(parts), footnotes_html
 
     @staticmethod
-    def _render_callout_html(block: Callout) -> str:
+    def _format_inline(text: str, defined_nums: set[int]) -> str:
+        """Apply Markdown-lite inline formatting: `[^N]` → superscript link,
+        `*italic*` → `<em>`. Input text is otherwise inserted verbatim, matching
+        the long-standing callout convention (authors can write raw HTML)."""
+
+        def repl_ref(match: re.Match) -> str:
+            n = int(match.group(1))
+            if n in defined_nums:
+                return f'<sup class="footnote-ref" id="fnref-{n}"><a href="#fn-{n}">{n}</a></sup>'
+            return f'<sup class="footnote-ref">{n}</sup>'
+
+        text = FOOTNOTE_REF_RE.sub(repl_ref, text)
+        text = ITALIC_RE.sub(r"<em>\1</em>", text)
+        return text
+
+    def _render_callout_html(self, block: Callout, defined_nums: set[int] | None = None) -> str:
+        defined_nums = defined_nums or set()
         label_html = (
             f'<strong class="callout-label">{block.kind.capitalize()}</strong> ' if block.labeled else ""
         )
-        body_html = "".join(f"<p>{p}</p>" for p in block.text.split("\n\n"))
+        body_html = "".join(
+            f"<p>{self._format_inline(p, defined_nums)}</p>" for p in block.text.split("\n\n")
+        )
         return f'<aside class="callout callout-{block.kind}" role="note">{label_html}{body_html}</aside>'
+
+    def _render_footnotes_html(self, footnotes: list[Footnote], referenced: set[int]) -> str:
+        if not footnotes:
+            return ""
+        defined_nums = {fn.num for fn in footnotes}
+        items: list[str] = []
+        for fn in footnotes:
+            body = self._format_inline(fn.text, defined_nums)
+            backref = (
+                f' <a href="#fnref-{fn.num}" class="footnote-backref" aria-label="Back to text">↩</a>'
+                if fn.num in referenced
+                else ""
+            )
+            items.append(f'<li id="fn-{fn.num}">{body}{backref}</li>')
+        return (
+            '<section class="recipe-footnotes" aria-label="Sources">'
+            '<h2 class="font-serif text-2xl mb-6">Sources</h2>'
+            f"<ol>{''.join(items)}</ol>"
+            "</section>"
+        )
 
     @staticmethod
     def _render_step_html(step: Step) -> str:
@@ -220,7 +275,9 @@ class SiteGenerator:
 
     def generate_recipe_page(self, recipe: Recipe):
         """Generate individual recipe page."""
-        ingredients_html, headnotes_html, instructions_html = self.parse_recipe_content(recipe)
+        ingredients_html, headnotes_html, instructions_html, footnotes_html = self.parse_recipe_content(
+            recipe
+        )
         cross_refs = self._resolve_cross_refs(recipe)
         notes = [
             (label, getattr(recipe, field)) for field, label in RECIPE_NOTE_FIELDS if getattr(recipe, field)
@@ -231,6 +288,7 @@ class SiteGenerator:
             "ingredients_html": ingredients_html,
             "headnotes_html": headnotes_html,
             "instructions_html": instructions_html,
+            "footnotes_html": footnotes_html,
             "cross_refs": cross_refs or None,
             "notes": notes,
             "nav_active": "cocktails" if recipe.is_cocktail else "food",

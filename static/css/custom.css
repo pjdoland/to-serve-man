@@ -470,6 +470,35 @@
    the Instructions header is symmetric. */
 .recipe-instructions > .recipe-headnotes:first-child > .callout:last-child { margin-bottom: 2rem; }
 
+/* Footnote markers in callout/headnote prose. Tight superscript that doesn't
+   throw off line height; link inherits the cookbook accent color. */
+.footnote-ref {
+  font-size: 0.7em;
+  line-height: 0;
+  vertical-align: super;
+  margin-left: 0.1em;
+}
+.footnote-ref a { text-decoration: none; color: var(--cb-accent); }
+.footnote-ref a:hover { text-decoration: underline; }
+
+/* Sources section at the bottom of a recipe. Sits in the instructions column,
+   separated from the steps by the same vertical rhythm as headnotes. */
+.recipe-footnotes {
+  grid-area: inst;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--cb-rule);
+  font-size: 0.9rem;
+  color: var(--cb-light);
+}
+.recipe-footnotes h2 { font-variant: small-caps; letter-spacing: 0.05em; font-size: 1rem; }
+.recipe-footnotes ol { list-style: decimal; padding-left: 1.5rem; margin: 0; }
+.recipe-footnotes li { margin-bottom: 0.75rem; line-height: 1.5; }
+.recipe-footnotes li:last-child { margin-bottom: 0; }
+.recipe-footnotes em { font-style: italic; }
+.footnote-backref { text-decoration: none; color: var(--cb-accent); margin-left: 0.25em; }
+.footnote-backref:hover { text-decoration: underline; }
+
 /* Hero <figure>. Mobile: full-bleed edge-to-edge with a 2px black bottom rule
    that echoes the masthead anchor. Desktop: same intrinsic-ratio image, sized
    to its column with a 1px black frame. Never cropped — uploaders' aspect
