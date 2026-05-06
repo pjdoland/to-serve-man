@@ -6,7 +6,6 @@ Generates a complete static website from Cooklang recipes.
 
 import json
 import logging
-import re
 import secrets
 import shutil
 from functools import cached_property
@@ -17,8 +16,7 @@ from jinja2 import Environment, FileSystemLoader
 from slugify import slugify
 
 import config
-from footnotes import FOOTNOTE_REF_RE, Footnote
-from footnotes import extract as extract_footnotes
+from footnotes import Footnote, extract, tokenize_inline
 from recipe_parser import (
     RECIPE_NOTE_FIELDS,
     Callout,
@@ -31,8 +29,6 @@ from recipe_parser import (
     Text,
     Timer,
 )
-
-ITALIC_RE = re.compile(r"\*([^*\n]+?)\*")
 
 logger = logging.getLogger("tsm.site")
 
@@ -112,15 +108,12 @@ class SiteGenerator:
     def parse_recipe_content(self, recipe: Recipe) -> tuple[str, str, str, str]:
         """Render the recipe body to (ingredients_html, headnotes_html, instructions_html, footnotes_html).
 
-        Leading bare-`>` callouts before the first Step or Section split off as
-        cookbook-style "headnotes" so the "Instructions" heading can sit
-        directly above the numbered steps. Mid-recipe callouts (between or
-        after Steps) stay inline with the instructions. `[^N]: ...` paragraphs
-        in any callout are extracted into a separate Sources section.
+        Leading bare-`>` callouts split off as headnotes so the "Instructions"
+        heading sits directly above the numbered steps. `[^N]: ...` paragraphs
+        in any callout are pulled into a separate Sources section.
         """
         parsed = recipe.parsed
 
-        # Ingredients list — only @x{...} appear (matches legacy: bare @x stays inline-only).
         ing_items: list[str] = []
         for ing in parsed.ingredients:
             if not ing.from_braces:
@@ -129,8 +122,6 @@ class SiteGenerator:
             ing_items.append(f"<li>{ing.name} ({qty})</li>" if qty else f"<li>{ing.name}</li>")
         ingredients_html = "<ul>\n" + "\n".join(ing_items) + "\n</ul>"
 
-        # Split off leading callouts as headnotes; everything from the first
-        # Step/Section onward becomes the instructions body.
         headnote_blocks: list[Callout] = []
         body_blocks: list[Section | Step | Callout] = []
         seen_non_callout = False
@@ -141,16 +132,17 @@ class SiteGenerator:
                 seen_non_callout = True
                 body_blocks.append(block)
 
-        # Pull footnote defs out of every callout (head + body). Empty callouts
-        # (those that contained only defs) drop out entirely.
         all_callouts = headnote_blocks + [b for b in body_blocks if isinstance(b, Callout)]
-        _, footnotes, referenced = extract_footnotes(all_callouts)
-        defined_nums = {fn.num for fn in footnotes}
+        result = extract(all_callouts)
+        cleaned_lookup = {id(orig): c for orig, c in zip(all_callouts, result.cleaned, strict=True)}
+        defined_nums = {fn.num for fn in result.footnotes}
 
-        headnote_blocks, _, _ = extract_footnotes(headnote_blocks)
-        headnotes_html = "\n".join(self._render_callout_html(c, defined_nums) for c in headnote_blocks)
+        headnotes_html = "\n".join(
+            self._render_callout_html(cleaned_lookup[id(b)], defined_nums)
+            for b in headnote_blocks
+            if cleaned_lookup[id(b)] is not None
+        )
 
-        # Instructions — sections become <h3>, steps go into the surrounding <ol>.
         parts: list[str] = []
         current_steps: list[str] = []
 
@@ -166,36 +158,41 @@ class SiteGenerator:
                 flush_steps()
                 parts.append(f'<h3 class="section-header">{block.name}</h3>')
             elif isinstance(block, Callout):
-                cleaned, _, _ = extract_footnotes([block])
-                if not cleaned:
+                cleaned = cleaned_lookup[id(block)]
+                if cleaned is None:
                     continue
                 flush_steps()
-                parts.append(self._render_callout_html(cleaned[0], defined_nums))
+                parts.append(self._render_callout_html(cleaned, defined_nums))
             else:
                 current_steps.append(self._render_step_html(block))
         flush_steps()
 
-        footnotes_html = self._render_footnotes_html(footnotes, referenced)
+        footnotes_html = self._render_footnotes_html(result.footnotes, result.referenced, defined_nums)
         return ingredients_html, headnotes_html, "\n".join(parts), footnotes_html
 
     @staticmethod
     def _format_inline(text: str, defined_nums: set[int]) -> str:
-        """Apply Markdown-lite inline formatting: `[^N]` → superscript link,
-        `*italic*` → `<em>`. Input text is otherwise inserted verbatim, matching
-        the long-standing callout convention (authors can write raw HTML)."""
+        """Expand `[^N]` and `*italic*` markers in callout/footnote prose.
 
-        def repl_ref(match: re.Match) -> str:
-            n = int(match.group(1))
-            if n in defined_nums:
-                return f'<sup class="footnote-ref" id="fnref-{n}"><a href="#fn-{n}">{n}</a></sup>'
-            return f'<sup class="footnote-ref">{n}</sup>'
+        Plain `text` segments are inserted verbatim so authors can drop in raw
+        HTML (long-standing callout convention)."""
+        out: list[str] = []
+        for kind, payload in tokenize_inline(text):
+            if kind == "text":
+                out.append(payload)
+            elif kind == "ref":
+                if payload in defined_nums:
+                    out.append(
+                        f'<sup class="footnote-ref" id="fnref-{payload}">'
+                        f'<a href="#fn-{payload}">{payload}</a></sup>'
+                    )
+                else:
+                    out.append(f'<sup class="footnote-ref">{payload}</sup>')
+            else:
+                out.append(f"<em>{payload}</em>")
+        return "".join(out)
 
-        text = FOOTNOTE_REF_RE.sub(repl_ref, text)
-        text = ITALIC_RE.sub(r"<em>\1</em>", text)
-        return text
-
-    def _render_callout_html(self, block: Callout, defined_nums: set[int] | None = None) -> str:
-        defined_nums = defined_nums or set()
+    def _render_callout_html(self, block: Callout, defined_nums: set[int]) -> str:
         label_html = (
             f'<strong class="callout-label">{block.kind.capitalize()}</strong> ' if block.labeled else ""
         )
@@ -204,10 +201,11 @@ class SiteGenerator:
         )
         return f'<aside class="callout callout-{block.kind}" role="note">{label_html}{body_html}</aside>'
 
-    def _render_footnotes_html(self, footnotes: list[Footnote], referenced: set[int]) -> str:
+    def _render_footnotes_html(
+        self, footnotes: list[Footnote], referenced: set[int], defined_nums: set[int]
+    ) -> str:
         if not footnotes:
             return ""
-        defined_nums = {fn.num for fn in footnotes}
         items: list[str] = []
         for fn in footnotes:
             body = self._format_inline(fn.text, defined_nums)

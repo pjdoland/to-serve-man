@@ -10,8 +10,7 @@ import subprocess
 from pathlib import Path
 
 import config
-from footnotes import Footnote
-from footnotes import extract as extract_footnotes
+from footnotes import Footnote, extract, tokenize_inline
 from recipe_parser import (
     RECIPE_NOTE_FIELDS,
     Callout,
@@ -69,12 +68,12 @@ class PDFGenerator:
 
     def parse_recipe_content(
         self, recipe: Recipe
-    ) -> tuple[list[str], list[Section | Callout | str], list[Footnote], set[int]]:
-        """Render the recipe body to (ingredients_latex, blocks, footnotes, referenced_nums).
+    ) -> tuple[list[str], list[Section | Callout | str], list[Footnote]]:
+        """Render the recipe body to (ingredients_latex, blocks, footnotes).
 
-        Each block is a `Section` (header), a `Callout` (typed kind+text, with
-        footnote-def paragraphs already pulled out), or a plain LaTeX-escaped
-        string (a step).
+        Each block is a `Section` header, a footnote-stripped `Callout`, or a
+        LaTeX-escaped step string. Callouts that contained only footnote defs
+        drop out entirely.
         """
         parsed = recipe.parsed
 
@@ -90,55 +89,34 @@ class PDFGenerator:
                 unique_ingredients.append(f"\\textbf{{{name_latex}}}")
 
         all_callouts = [b for b in parsed.blocks if isinstance(b, Callout)]
-        _, footnotes, referenced = extract_footnotes(all_callouts)
-        cleaned_by_id = {id(orig): cleaned for orig, cleaned in self._pair_cleaned(all_callouts)}
+        result = extract(all_callouts)
+        cleaned_lookup = {id(orig): c for orig, c in zip(all_callouts, result.cleaned, strict=True)}
 
         blocks: list[Section | Callout | str] = []
         for block in parsed.blocks:
             if isinstance(block, Section):
                 blocks.append(block)
             elif isinstance(block, Callout):
-                cleaned = cleaned_by_id.get(id(block))
+                cleaned = cleaned_lookup[id(block)]
                 if cleaned is not None:
                     blocks.append(cleaned)
             else:
                 blocks.append(self._render_step_latex(block))
 
-        return unique_ingredients, blocks, footnotes, referenced
-
-    @staticmethod
-    def _pair_cleaned(callouts: list[Callout]) -> list[tuple[Callout, Callout]]:
-        """Map each original callout to its footnote-stripped version, dropping
-        any whose paragraphs were entirely footnote definitions."""
-        out: list[tuple[Callout, Callout]] = []
-        for original in callouts:
-            cleaned, _, _ = extract_footnotes([original])
-            if cleaned:
-                out.append((original, cleaned[0]))
-        return out
-
-    # Order matters: footnote refs first so `*` inside their content is literal.
-    _INLINE_TOKEN_RE = re.compile(r"(?P<ref>\[\^\d+\])|(?P<italic>\*[^*\n]+?\*)")
+        return unique_ingredients, blocks, result.footnotes
 
     def _format_inline_latex(self, text: str) -> str:
         """Escape callout/footnote prose for LaTeX, expanding `[^N]` and
-        `*italic*` markers. Pre-tokenizes so the markers are replaced with
-        backslash-bearing LaTeX commands AFTER the surrounding plain text is
-        escaped — otherwise `escape_latex` would escape the inserted `\\`."""
+        `*italic*` markers. Tokenizing keeps `escape_latex` from re-escaping
+        the backslashes we inject for `\\textsuperscript` / `\\textit`."""
         out: list[str] = []
-        cursor = 0
-        for match in self._INLINE_TOKEN_RE.finditer(text):
-            if match.start() > cursor:
-                out.append(self.escape_latex(text[cursor : match.start()]))
-            if match.group("ref"):
-                num = match.group("ref")[2:-1]
-                out.append(f"\\textsuperscript{{{num}}}")
+        for kind, payload in tokenize_inline(text):
+            if kind == "text":
+                out.append(self.escape_latex(payload))
+            elif kind == "ref":
+                out.append(f"\\textsuperscript{{{payload}}}")
             else:
-                inner = match.group("italic")[1:-1]
-                out.append(f"\\textit{{{self.escape_latex(inner)}}}")
-            cursor = match.end()
-        if cursor < len(text):
-            out.append(self.escape_latex(text[cursor:]))
+                out.append(f"\\textit{{{self.escape_latex(payload)}}}")
         return "".join(out)
 
     def _render_step_latex(self, step: Step) -> str:
@@ -203,7 +181,7 @@ class PDFGenerator:
             latex.append(f"\\recipeheadnote{{{self.escape_latex(recipe.headnote)}}}")
 
         # Parse content
-        ingredients, blocks, footnotes, _ = self.parse_recipe_content(recipe)
+        ingredients, blocks, footnotes = self.parse_recipe_content(recipe)
 
         # Ingredients section
         if ingredients:

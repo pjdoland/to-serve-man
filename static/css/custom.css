@@ -481,10 +481,9 @@
 .footnote-ref a { text-decoration: none; color: var(--cb-accent); }
 .footnote-ref a:hover { text-decoration: underline; }
 
-/* Sources section at the bottom of a recipe. Sits in the instructions column,
-   separated from the steps by the same vertical rhythm as headnotes. */
+/* Sources section at the bottom of a recipe. Lives inside .recipe-instructions
+   so it inherits the grid area; just needs the vertical rule + small type. */
 .recipe-footnotes {
-  grid-area: inst;
   margin-top: 3rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--cb-rule);
