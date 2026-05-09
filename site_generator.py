@@ -538,9 +538,11 @@ class SiteGenerator:
         UI) — bare mentions in step prose would inflate the index without
         clear benefit.
 
-        Also emits canonical_ingredients (deduped ontology ids) so future
-        client-side features (allergen filter, build-a-bar) can match across
-        spelling variants ('fresh lime juice' / 'lime juice' both → lime-juice).
+        Computes ontology coverage as a side effect for the build report.
+        Canonical ids aren't serialized into the JSON yet — no client-side
+        consumer reads them, and shipping ~30K of unused payload was flagged
+        in PR review. Add the field back atomically with the first consumer
+        (allergen filter / build-a-bar).
         """
         search_data = {"recipes": []}
 
@@ -551,12 +553,9 @@ class SiteGenerator:
 
         for recipe in self.collection.recipes:
             raw_names = sorted({i.name for i in recipe.parsed.ingredients if i.from_braces})
-            canonical_ids: set[str] = set()
             for name in raw_names:
-                cid = canonical_ingredient(name)
-                if cid:
+                if canonical_ingredient(name):
                     ontology_hits += 1
-                    canonical_ids.add(cid)
                 else:
                     ontology_misses += 1
                     unmatched_examples.add(name)
@@ -566,7 +565,6 @@ class SiteGenerator:
                 "description": recipe.description or "",
                 "tags": recipe.tags,
                 "ingredients": raw_names,
-                "canonical_ingredients": sorted(canonical_ids),
                 "category": recipe.category,
                 "is_cocktail": recipe.is_cocktail,
                 "url": f"{self.base_url}/recipes/{recipe.slug}/",
@@ -587,7 +585,7 @@ class SiteGenerator:
         if total:
             pct = ontology_hits / total * 100
             logger.info(
-                f"  Ingredient ontology: {ontology_hits}/{total} mentions canonicalized "
+                f"  ✓ Ingredient ontology: {ontology_hits}/{total} mentions canonicalized "
                 f"({pct:.1f}%, {len(unmatched_examples)} unique unmatched)"
             )
 

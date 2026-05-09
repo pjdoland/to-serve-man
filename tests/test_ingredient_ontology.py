@@ -45,15 +45,32 @@ class CanonicalIngredient(unittest.TestCase):
         self.assertEqual(category_of("aged-pot-still-jamaican-rum"), "spirit")
         self.assertIsNone(category_of("not-a-real-id"))
 
+    def test_canonical_ingredient_is_idempotent(self):
+        """canonical_ingredient(canonical_ingredient(x)) == canonical_ingredient(x).
+        Achieved by the loader self-aliasing every id; without it,
+        canonical_ingredient('lime-juice') returned None."""
+        for raw in ("fresh lime juice", "ORANGE CURACAO", "Pernod"):
+            once = canonical_ingredient(raw)
+            twice = canonical_ingredient(once)
+            self.assertEqual(once, twice, f"non-idempotent for {raw!r}")
+            self.assertIsNotNone(twice)
+
+    def test_all_ids_returns_sorted_unique(self):
+        ids = iov.all_ids()
+        self.assertGreater(len(ids), 50, "ontology should have grown past the initial ~50 entries")
+        self.assertEqual(ids, sorted(ids), "all_ids must be sorted for deterministic builds")
+        self.assertEqual(len(ids), len(set(ids)), "ids must be unique")
+
 
 class OntologyValidation(unittest.TestCase):
     """Bad ontology data must fail loud at load time, not silently mis-bucket."""
 
     def _run_with_yaml(self, yaml_text: str):
         with tempfile.TemporaryDirectory() as tmp:
-            (Path(tmp) / "ingredients.yaml").write_text(yaml_text, encoding="utf-8")
+            stub = Path(tmp) / "ingredients.yaml"
+            stub.write_text(yaml_text, encoding="utf-8")
             iov.reset_cache()
-            with unittest.mock.patch.object(config, "PROJECT_ROOT", Path(tmp)):
+            with unittest.mock.patch.object(config, "INGREDIENTS_FILE", stub):
                 return iov._load()
 
     def tearDown(self):
@@ -83,8 +100,9 @@ class OntologyValidation(unittest.TestCase):
         # Soft-fail: a project without ingredients.yaml builds successfully,
         # canonical_ingredient just returns None for everything.
         with tempfile.TemporaryDirectory() as tmp:
+            absent = Path(tmp) / "ingredients.yaml"  # not created
             iov.reset_cache()
-            with unittest.mock.patch.object(config, "PROJECT_ROOT", Path(tmp)):
+            with unittest.mock.patch.object(config, "INGREDIENTS_FILE", absent):
                 ontology = iov._load()
                 self.assertEqual(ontology.alias_to_id, {})
                 self.assertEqual(ontology.id_to_category, {})

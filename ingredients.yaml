@@ -7,7 +7,7 @@
 # canonical id.
 #
 # Categories are deliberately broad — spirit, modifier, juice, syrup,
-# bitters, garnish, ice, dairy, baking, other — and drive future faceting
+# bitters, garnish, ice, dairy, other — and drive future faceting
 # (allergens, build-a-bar, shopping-list grouping) without committing to a
 # product hierarchy.
 #
@@ -82,7 +82,7 @@ ingredients:
   - { id: sweet-vermouth, category: modifier, aliases: [sweet vermouth] }
   - { id: green-chartreuse, category: modifier, aliases: [green Chartreuse] }
   - { id: apricot-brandy, category: modifier, aliases: [apricot brandy] }
-  - { id: white-creme-de-cacao, category: modifier, aliases: [white creme de cacao] }
+  - { id: white-creme-de-cacao, category: modifier, aliases: [white creme de cacao, creme de cacao] }
   - { id: creme-de-banana, category: modifier, aliases: [crème de banana] }
 
   # --- Bitters ---
@@ -100,10 +100,12 @@ ingredients:
   - { id: orgeat, category: syrup, aliases: [orgeat, orgeat syrup] }
   - { id: grenadine, category: syrup, aliases: [grenadine] }
   - { id: rock-candy-syrup, category: syrup, aliases: [rock candy syrup] }
-  - { id: honey-syrup, category: syrup, aliases: [honey syrup, honey mix, honey] }
+  - { id: honey-syrup, category: syrup, aliases: [honey syrup, honey mix] }
+  - { id: honey, category: other, aliases: [honey] }
   - { id: rich-honey-mix, category: syrup, aliases: [rich honey mix, honey cream mix] }
   - { id: maple-syrup, category: syrup, aliases: [maple syrup] }
-  - { id: brown-sugar, category: syrup, aliases: [brown sugar, demerara sugar] }
+  - { id: brown-sugar, category: syrup, aliases: [brown sugar] }
+  - { id: demerara-sugar, category: syrup, aliases: [demerara sugar] }
   - { id: granulated-sugar, category: syrup,
       aliases: [sugar, granulated sugar, superfine sugar] }
 
@@ -137,10 +139,11 @@ ingredients:
   - { id: club-soda, category: other, aliases: [club soda, soda water] }
   - { id: ginger-beer, category: other, aliases: [ginger beer] }
 
-  # --- Dairy ---
+  # --- Dairy & eggs (eggs aren't dairy but share category for kitchen use;
+  #     when allergen filter (#48) lands they need distinct allergen tags) ---
   - { id: heavy-cream, category: dairy, aliases: [heavy cream] }
   - { id: butter, category: dairy, aliases: [butter, unsalted butter, softened unsalted butter] }
-  - { id: eggs, category: dairy, aliases: [eggs] }
+  - { id: eggs, category: other, aliases: [eggs] }
 
   # --- Misc liquids / pantry ---
   - { id: cream-of-coconut, category: other, aliases: [cream of coconut] }

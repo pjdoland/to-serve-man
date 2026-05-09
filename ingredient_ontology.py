@@ -15,7 +15,6 @@ mis-bucketing recipes downstream.
 import logging
 from dataclasses import dataclass
 from functools import cache
-from typing import Literal
 
 import yaml
 from slugify import slugify
@@ -27,10 +26,6 @@ logger = logging.getLogger("tsm.ontology")
 CATEGORIES = frozenset(
     {"spirit", "modifier", "juice", "syrup", "bitters", "garnish", "ice", "dairy", "other"}
 )
-
-IngredientCategory = Literal[
-    "spirit", "modifier", "juice", "syrup", "bitters", "garnish", "ice", "dairy", "other"
-]
 
 
 @dataclass(frozen=True)
@@ -56,7 +51,7 @@ def _normalize(value: str) -> str:
 def _load() -> Ontology:
     """Read and validate ingredients.yaml. Cached for the process lifetime —
     edits to the file require a restart, same as Python source."""
-    path = config.PROJECT_ROOT / "ingredients.yaml"
+    path = config.INGREDIENTS_FILE
     if not path.exists():
         # Soft-fail: returning an empty ontology means the rest of the build
         # still runs (canonical_ingredient just returns None for everything),
@@ -65,7 +60,11 @@ def _load() -> Ontology:
         logger.warning("ingredients.yaml not found; ontology is empty")
         return Ontology(alias_to_id={}, id_to_category={})
 
-    raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    try:
+        raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except yaml.YAMLError as e:
+        raise ValueError(f"ingredients.yaml: invalid YAML: {e}") from e
+
     entries = raw.get("ingredients", [])
 
     alias_to_id: dict[str, str] = {}
@@ -98,6 +97,13 @@ def _load() -> Ontology:
                     f"appears under both {alias_to_id[key]!r} and {ingredient_id!r}"
                 )
             alias_to_id[key] = ingredient_id
+
+    # Self-alias every canonical id (after the duplicate-check on authored
+    # aliases) so canonical_ingredient(canonical_ingredient(x)) is idempotent.
+    # Without this, canonical_ingredient("lime-juice") returns None even
+    # though "lime-juice" is a valid id.
+    for ingredient_id in id_to_category:
+        alias_to_id.setdefault(ingredient_id, ingredient_id)
 
     return Ontology(alias_to_id=alias_to_id, id_to_category=id_to_category)
 

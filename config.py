@@ -94,6 +94,12 @@ FACET_ALIASES: dict[str, dict[str, str]] = {
     "occasion": {},
 }
 
+# The ingredient ontology lives in its own YAML file (loaded by
+# ingredient_ontology.py). It's a much larger vocabulary (90+ entries with
+# categories) than the inline FACET_ALIASES above, but conceptually it sits
+# alongside them as another controlled-vocabulary surface.
+INGREDIENTS_FILE = PROJECT_ROOT / "ingredients.yaml"
+
 
 # Defensive: every alias *value* must already be a canonical slug (i.e.
 # slugify(v) == v). Otherwise canonical_facet(canonical_facet(v)) would not
