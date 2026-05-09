@@ -72,42 +72,6 @@ No sitemap is emitted, so search engines have to discover all 161 recipe pages p
 - **Impact:** Faster initial indexing; large win for a 200-page site that just doubled in size.
 - **Risk:** None. Pair with `robots.txt` for the `Sitemap:` pointer (item 13 missed 6/7 by a hair).
 
-#### Resolve the Macadamia Nut Chi Chi duplicate
-Two `.cook` files describe the same drink: `099-macadamia-nut-chi-chi.cook` (rank 99, hurricane glass, full Phase-3 schema, 4 oz pineapple) and orphan `macadamia-nut-chi-chi.cook` (no rank, tiki mug, 8 oz pineapple, malformed `2 1/2%oz` quantity). Both slugify to the same URL — one will silently overwrite the other depending on filesystem traversal order.
-- **Difficulty:** Easy (S) — pick one, delete the other, possibly merge useful content.
-- **Impact:** Removes a real correctness bug; future-proofs URL-uniqueness assumption.
-- **Risk:** Lose the variant interpretation if not consciously merged.
-
-#### Renumber the 4 orphan cocktails
-`negroni.cook`, `margarita.cook`, `paper-plane.cook`, and `macadamia-nut-chi-chi.cook` lack a `rank:` field and use a different schema (have `difficulty`, no `year`/`source_author`/footnotes). They sort inconsistently on listings and break the 1–150 numbered convention everyone else follows.
-- **Difficulty:** Easy (S) — `git mv` + frontmatter edits.
-- **Impact:** Restores cataloging consistency; eliminates one-off code paths in any future `rank`-based feature.
-- **Risk:** Slug changes break inbound links — add 301 redirects via `_redirects` (or accept the breakage on a personal site).
-
-#### Glassware facet fragmentation cleanup (`collins`/`old-fashioned`/`hurricane`)
-Facet aggregation produces three "old-fashioned"-style buckets (`old-fashioned`, `old fashioned`), two "collins" (`collins`, `collins glass`), two "hurricane" (`hurricane`, `hurricane glass`), and four moai mug variants. Each becomes a separate `/cocktails/glass/<slug>/` page with a fraction of the inventory.
-- **Difficulty:** Easy (S) — search/replace across `recipes/cocktails/*.cook`.
-- **Impact:** Consolidates thin facet pages; fewer dead-end clicks for the user.
-- **Risk:** Best done after item 81 (controlled vocabulary) lands so the canonical list is decided.
-
-#### Ingredient capitalization splits cleanup
-`Gosling's Black Seal rum` and `Gosling's Black Seal Rum` co-exist as distinct ingredients across the corpus. Cooklang dedupes lowercased keys *within* a file but not *across* files, so any future ingredient index treats them as separate items.
-- **Difficulty:** Easy (S).
-- **Impact:** Foundational for the ingredient ontology (item 86).
-- **Risk:** None.
-
-#### `lime juice` vs `fresh lime juice` canonicalization
-95 occurrences of `fresh lime juice` and 8 of `lime juice` mean the same liquid, two ingredient buckets. Same shape: `orange juice` (9) vs `fresh orange juice` (29), `pineapple juice` (18) vs `fresh pineapple juice` (13) vs `unsweetened pineapple juice` (12).
-- **Difficulty:** Easy (S) — search/replace, with judgement on the canonical form ("fresh ___ juice" preferred for citrus).
-- **Impact:** Future ingredient index, search facet, and shopping list aggregation all become correct.
-- **Risk:** Loses some authorial nuance ("unsweetened pineapple juice" carries information).
-
-#### Populate or remove `recipes/basics/` + `season`/`occasion` fields
-The schema documents `season` and `occasion` and the site generator builds `/season/<value>/` and `/occasion/<value>/` pages, but **zero** `.cook` files set them — every facet route is empty. Same for the `basics` category folder.
-- **Difficulty:** Easy (S) for removal; Moderate if backfilling content.
-- **Impact:** Removes dead code paths and empty pages, OR turns an unused affordance into a real browsing dimension.
-- **Risk:** Removal + future re-add is more code churn than backfilling — decide which way.
-
 #### Add HTML link-checker to CI (lychee or htmltest)
 Recipes cross-reference each other via `serve_with`/`pairs_with`/`uses` slugs, and `BASE_URL` rewriting is brittle. A `lychee docs/` step after build catches broken internal links and stale external sources before they hit `main`.
 - **Difficulty:** Easy (S) — one CI step.
@@ -154,18 +118,6 @@ Today `Recipe.from_path` parses then defers validation to `validate()`, and `Rec
 - **Impact:** Eliminates an entire class of silent build defects.
 - **Risk:** May surface real existing errors that have been silently shipping — fix those first or run with a warn-only flag for one deploy.
 
-#### Estimated reading time + step count
-Add "12 steps · ~6 min read · 30 min active cooking" near the H1. Helps readers with chronic fatigue or time pressure scope a recipe before diving in. Also good for SR users to understand size before traversing all steps.
-- **Difficulty:** Moderate (M) — straightforward computation, but defining "active cooking" needs judgment.
-- **Impact:** UX wins on every recipe page; small SEO benefit (rich snippet eligibility).
-- **Risk:** Step counting depends on parser segmentation — verify the count matches what users see.
-
-#### Backfill `variations` + cross-refs (`serve_with`/`pairs_with`/`uses`) across recipes
-The schema supports these and the template renders them — but no recipe uses them. A Negroni page with linked variations (Boulevardier, Sbagliato, White Negroni) would feel like a real cookbook chapter; carbonara → cacio e pepe → amatriciana is the same play.
-- **Difficulty:** Moderate (M) for tooling; content effort scales with editorial ambition.
-- **Impact:** Massive — turns a flat catalog into a navigable cookbook; strong internal linking for SEO.
-- **Risk:** Pure content work — easy to start, hard to "finish." Set a target subset (e.g., classic cocktails first).
-
 #### Surface ingredients in search index
 Search currently scores titles, tags, descriptions, cuisine/spirit — but not ingredients. Yet ingredients are how cooks actually search ("what can I make with leftover guanciale?"). Add ingredient names to `search-data.json` and the scoring function so a query for "campari" finds Negroni, Boulevardier, and Jungle Bird.
 - **Difficulty:** Moderate (M) — extend `generate_search_data` and `search.ts` scoring.
@@ -176,26 +128,8 @@ Search currently scores titles, tags, descriptions, cuisine/spirit — but not i
 
 ### 3. Most difficult / architectural (2 items)
 
-#### Allergen / dietary filter facet
-Today the only way to know if a recipe is gluten-free, dairy-free, nut-free, shellfish-free, or alcohol-free is to read the full ingredient list. Surface filter chips on listing pages and indicators on recipe pages. Critical for users with celiac, severe allergies, or in recovery — and a strong content-discovery feature for everyone else.
-- **Difficulty:** Hard (L) — requires (a) an ingredient-to-allergen map, (b) per-recipe derivation, (c) listing-page facet UI, (d) authorial overrides for borderline cases.
-- **Impact:** Real accessibility/inclusion win; major discovery feature.
-- **Risk:** Allergen claims have legal/health implications. Frame as "appears to contain X" with a disclaimer; require manual confirmation for severe allergens. Depends on item 86 (ingredient ontology).
-
 #### Ingredient alias / `canonical_id` / `category` taxonomy
 Build an ingredient ontology layer: each canonical ingredient gets an ID, an alias list (for parser canonicalization), and a category (`spirit/modifier/juice/syrup/bitters/garnish/ice/other`). Powers items 48 (allergens), 92/91 (canonicalization at the source), 106 (search), and the future build-a-bar / shopping-list-grouping features.
 - **Difficulty:** Hard (L) — content modeling decision + parser integration + likely a new `ingredients/` directory of YAML files.
 - **Impact:** Unlocks a generation of features (ontology-backed everything). Without it, items 48/86/92 keep being one-off patches.
 - **Risk:** Schema design takes time; resist scope creep into "complete cocktail database." Start with the ~50 ingredients used in 5+ recipes.
-
----
-
-## Suggested sequencing
-
-1. **First commit, today:** items 88, 89, 126, 127 (correctness + content hygiene, no upstream dependencies).
-2. **First week:** items 2, 12, 122 (SEO + CI hardening, all independent).
-3. **First sprint:** items 81 → 82 → 90/91/92/93 (vocab → canonicalization → cleanup) — each unlocks the next.
-4. **Behind the sprint:** items 72, 80 (build hardening), then 49, 106 (UX wins).
-5. **Quarter-scale projects:** items 86 → 48 (ontology → allergen filter) and item 103 (variations backfill, mostly content).
-
-20 items, 11 of them landable in a day each. The DevOps persona's domain bias means reasonable content/UX wins were under-represented in his ballot — the 6/7 set is genuinely the high-consensus list.
