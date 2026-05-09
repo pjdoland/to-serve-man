@@ -1,0 +1,151 @@
+# Ingredient ontology for canonicalization.
+#
+# Each entry maps a canonical ingredient id (kebab-case slug; the dedup key
+# and future URL fragment) to a category and an optional list of input
+# aliases. When a recipe's frontmatter or .cook body uses one of the aliases
+# (case-insensitive, whitespace-trimmed), it gets bucketed under the
+# canonical id.
+#
+# Categories are deliberately broad — spirit, modifier, juice, syrup,
+# bitters, garnish, ice, dairy, baking, other — and drive future faceting
+# (allergens, build-a-bar, shopping-list grouping) without committing to a
+# product hierarchy.
+#
+# CONSERVATIVE merges only: combine variants that are unambiguously the same
+# ingredient (case/punctuation/diacritic drift, the "fresh" prefix on
+# citrus, plurals/singulars of garnishes). Do NOT merge spec-distinct items
+# — "aged Jamaican rum" and "gold Jamaican rum" are different products even
+# though both are Jamaican rums; "honey syrup" and "rich honey mix" are
+# different concentrations. Authorial intent is preserved by leaving them
+# separate.
+#
+# Long-tail ingredients (used in 1–2 recipes) intentionally aren't covered;
+# they fall through canonicalization as their slugified raw name. The build
+# report logs ontology coverage so it's visible when a new common ingredient
+# starts to appear.
+
+ingredients:
+  # --- Citrus juices (the "fresh" prefix is implied in cocktail context) ---
+  - { id: lime-juice, category: juice, aliases: [fresh lime juice, lime juice] }
+  - { id: lemon-juice, category: juice, aliases: [fresh lemon juice, lemon juice] }
+  - { id: orange-juice, category: juice, aliases: [fresh orange juice, orange juice] }
+  - { id: grapefruit-juice, category: juice,
+      aliases: [fresh grapefruit juice, fresh white grapefruit juice, white grapefruit juice] }
+  - { id: pineapple-juice, category: juice,
+      aliases: [pineapple juice, fresh pineapple juice, unsweetened pineapple juice] }
+  - { id: passion-fruit-juice, category: juice, aliases: [passion fruit juice] }
+  - { id: guava-juice, category: juice, aliases: [guava juice] }
+
+  # --- Rums: each spec is a distinct ingredient. Aliases collapse only true
+  #     synonyms (capitalization, hyphenation, "Bacardi white rum" → white
+  #     Cuban-style rum since that's the historical category).
+  - { id: light-puerto-rican-rum, category: spirit, aliases: [light Puerto Rican rum] }
+  - { id: gold-puerto-rican-rum, category: spirit, aliases: [gold Puerto Rican rum] }
+  - { id: dark-jamaican-rum, category: spirit, aliases: [dark Jamaican rum] }
+  - { id: gold-jamaican-rum, category: spirit, aliases: [gold Jamaican rum] }
+  - { id: aged-pot-still-jamaican-rum, category: spirit,
+      aliases: [aged pot-still Jamaican rum, aged Jamaican rum] }
+  - { id: white-cuban-style-rum, category: spirit,
+      aliases: [white Cuban-style rum, white Cuban rum, light Cuban-style rum,
+                light white rum, white rum, Bacardi white rum] }
+  - { id: aged-cuban-style-rum, category: spirit,
+      aliases: [aged Cuban-style rum, gold Cuban-style rum] }
+  - { id: aged-demerara-rum, category: spirit, aliases: [aged Demerara rum, Demerara rum] }
+  - { id: 151-proof-demerara-rum, category: spirit,
+      aliases: [151-proof Demerara rum, 151 proof Demerara rum] }
+  - { id: 151-proof-rum, category: spirit, aliases: [151-proof rum] }
+  - { id: dark-rum, category: spirit, aliases: [dark rum, black blended rum] }
+  - { id: blended-aged-rum, category: spirit, aliases: [blended aged rum] }
+  - { id: aged-martinique-agricole, category: spirit,
+      aliases: [aged Martinique agricole, aged Martinique rhum agricole] }
+  - { id: gold-barbados-rum, category: spirit, aliases: [gold Barbados rum] }
+  - { id: amber-virgin-islands-rum, category: spirit, aliases: [amber Virgin Islands rum] }
+  - { id: puerto-rican-rum, category: spirit, aliases: [Puerto Rican rum] }
+  - { id: coconut-rum, category: spirit, aliases: [coconut rum] }
+
+  # --- Other spirits ---
+  - { id: gin, category: spirit, aliases: [gin, London dry gin] }
+  - { id: bourbon, category: spirit, aliases: [bourbon] }
+  - { id: brandy, category: spirit, aliases: [brandy] }
+  - { id: vodka, category: spirit, aliases: [vodka] }
+  - { id: tequila, category: spirit, aliases: [tequila, blanco tequila] }
+  - { id: absinthe, category: spirit, aliases: [absinthe] }
+  - { id: pernod, category: spirit, aliases: [Pernod] }
+
+  # --- Modifiers / liqueurs ---
+  - { id: orange-curacao, category: modifier, aliases: [orange curaçao, orange curacao] }
+  - { id: cointreau, category: modifier, aliases: [Cointreau] }
+  - { id: triple-sec, category: modifier, aliases: [triple sec] }
+  - { id: maraschino-liqueur, category: modifier, aliases: [maraschino liqueur] }
+  - { id: falernum, category: modifier, aliases: [falernum] }
+  - { id: allspice-dram, category: modifier, aliases: [allspice dram] }
+  - { id: sweet-vermouth, category: modifier, aliases: [sweet vermouth] }
+  - { id: green-chartreuse, category: modifier, aliases: [green Chartreuse] }
+  - { id: apricot-brandy, category: modifier, aliases: [apricot brandy] }
+  - { id: white-creme-de-cacao, category: modifier, aliases: [white creme de cacao] }
+  - { id: creme-de-banana, category: modifier, aliases: [crème de banana] }
+
+  # --- Bitters ---
+  - { id: angostura-bitters, category: bitters, aliases: [Angostura bitters] }
+
+  # --- Syrups & sweeteners ---
+  - { id: simple-syrup, category: syrup, aliases: [simple syrup, sugar syrup] }
+  - { id: rich-simple-syrup, category: syrup, aliases: [rich sugar syrup] }
+  - { id: demerara-syrup, category: syrup,
+      aliases: [demerara syrup, demerara sugar syrup, rich Demerara syrup] }
+  - { id: cinnamon-syrup, category: syrup, aliases: [cinnamon syrup] }
+  - { id: vanilla-syrup, category: syrup, aliases: [vanilla syrup] }
+  - { id: passion-fruit-syrup, category: syrup, aliases: [passion fruit syrup] }
+  - { id: fassionola, category: syrup, aliases: [fassionola] }
+  - { id: orgeat, category: syrup, aliases: [orgeat, orgeat syrup] }
+  - { id: grenadine, category: syrup, aliases: [grenadine] }
+  - { id: rock-candy-syrup, category: syrup, aliases: [rock candy syrup] }
+  - { id: honey-syrup, category: syrup, aliases: [honey syrup, honey mix, honey] }
+  - { id: rich-honey-mix, category: syrup, aliases: [rich honey mix, honey cream mix] }
+  - { id: maple-syrup, category: syrup, aliases: [maple syrup] }
+  - { id: brown-sugar, category: syrup, aliases: [brown sugar, demerara sugar] }
+  - { id: granulated-sugar, category: syrup,
+      aliases: [sugar, granulated sugar, superfine sugar] }
+
+  # --- Garnishes ---
+  - { id: mint-sprig, category: garnish,
+      aliases: [mint sprig, mint sprigs, mint bouquet, fresh mint leaves] }
+  - { id: lime-wheel, category: garnish, aliases: [lime wheel] }
+  - { id: lime-wedge, category: garnish, aliases: [lime wedge] }
+  - { id: lime-twist, category: garnish, aliases: [lime twist] }
+  - { id: lime-shell, category: garnish, aliases: [lime shell, spent lime shell] }
+  - { id: lemon-peel, category: garnish, aliases: [lemon peel] }
+  - { id: orange-twist, category: garnish, aliases: [orange twist] }
+  - { id: orange-slice, category: garnish, aliases: [orange slice, orange wheel] }
+  - { id: pineapple-wedge, category: garnish,
+      aliases: [pineapple wedge, pineapple spear, pineapple frond] }
+  - { id: maraschino-cherry, category: garnish,
+      aliases: [maraschino cherry, brandied cherry, cherry] }
+  - { id: cinnamon-stick, category: garnish, aliases: [cinnamon stick] }
+  - { id: ground-cinnamon, category: garnish, aliases: [ground cinnamon] }
+  - { id: nutmeg, category: garnish, aliases: [nutmeg, grated nutmeg] }
+  - { id: gardenia, category: garnish, aliases: [gardenia] }
+  - { id: orchid, category: garnish, aliases: [orchid] }
+  - { id: parasol, category: garnish, aliases: [parasol] }
+
+  # --- Ice ---
+  - { id: crushed-ice, category: ice, aliases: [crushed ice] }
+  - { id: cracked-ice, category: ice, aliases: [cracked ice] }
+  - { id: ice-cubes, category: ice, aliases: [ice cubes, ice] }
+
+  # --- Carbonated / mixers ---
+  - { id: club-soda, category: other, aliases: [club soda, soda water] }
+  - { id: ginger-beer, category: other, aliases: [ginger beer] }
+
+  # --- Dairy ---
+  - { id: heavy-cream, category: dairy, aliases: [heavy cream] }
+  - { id: butter, category: dairy, aliases: [butter, unsalted butter, softened unsalted butter] }
+  - { id: eggs, category: dairy, aliases: [eggs] }
+
+  # --- Misc liquids / pantry ---
+  - { id: cream-of-coconut, category: other, aliases: [cream of coconut] }
+  - { id: water, category: other, aliases: [water, hot water, boiling water, hot black coffee] }
+  - { id: salt, category: other, aliases: [salt, flaky sea salt] }
+  - { id: black-pepper, category: other, aliases: [black pepper] }
+  - { id: vanilla-extract, category: other, aliases: [vanilla extract] }
+  - { id: almond-extract, category: other, aliases: [almond extract] }

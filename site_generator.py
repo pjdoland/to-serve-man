@@ -19,6 +19,7 @@ from slugify import slugify
 
 import config
 from footnotes import Footnote, extract, tokenize_inline
+from ingredient_ontology import canonical_ingredient
 from recipe_parser import (
     RECIPE_NOTE_FIELDS,
     Callout,
@@ -536,17 +537,36 @@ class SiteGenerator:
         braced ingredients (the canonical list rendered as the ingredients
         UI) — bare mentions in step prose would inflate the index without
         clear benefit.
+
+        Also emits canonical_ingredients (deduped ontology ids) so future
+        client-side features (allergen filter, build-a-bar) can match across
+        spelling variants ('fresh lime juice' / 'lime juice' both → lime-juice).
         """
         search_data = {"recipes": []}
 
+        # Coverage counters surfaced in the build report so missing-from-
+        # ontology ingredients don't silently grow the long tail.
+        ontology_hits = ontology_misses = 0
+        unmatched_examples: set[str] = set()
+
         for recipe in self.collection.recipes:
-            ingredients = sorted({i.name for i in recipe.parsed.ingredients if i.from_braces})
+            raw_names = sorted({i.name for i in recipe.parsed.ingredients if i.from_braces})
+            canonical_ids: set[str] = set()
+            for name in raw_names:
+                cid = canonical_ingredient(name)
+                if cid:
+                    ontology_hits += 1
+                    canonical_ids.add(cid)
+                else:
+                    ontology_misses += 1
+                    unmatched_examples.add(name)
             recipe_data = {
                 "title": recipe.title,
                 "slug": recipe.slug,
                 "description": recipe.description or "",
                 "tags": recipe.tags,
-                "ingredients": ingredients,
+                "ingredients": raw_names,
+                "canonical_ingredients": sorted(canonical_ids),
                 "category": recipe.category,
                 "is_cocktail": recipe.is_cocktail,
                 "url": f"{self.base_url}/recipes/{recipe.slug}/",
@@ -562,6 +582,14 @@ class SiteGenerator:
         output_path = self.output_dir / "search-data.json"
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(search_data, f, ensure_ascii=False, indent=2)
+
+        total = ontology_hits + ontology_misses
+        if total:
+            pct = ontology_hits / total * 100
+            logger.info(
+                f"  Ingredient ontology: {ontology_hits}/{total} mentions canonicalized "
+                f"({pct:.1f}%, {len(unmatched_examples)} unique unmatched)"
+            )
 
     def generate_sitemap(self):
         """Emit sitemap.xml covering recipes, listings, facets, and static pages.

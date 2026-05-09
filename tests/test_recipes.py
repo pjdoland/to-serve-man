@@ -65,6 +65,21 @@ class RecipeSmokeTests(unittest.TestCase):
             "no recipe in the search index has any ingredients — feature is dead",
         )
 
+    def test_search_data_includes_canonical_ingredients(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.site.output_dir = Path(tmp)
+            self.site.generate_search_data()
+            data = json.loads((Path(tmp) / "search-data.json").read_text())
+        for entry in data["recipes"]:
+            self.assertIn("canonical_ingredients", entry)
+            self.assertIsInstance(entry["canonical_ingredients"], list)
+        # The whole point of the ontology is to bucket common ingredients;
+        # if zero recipes match anything we've regressed the lookup.
+        self.assertTrue(
+            any(entry["canonical_ingredients"] for entry in data["recipes"]),
+            "no recipe matched any ontology id — ontology is disconnected",
+        )
+
 
 class LoadFailureGate(unittest.TestCase):
     """Pin the contract that a malformed .cook file populates load_errors so
