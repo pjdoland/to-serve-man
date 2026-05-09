@@ -18,6 +18,15 @@ interface SearchData {
   recipes: Recipe[];
 }
 
+// One scored result. matchedIngredient is set when the recipe's score includes
+// an ingredient hit — the result UI shows it as attribution when neither the
+// title nor visible tags already contain the query.
+interface SearchHit {
+  recipe: Recipe;
+  score: number;
+  matchedIngredient?: string;
+}
+
 // State management
 class RecipeSearch {
   private recipes: Recipe[] = [];
@@ -96,20 +105,20 @@ class RecipeSearch {
     this.displayResults(results, query);
   }
 
-  private searchRecipes(query: string): Recipe[] {
+  private searchRecipes(query: string): SearchHit[] {
     return this.recipes
-      .map(recipe => ({
-        recipe,
-        score: this.calculateScore(recipe, query)
-      }))
+      .map(recipe => {
+        const { score, matchedIngredient } = this.calculateScore(recipe, query);
+        return { recipe, score, matchedIngredient };
+      })
       .filter(result => result.score > 0)
       .sort((a, b) => b.score - a.score)
-      .slice(0, 10) // Limit to top 10 results
-      .map(result => result.recipe);
+      .slice(0, 10);
   }
 
-  private calculateScore(recipe: Recipe, query: string): number {
+  private calculateScore(recipe: Recipe, query: string): { score: number; matchedIngredient?: string } {
     let score = 0;
+    let matchedIngredient: string | undefined;
     // Hoisted: re-used by ingredient + description scoring below. Saves
     // ~316 RegExp allocations per keystroke at 158 recipes.
     const wordBoundary = new RegExp(`\\b${this.escapeRegex(query)}`, 'i');
@@ -136,12 +145,21 @@ class RecipeSearch {
     // recipe with three rums doesn't outrank a recipe whose title is "Rum
     // Punch" on a "rum" query. Word-boundary on partial matches so "lime"
     // doesn't match "limeade" but "campari" matches both as exact and as
-    // substring of "campari soda". Exact match short-circuits.
+    // substring of "campari soda". Exact match short-circuits. Capture the
+    // matched ingredient so the result UI can attribute the hit when title
+    // and visible tags don't already explain it.
     let ingredientScore = 0;
     for (const ingredient of recipe.ingredients) {
       const ing = ingredient.toLowerCase();
-      if (ing === query) { ingredientScore = 14; break; }
-      if (wordBoundary.test(ing)) { ingredientScore = Math.max(ingredientScore, 7); }
+      if (ing === query) {
+        ingredientScore = 14;
+        matchedIngredient = ingredient;
+        break;
+      }
+      if (wordBoundary.test(ing)) {
+        if (ingredientScore < 7) matchedIngredient = ingredient;
+        ingredientScore = Math.max(ingredientScore, 7);
+      }
     }
     score += ingredientScore;
 
@@ -161,14 +179,14 @@ class RecipeSearch {
       }
     }
 
-    return score;
+    return { score, matchedIngredient };
   }
 
   private escapeRegex(str: string): string {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
-  private displayResults(results: Recipe[], query: string): void {
+  private displayResults(results: SearchHit[], query: string): void {
     if (!this.resultsContainer || !this.searchInput) return;
 
     this.resultsContainer.innerHTML = '';
@@ -187,8 +205,8 @@ class RecipeSearch {
     // Combobox owns the listbox directly so AT can announce highlighted options.
     this.searchInput.setAttribute('aria-controls', 'search-listbox');
 
-    results.forEach((recipe, index) => {
-      const item = this.createResultItem(recipe, index);
+    results.forEach((hit, index) => {
+      const item = this.createResultItem(hit, index, query);
       resultsList.appendChild(item);
     });
 
@@ -204,7 +222,8 @@ class RecipeSearch {
     this.showResults();
   }
 
-  private createResultItem(recipe: Recipe, index: number): HTMLElement {
+  private createResultItem(hit: SearchHit, index: number, query: string): HTMLElement {
+    const { recipe, matchedIngredient } = hit;
     const item = document.createElement('a');
     item.href = recipe.url;
     item.id = `search-option-${index}`;
@@ -228,11 +247,26 @@ class RecipeSearch {
     meta.textContent = categoryText;
 
     // Tags (show first 3)
-    if (recipe.tags.length > 0) {
+    const visibleTags = recipe.tags.slice(0, 3);
+    if (visibleTags.length > 0) {
       const tags = document.createElement('span');
       tags.className = 'search-result-tags';
-      tags.textContent = ' • ' + recipe.tags.slice(0, 3).join(', ');
+      tags.textContent = ' • ' + visibleTags.join(', ');
       meta.appendChild(tags);
+    }
+
+    // Attribution: only when the ingredient match isn't already explained by
+    // visible elements (title or shown tags). Avoids redundant noise when
+    // the user typed a word that's already obvious in the result card.
+    if (matchedIngredient) {
+      const titleHasQuery = recipe.title.toLowerCase().includes(query);
+      const tagsHaveQuery = visibleTags.some(t => t.toLowerCase().includes(query));
+      if (!titleHasQuery && !tagsHaveQuery) {
+        const ingredient = document.createElement('span');
+        ingredient.className = 'search-result-ingredient';
+        ingredient.textContent = ` · matched: ${matchedIngredient}`;
+        meta.appendChild(ingredient);
+      }
     }
 
     item.appendChild(title);

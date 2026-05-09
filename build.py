@@ -215,6 +215,8 @@ def build_all(base_url: str = None, strict: bool = False):
     site_success = build_site(base_url, strict=strict)
     logger.info("")
 
+    # `--strict` is a site-only concern (cross-refs aren't rendered into the
+    # PDF), so build_pdf doesn't accept the flag.
     pdf_success = build_pdf()
     logger.info("")
 
@@ -282,7 +284,8 @@ Examples:
     parser.add_argument(
         "--strict",
         action="store_true",
-        help="Fail the build on warnings (broken serve_with/pairs_with/uses cross-refs)",
+        help="Fail site builds on warnings (broken serve_with/pairs_with/uses cross-refs). "
+        "Has no effect on pdf/latex (those don't render cross-ref links).",
     )
 
     args = parser.parse_args()

@@ -3,6 +3,7 @@
 import json
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 from pdf_generator import PDFGenerator
@@ -102,6 +103,29 @@ class CrossRefFailureTracking(unittest.TestCase):
             _filepath, field, slug = site.cross_ref_failures[0]
             self.assertEqual(field, "serve_with")
             self.assertEqual(slug, "does-not-exist")
+
+    def test_build_site_strict_fails_on_broken_cross_ref(self):
+        """Pin the contract that --strict propagates broken cross-refs to a
+        non-zero exit. Without --strict the same input must succeed (warn-only).
+        """
+        from build import build_site
+
+        with tempfile.TemporaryDirectory() as tmp:
+            recipes_dir = Path(tmp) / "recipes"
+            recipes_dir.mkdir()
+            # Cuisine set so the recipe passes schema validation; the broken
+            # cross-ref is the only thing the test should observe.
+            (recipes_dir / "host.cook").write_text(
+                "---\ntitle: Host\ncuisine: Test\nserve_with: [does-not-exist]\n---\nStir.\n",
+                encoding="utf-8",
+            )
+            with (
+                unittest.mock.patch("build.config.RECIPES_DIR", str(recipes_dir)),
+                unittest.mock.patch("build.config.DOCS_DIR", str(Path(tmp) / "docs")),
+                unittest.mock.patch("build.build_assets"),
+            ):
+                self.assertFalse(build_site(strict=True))
+                self.assertTrue(build_site(strict=False))
 
 
 if __name__ == "__main__":
