@@ -51,13 +51,19 @@ jobs:
       - name: Generate LaTeX source
         run: python build.py latex
 
+      - name: Clear stale PDF before compile
+        # latexmk without -f stops on errors and won't write a partial PDF, but
+        # the runner's working tree may still hold one from a prior step. Wipe
+        # so the verify step below catches a missing-output failure cleanly.
+        run: rm -f output/cookbook.pdf
+
       - name: Compile PDF
         uses: xu-cheng/latex-action@v3
         with:
           working_directory: output
           root_file: cookbook.tex
           latexmk_use_xelatex: false
-          args: -pdf -interaction=nonstopmode -f
+          args: -pdf -interaction=nonstopmode
         continue-on-error: true
 
       - name: Verify PDF was produced

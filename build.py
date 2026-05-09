@@ -91,8 +91,7 @@ def build_site(base_url: str = None):
 def build_pdf():
     """Generate PDF cookbook."""
     try:
-        generate_pdf()
-        return True
+        return generate_pdf()
     except Exception:
         logger.exception("✗ Error generating PDF")
         return False

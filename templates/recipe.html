@@ -4,25 +4,7 @@
 {% block description %}{{ recipe.description if recipe.description else recipe.title }}{% endblock %}
 
 {% block head_extra %}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org/",
-  "@type": "Recipe",
-  "name": "{{ recipe.title }}",
-  {% if recipe.description %}"description": "{{ recipe.description }}",{% endif %}
-  {% if recipe.metadata.author %}"author": {
-    "@type": "Person",
-    "name": "{{ recipe.metadata.author }}"
-  },{% endif %}
-  {% if recipe.prep_time or recipe.cook_time %}
-  {% if recipe.prep_time %}"prepTime": "{{ recipe.prep_time }}",{% endif %}
-  {% if recipe.cook_time %}"cookTime": "{{ recipe.cook_time }}",{% endif %}
-  {% endif %}
-  {% if recipe.servings %}"recipeYield": "{{ recipe.servings }} servings",{% endif %}
-  {% if recipe.hero_image %}"image": "{{ base_url }}/{{ recipe.hero_image }}",{% endif %}
-  "recipeCategory": "{{ recipe.category|title }}"
-}
-</script>
+<script type="application/ld+json">{{ recipe_jsonld|safe }}</script>
 {% endblock %}
 
 {% block content %}

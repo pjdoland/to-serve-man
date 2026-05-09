@@ -8,8 +8,10 @@ import json
 import logging
 import secrets
 import shutil
+from datetime import date
 from functools import cached_property
 from pathlib import Path
+from xml.sax.saxutils import escape as xml_escape
 
 import markdown
 from jinja2 import Environment, FileSystemLoader
@@ -290,9 +292,52 @@ class SiteGenerator:
             "cross_refs": cross_refs or None,
             "notes": notes,
             "nav_active": "cocktails" if recipe.is_cocktail else "food",
+            "recipe_jsonld": self._recipe_jsonld(recipe),
         }
         output_path = self.output_dir / "recipes" / recipe.slug / "index.html"
         self.render_template("recipe.html", context, output_path)
+
+    @cached_property
+    def _site_origin(self) -> str | None:
+        """Fully-qualified site origin (e.g. https://example.com/sub) for use
+        in places that require an absolute URL (sitemap <loc>, JSON-LD image,
+        OpenGraph). Returns None if SITE_URL isn't set to an http(s) URL —
+        callers warn-and-skip rather than emit a broken artifact."""
+        site_url = (config.SITE_URL or "").rstrip("/")
+        if site_url.startswith(("http://", "https://")):
+            return site_url
+        return None
+
+    def _recipe_jsonld(self, recipe: Recipe) -> str:
+        """Build the Schema.org Recipe JSON-LD blob.
+
+        Built in Python and json.dumps'd so quotes/newlines/backslashes in
+        title/description/author can't produce invalid JSON. Field shape mirrors
+        what the template emitted before — extending it (recipeIngredient,
+        recipeInstructions, etc.) is a separate roadmap item.
+        """
+        data: dict = {
+            "@context": "https://schema.org/",
+            "@type": "Recipe",
+            "name": recipe.title,
+        }
+        if recipe.description:
+            data["description"] = recipe.description
+        if recipe.metadata.get("author"):
+            data["author"] = {"@type": "Person", "name": recipe.metadata["author"]}
+        if recipe.prep_time:
+            data["prepTime"] = recipe.prep_time
+        if recipe.cook_time:
+            data["cookTime"] = recipe.cook_time
+        if recipe.servings:
+            data["recipeYield"] = f"{recipe.servings} servings"
+        if recipe.hero_image:
+            # Schema.org requires an absolute URL for image; fall back to base_url
+            # for local dev where SITE_URL is unset.
+            origin = self._site_origin or self.base_url
+            data["image"] = f"{origin}/{recipe.hero_image}"
+        data["recipeCategory"] = recipe.category.title()
+        return json.dumps(data, ensure_ascii=False)
 
     def generate_homepage(self):
         """Generate homepage."""
@@ -492,6 +537,72 @@ class SiteGenerator:
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(search_data, f, ensure_ascii=False, indent=2)
 
+    def generate_sitemap(self):
+        """Emit sitemap.xml covering recipes, listings, facets, and static pages.
+
+        Per-recipe and per-facet lastmod uses .cook file mtime so unchanged
+        sections of the sitemap stay byte-stable across builds. Static-page
+        lastmod is omitted (Google treats absent identically to today, and we
+        avoid daily churn in the diff).
+
+        URL paths must mirror what generate_* methods write to disk: cuisines
+        live under /cuisine/<slug>/ (NOT /food/), spirits under /spirit/<slug>/
+        (NOT /cocktails/spirit/). Sitemap drift = 404 entries.
+        """
+        if not self._site_origin:
+            logger.warning("  ⚠ SITE_URL not set to absolute http(s) URL; skipping sitemap.xml")
+            return
+
+        urls: list[tuple[str, str | None]] = []  # (path, lastmod or None)
+
+        for path in ("/", "/food/", "/cocktails/", "/about/"):
+            urls.append((path, None))
+
+        recipe_mtimes: dict[str, str] = {}
+        for recipe in self.collection.recipes:
+            mtime = date.fromtimestamp(recipe.filepath.stat().st_mtime).isoformat()
+            recipe_mtimes[recipe.slug] = mtime
+            urls.append((f"/recipes/{recipe.slug}/", mtime))
+
+        def _latest(recipes) -> str | None:
+            mtimes = [recipe_mtimes[r.slug] for r in recipes if r.slug in recipe_mtimes]
+            return max(mtimes) if mtimes else None
+
+        for category, recipes in self.collection.get_by_category().items():
+            food_recipes = [r for r in recipes if not r.is_cocktail]
+            if food_recipes:
+                urls.append((f"/food/{category}/", _latest(food_recipes)))
+
+        for tag, recipes in self.collection.get_by_tag().items():
+            urls.append((f"/tags/{slugify(tag)}/", _latest(recipes)))
+        for cuisine, recipes in self.collection.get_by_cuisine().items():
+            urls.append((f"/cuisine/{slugify(cuisine)}/", _latest(recipes)))
+        for spirit, recipes in self.collection.get_by_spirit().items():
+            urls.append((f"/spirit/{slugify(spirit)}/", _latest(recipes)))
+
+        # Build XML by hand to avoid an extra dependency.
+        lines = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+        ]
+        for path, lastmod in sorted(set(urls)):
+            loc = xml_escape(self._site_origin + path)
+            mod = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""
+            lines.append(f"  <url><loc>{loc}</loc>{mod}</url>")
+        lines.append("</urlset>")
+
+        (self.output_dir / "sitemap.xml").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    def generate_robots_txt(self):
+        """Emit robots.txt; the Sitemap pointer is omitted when SITE_URL isn't
+        an absolute http(s) URL (matches generate_sitemap's skip behavior)."""
+        lines = ["User-agent: *", "Allow: /", "Disallow: /favorites/", "Disallow: /shopping-list/", ""]
+        if self._site_origin:
+            lines.append(f"Sitemap: {self._site_origin}/sitemap.xml")
+        else:
+            logger.warning("  ⚠ SITE_URL not absolute; robots.txt will lack Sitemap line")
+        (self.output_dir / "robots.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
     def generate_all(self):
         """Generate complete static site."""
         logger.info("Generating site...")
@@ -551,6 +662,11 @@ class SiteGenerator:
         logger.info("  Generating food and cocktails pages...")
         self.generate_food_page()
         self.generate_cocktails_page()
+
+        # Generate sitemap.xml + robots.txt
+        logger.info("  Generating sitemap.xml + robots.txt...")
+        self.generate_sitemap()
+        self.generate_robots_txt()
 
         logger.info(f"✓ Site generated successfully in {self.output_dir}/")
 

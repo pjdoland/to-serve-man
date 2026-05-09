@@ -341,10 +341,11 @@ class PDFGenerator:
         """
         Compile cookbook.tex to PDF using pdflatex.
 
-        Clears stale aux/toc so a previous broken build can't poison this one
-        with undefined references. Runs pdflatex twice so the TOC resolves.
+        Clears stale aux/toc/pdf so a previous build can't poison this one with
+        undefined references or mask a failure with a stale PDF. Runs pdflatex
+        twice so the TOC resolves.
         """
-        for ext in ("aux", "toc", "out", "log"):
+        for ext in ("aux", "toc", "out", "log", "pdf"):
             (self.output_dir / f"cookbook.{ext}").unlink(missing_ok=True)
 
         try:
@@ -356,7 +357,7 @@ class PDFGenerator:
                     text=True,
                     timeout=120,
                 )
-                if result.returncode != 0 and not (self.output_dir / "cookbook.pdf").exists():
+                if result.returncode != 0:
                     logger.error(f"Error compiling LaTeX (run {i + 1}):")
                     logger.info(result.stdout)
                     return False
@@ -372,8 +373,8 @@ class PDFGenerator:
             logger.error("Error: LaTeX compilation timed out.")
             return False
 
-    def generate_all(self):
-        """Generate complete PDF cookbook."""
+    def generate_all(self) -> bool:
+        """Generate complete PDF cookbook. Returns True on success."""
         logger.info("Generating PDF cookbook...")
 
         logger.info("  Generating LaTeX...")
@@ -383,20 +384,21 @@ class PDFGenerator:
         logger.info("  Compiling PDF...")
         if self.compile_pdf():
             logger.info(f"✓ PDF generated successfully: {self.output_dir / 'cookbook.pdf'}")
-        else:
-            logger.error("✗ PDF compilation failed. LaTeX source is available at:", tex_file)
+            return True
+        logger.error(f"✗ PDF compilation failed. LaTeX source is available at: {tex_file}")
+        return False
 
 
-def generate_pdf(recipes_dir: str = None, output_dir: str = None):
+def generate_pdf(recipes_dir: str = None, output_dir: str = None) -> bool:
     """
-    Convenience function to generate PDF.
+    Convenience function to generate PDF. Returns True on success.
 
     Args:
         recipes_dir: Path to recipes directory (default: from config)
         output_dir: Path to output directory (default: from config)
     """
     generator = PDFGenerator(recipes_dir, output_dir)
-    generator.generate_all()
+    return generator.generate_all()
 
 
 if __name__ == "__main__":

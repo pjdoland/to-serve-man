@@ -39,6 +39,18 @@ jobs:
       - name: Build site (no PDF)
         run: python build.py site
 
+      - name: Check links (lychee)
+        # Non-blocking: lychee surfaces broken internal links (cross-refs,
+        # footnote anchors) but doesn't gate the deploy. Runs here because
+        # quality.yml builds with BASE_URL="" so root-relative href="/foo"
+        # resolves cleanly to docs/foo (deploy.yml uses /to-serve-man prefix
+        # which would 404 every link).
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --offline --include-fragments docs
+          fail: false
+        continue-on-error: true
+
       - name: Lighthouse CI
         run: |
           npm install -g @lhci/cli
