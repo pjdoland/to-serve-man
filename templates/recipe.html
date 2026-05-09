@@ -54,15 +54,15 @@
 
             {% if recipe.season or recipe.occasion %}
             <div class="recipe-facets no-print">
-                {% for s in recipe.season %}<a href="{{ base_url }}/season/{{ s|slugify }}/">{{ s }}</a>{% endfor %}
-                {% for o in recipe.occasion %}<a href="{{ base_url }}/occasion/{{ o|slugify }}/">{{ o }}</a>{% endfor %}
+                {% for s in recipe.season %}<a href="{{ base_url }}/season/{{ s|canonical_facet('season') }}/">{{ s }}</a>{% endfor %}
+                {% for o in recipe.occasion %}<a href="{{ base_url }}/occasion/{{ o|canonical_facet('occasion') }}/">{{ o }}</a>{% endfor %}
             </div>
             {% endif %}
 
             {% if recipe.tags %}
             <div class="flex justify-center gap-3 flex-wrap mt-6 no-print">
                 {% for tag in recipe.tags %}
-                <a href="{{ base_url }}/tags/{{ tag|slugify }}/"
+                <a href="{{ base_url }}/tags/{{ tag|canonical_facet('tag') }}/"
                    class="text-xs py-1 px-3 bg-transparent border border-cookbook-border rounded-full transition-all duration-200 hover:border-cookbook-accent hover:bg-cookbook-accent hover:text-cookbook-bg no-underline">
                     {{ tag }}
                 </a>

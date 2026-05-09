@@ -30,6 +30,8 @@ from recipe_parser import (
     Step,
     Text,
     Timer,
+    canonical_facet,
+    display_label,
 )
 
 logger = logging.getLogger("tsm.site")
@@ -46,10 +48,14 @@ class SiteGenerator:
         # New token each build so CDNs/browsers don't serve a stale copy after a recipe is added.
         self.cache_bust = secrets.token_hex(5)
 
-        # Set up Jinja2 environment. Register `slugify` so templates produce the same
-        # URL fragments as Python (`{{ tag|slugify }}` matches `slugify(tag)`).
+        # Set up Jinja2 environment. Register canonical_facet + display_label
+        # alongside slugify so templates can both bucket and humanize the same
+        # way Python does (use canonical_facet, NOT bare slugify, for facet
+        # URLs — bare slugify skips alias mapping).
         self.jinja_env = Environment(loader=FileSystemLoader(config.TEMPLATES_DIR), autoescape=True)
         self.jinja_env.filters["slugify"] = slugify
+        self.jinja_env.filters["canonical_facet"] = canonical_facet
+        self.jinja_env.filters["display_label"] = display_label
 
         # Markdown processor
         self.md = markdown.Markdown(extensions=["extra", "nl2br"])
@@ -396,37 +402,39 @@ class SiteGenerator:
             self.generate_list_page(title, recipes, output_path, breadcrumbs=crumbs, nav_active="food")
 
     def generate_tag_pages(self):
-        """Generate pages for each tag."""
+        """Generate pages for each tag. Keys from get_by_tag are already
+        canonical (lowercased, slugified, alias-mapped) so they double as URL
+        slugs. Tag display stays lowercase (hashtag convention)."""
         tags = self.collection.get_by_tag()
 
-        for tag, recipes in tags.items():
-            slug = slugify(tag)
+        for slug, recipes in tags.items():
+            display = display_label(slug, titlecase=False)
             output_path = self.output_dir / "tags" / slug / "index.html"
-            crumbs = [("Home", f"{self.base_url}/"), (f"#{tag}", None)]
-            self.generate_list_page(f"#{tag}", recipes, output_path, breadcrumbs=crumbs)
+            crumbs = [("Home", f"{self.base_url}/"), (f"#{display}", None)]
+            self.generate_list_page(f"#{display}", recipes, output_path, breadcrumbs=crumbs)
 
     def generate_cuisine_pages(self):
         """Generate pages for each cuisine."""
         cuisines = self.collection.get_by_cuisine()
 
-        for cuisine, recipes in cuisines.items():
-            slug = slugify(cuisine)
+        for slug, recipes in cuisines.items():
+            display = display_label(slug)
             output_path = self.output_dir / "cuisine" / slug / "index.html"
-            crumbs = [("Food", f"{self.base_url}/food/"), (cuisine, None)]
+            crumbs = [("Food", f"{self.base_url}/food/"), (display, None)]
             self.generate_list_page(
-                cuisine, recipes, output_path, subtitle="Food recipes", breadcrumbs=crumbs, nav_active="food"
+                display, recipes, output_path, subtitle="Food recipes", breadcrumbs=crumbs, nav_active="food"
             )
 
     def generate_spirit_pages(self):
         """Generate pages for each spirit."""
         spirits = self.collection.get_by_spirit()
 
-        for spirit, recipes in spirits.items():
-            slug = slugify(spirit)
+        for slug, recipes in spirits.items():
+            display = display_label(slug)
             output_path = self.output_dir / "spirit" / slug / "index.html"
-            crumbs = [("Cocktails", f"{self.base_url}/cocktails/"), (spirit.title(), None)]
+            crumbs = [("Cocktails", f"{self.base_url}/cocktails/"), (display, None)]
             self.generate_list_page(
-                f"{spirit.title()} Cocktails",
+                f"{display} Cocktails",
                 recipes,
                 output_path,
                 breadcrumbs=crumbs,
@@ -438,11 +446,13 @@ class SiteGenerator:
         groups: dict[str, list[Recipe]] = {}
         for recipe in self.collection.recipes:
             for value in getattr(recipe, attr) or []:
-                groups.setdefault(value, []).append(recipe)
-        for value, recipes in groups.items():
-            slug = slugify(value)
-            output_path = self.output_dir / segment / slug / "index.html"
-            self.generate_list_page(value.title(), recipes, output_path, subtitle=f"{label}: {value}")
+                key = canonical_facet(value, attr)
+                if key:
+                    groups.setdefault(key, []).append(recipe)
+        for key, recipes in groups.items():
+            display = display_label(key)
+            output_path = self.output_dir / segment / key / "index.html"
+            self.generate_list_page(display, recipes, output_path, subtitle=f"{label}: {display}")
 
     def generate_favorites_page(self):
         """Generate /favorites/ shell — content populated client-side from localStorage."""
@@ -573,12 +583,14 @@ class SiteGenerator:
             if food_recipes:
                 urls.append((f"/food/{category}/", _latest(food_recipes)))
 
+        # Keys from get_by_* are already canonical (lowercased + slugified +
+        # alias-mapped) so they double as URL slugs — no second slugify needed.
         for tag, recipes in self.collection.get_by_tag().items():
-            urls.append((f"/tags/{slugify(tag)}/", _latest(recipes)))
+            urls.append((f"/tags/{tag}/", _latest(recipes)))
         for cuisine, recipes in self.collection.get_by_cuisine().items():
-            urls.append((f"/cuisine/{slugify(cuisine)}/", _latest(recipes)))
+            urls.append((f"/cuisine/{cuisine}/", _latest(recipes)))
         for spirit, recipes in self.collection.get_by_spirit().items():
-            urls.append((f"/spirit/{slugify(spirit)}/", _latest(recipes)))
+            urls.append((f"/spirit/{spirit}/", _latest(recipes)))
 
         # Build XML by hand to avoid an extra dependency.
         lines = [

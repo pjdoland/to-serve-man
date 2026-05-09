@@ -20,6 +20,40 @@ import config
 logger = logging.getLogger("tsm.parser")
 
 
+FacetKind = Literal["glass", "spirit_base", "cuisine", "tag", "season", "occasion"]
+
+
+def canonical_facet(value: str | None, kind: FacetKind | str) -> str:
+    """Return the canonical facet key for `value` of `kind`.
+
+    Lowercases + strips, looks up `config.FACET_ALIASES[kind]`, falls back to
+    slugify when no alias matches. Pure (no I/O, no logging) so it's safe to
+    call inside hot loops. Returns "" for empty/None input — callers should
+    skip empty keys when bucketing.
+
+    Examples:
+        canonical_facet("Hurricane Glass", "glass")  -> "hurricane"
+        canonical_facet("Italian", "cuisine")        -> "italian"
+        canonical_facet("cachaça", "spirit_base")    -> "cachaca"
+        canonical_facet("", "glass")                 -> ""
+    """
+    if not value:
+        return ""
+    key = value.lower().strip()
+    aliases = config.FACET_ALIASES.get(kind, {})
+    return aliases.get(key, slugify(key))
+
+
+def display_label(slug: str, *, titlecase: bool = True) -> str:
+    """Humanize a canonical facet slug for display.
+
+    "italian-american" -> "Italian American" (or "italian american" when
+    titlecase=False, used for tags where lowercase is the convention).
+    """
+    label = slug.replace("-", " ")
+    return label.title() if titlecase else label
+
+
 def _read_image_dimensions(path: Path) -> tuple[int, int]:
     """Return (width, height) for a PNG or JPEG. Stdlib only — avoids a
     Pillow dependency for the one thing we need it for.
@@ -516,6 +550,10 @@ class RecipeCollection:
     def __init__(self, recipes_dir: Path):
         self.recipes_dir = Path(recipes_dir)
         self.recipes: list[Recipe] = []
+        # Per-file load failures (YAML parse errors, missing files, etc.)
+        # surfaced for callers to fail-fast instead of silently shipping a
+        # partial corpus.
+        self.load_errors: list[tuple[Path, str]] = []
         self._loaded = False
 
     def discover_recipes(self) -> list[Path]:
@@ -529,8 +567,11 @@ class RecipeCollection:
         for recipe_file in self.discover_recipes():
             try:
                 self.recipes.append(Recipe.from_path(recipe_file))
-            except Exception:
+            except Exception as e:
+                # Logged AND tracked — silent skips were how a YAML typo could
+                # disappear one recipe from the corpus with green CI.
                 logger.exception(f"Error loading recipe {recipe_file}")
+                self.load_errors.append((recipe_file, str(e)))
         self._loaded = True
         return self.recipes
 
@@ -545,6 +586,8 @@ class RecipeCollection:
         return all_errors
 
     def get_by_category(self) -> dict[str, list[Recipe]]:
+        # category comes from the parent folder name, which is already canonical
+        # (always lowercase, no spaces) — no canonicalization needed.
         out: dict[str, list[Recipe]] = {}
         for recipe in self.recipes:
             out.setdefault(recipe.category, []).append(recipe)
@@ -554,21 +597,29 @@ class RecipeCollection:
         out: dict[str, list[Recipe]] = {}
         for recipe in self.recipes:
             for tag in recipe.tags:
-                out.setdefault(tag, []).append(recipe)
+                key = canonical_facet(tag, "tag")
+                if key:
+                    out.setdefault(key, []).append(recipe)
         return out
 
     def get_by_cuisine(self) -> dict[str, list[Recipe]]:
         out: dict[str, list[Recipe]] = {}
         for recipe in self.recipes:
-            if not recipe.is_cocktail and recipe.cuisine:
-                out.setdefault(recipe.cuisine, []).append(recipe)
+            if recipe.is_cocktail or not recipe.cuisine:
+                continue
+            key = canonical_facet(recipe.cuisine, "cuisine")
+            if key:
+                out.setdefault(key, []).append(recipe)
         return out
 
     def get_by_spirit(self) -> dict[str, list[Recipe]]:
         out: dict[str, list[Recipe]] = {}
         for recipe in self.recipes:
-            if recipe.is_cocktail and recipe.spirit_base:
-                out.setdefault(recipe.spirit_base, []).append(recipe)
+            if not recipe.is_cocktail or not recipe.spirit_base:
+                continue
+            key = canonical_facet(recipe.spirit_base, "spirit_base")
+            if key:
+                out.setdefault(key, []).append(recipe)
         return out
 
     @property

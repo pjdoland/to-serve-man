@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from pdf_generator import PDFGenerator
+from recipe_parser import RecipeCollection
 from site_generator import SiteGenerator
 
 
@@ -46,6 +47,25 @@ class RecipeSmokeTests(unittest.TestCase):
             self.site.generate_search_data()
             data = json.loads((Path(tmp) / "search-data.json").read_text())
         self.assertEqual(len(data["recipes"]), len(self.recipes))
+
+
+class LoadFailureGate(unittest.TestCase):
+    """Pin the contract that a malformed .cook file populates load_errors so
+    build_site / build_pdf / build_latex can fail-fast on parse failures."""
+
+    def test_yaml_syntax_error_populates_load_errors(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            recipes_dir = Path(tmp)
+            (recipes_dir / "broken.cook").write_text(
+                "---\ntitle: Broken\ntags: [unclosed\n---\nStir.\n",
+                encoding="utf-8",
+            )
+            collection = RecipeCollection(recipes_dir)
+            collection.load_recipes()
+            self.assertEqual(len(collection.load_errors), 1)
+            failed_path, _msg = collection.load_errors[0]
+            self.assertEqual(failed_path.name, "broken.cook")
+            self.assertEqual(collection.recipes, [])
 
 
 if __name__ == "__main__":

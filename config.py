@@ -58,3 +58,57 @@ def order_food_categories(categories: list[str]) -> list[str]:
     known = [c for c in FOOD_CATEGORY_ORDER if c in categories]
     extra = sorted(c for c in categories if c not in FOOD_CATEGORY_ORDER)
     return known + extra
+
+
+# --- Controlled vocabularies for facet aggregation --------------------------
+#
+# Aliases map non-canonical input forms (case/punctuation/synonyms) to the
+# canonical key that becomes the URL slug + display label. When canonical_facet
+# can't find an alias, it falls back to slugify(value), which still normalizes
+# case/punctuation but won't merge synonyms. Aliases live here, not in the
+# recipe content, so a typo in one .cook file doesn't fragment a facet page.
+#
+# Lookup keys are lowercased (the helper lowercases input first), so write
+# aliases in lowercase too.
+
+GLASSWARE_ALIASES = {
+    "old fashioned": "old-fashioned",
+    "hurricane glass": "hurricane",
+    "collins glass": "collins",
+}
+
+SPIRIT_ALIASES = {
+    "cachaça": "cachaca",
+}
+
+# Cuisines and tags currently rely on slugify alone — case/punctuation
+# normalization handles the variations seen in the corpus today. Add explicit
+# aliases here when synonyms appear (e.g. "italian american" vs
+# "italian-american").
+FACET_ALIASES: dict[str, dict[str, str]] = {
+    "glass": GLASSWARE_ALIASES,
+    "spirit_base": SPIRIT_ALIASES,
+    "cuisine": {},
+    "tag": {},
+    "season": {},
+    "occasion": {},
+}
+
+
+# Defensive: every alias *value* must already be a canonical slug (i.e.
+# slugify(v) == v). Otherwise canonical_facet(canonical_facet(v)) would not
+# round-trip and the sitemap could disagree with the page generator. Caught
+# at import time so a bad alias addition fails the build.
+def _check_alias_canonicality() -> None:
+    from slugify import slugify  # local: keep slugify out of config's API
+
+    for kind, aliases in FACET_ALIASES.items():
+        for raw, canonical in aliases.items():
+            if slugify(canonical) != canonical:
+                raise AssertionError(
+                    f"FACET_ALIASES[{kind!r}][{raw!r}] = {canonical!r} is not a "
+                    f"canonical slug; slugify({canonical!r}) = {slugify(canonical)!r}"
+                )
+
+
+_check_alias_canonicality()

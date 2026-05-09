@@ -22,35 +22,53 @@ import threading
 from pathlib import Path
 
 import config
-from pdf_generator import PDFGenerator, generate_pdf
+from pdf_generator import PDFGenerator
 from recipe_parser import RecipeCollection
-from site_generator import generate_site
+from site_generator import SiteGenerator
 
 logger = logging.getLogger("tsm")
 
 WATCH_PATHS = ["recipes", "templates", "content", "static", "src", "config.py"]
 
 
-def validate_recipes():
-    """Validate all recipes and report errors."""
-    logger.info("Validating recipes...\n")
+def validate_recipes(collection: RecipeCollection | None = None, quiet_on_success: bool = False) -> bool:
+    """Validate all recipes and report errors.
 
-    collection = RecipeCollection("recipes")
-    collection.load_recipes(use_cooklang_parser=False)
+    Returns False if any .cook file failed to load OR any recipe failed
+    schema validation. Pass a pre-loaded `collection` to avoid re-parsing
+    the corpus when called from build_site/build_pdf/build_latex (each of
+    those already loads recipes via SiteGenerator/PDFGenerator init).
+    """
+    if not quiet_on_success:
+        logger.info("Validating recipes...\n")
+
+    if collection is None:
+        collection = RecipeCollection("recipes")
+        collection.load_recipes(use_cooklang_parser=False)
+
+    if collection.load_errors:
+        logger.error(f"✗ Failed to load {len(collection.load_errors)} recipe file(s):\n")
+        for filepath, msg in collection.load_errors:
+            # Truncate gnarly multi-line YAML errors so CI logs stay scannable.
+            short = msg if len(msg) < 500 else msg[:500] + "… (truncated)"
+            logger.error(f"  {filepath}: {short}")
+        logger.error("")
 
     errors = collection.validate_all()
+    if errors:
+        logger.error(f"✗ Found validation errors in {len(errors)} recipes:\n")
+        for filepath, error_list in errors.items():
+            logger.error(f"  {filepath}:")
+            for error in error_list:
+                logger.error(f"    - {error}")
+            logger.error("")
 
-    if not errors:
+    if collection.load_errors or errors:
+        return False
+
+    if not quiet_on_success:
         logger.info(f"✓ All {len(collection.recipes)} recipes are valid!")
-        return True
-
-    logger.error(f"✗ Found validation errors in {len(errors)} recipes:\n")
-    for filepath, error_list in errors.items():
-        logger.error(f"  {filepath}:")
-        for error in error_list:
-            logger.error(f"    - {error}")
-        logger.error("")
-    return False
+    return True
 
 
 def build_assets():
@@ -78,10 +96,15 @@ def build_assets():
 
 
 def build_site(base_url: str = None):
-    """Generate static website."""
+    """Generate static website. Fails the build on recipe load/validation
+    errors so a YAML typo or missing required field can't silently ship a
+    partial corpus to production."""
     try:
         build_assets()
-        generate_site(base_url=base_url)
+        gen = SiteGenerator(base_url=base_url)
+        if not validate_recipes(gen.collection, quiet_on_success=True):
+            return False
+        gen.generate_all()
         return True
     except Exception:
         logger.exception("✗ Error generating site")
@@ -91,7 +114,10 @@ def build_site(base_url: str = None):
 def build_pdf():
     """Generate PDF cookbook."""
     try:
-        return generate_pdf()
+        gen = PDFGenerator()
+        if not validate_recipes(gen.collection, quiet_on_success=True):
+            return False
+        return gen.generate_all()
     except Exception:
         logger.exception("✗ Error generating PDF")
         return False
@@ -100,7 +126,10 @@ def build_pdf():
 def build_latex():
     """Generate LaTeX source only (no pdflatex compilation). Used by CI."""
     try:
-        tex_file = PDFGenerator().write_latex()
+        gen = PDFGenerator()
+        if not validate_recipes(gen.collection, quiet_on_success=True):
+            return False
+        tex_file = gen.write_latex()
         logger.info(f"LaTeX written to {tex_file}")
         return True
     except Exception:
@@ -126,7 +155,12 @@ def copy_pdf_to_site():
 
 
 def serve(host: str = "127.0.0.1", port: int = 8000, base_url: str = None):
-    """Run a local dev server with auto-rebuild on file change."""
+    """Run a local dev server with auto-rebuild on file change.
+
+    Intentionally bypasses the validation gate that build_site enforces — a
+    typo mid-edit shouldn't freeze the dev loop. Errors surface as exceptions
+    in the rebuild log instead.
+    """
     from watchfiles import watch
 
     docs = Path(config.DOCS_DIR)
@@ -134,7 +168,7 @@ def serve(host: str = "127.0.0.1", port: int = 8000, base_url: str = None):
     def rebuild(reason: str = "initial"):
         logger.info(f"\n→ Rebuild ({reason})")
         try:
-            generate_site(base_url=base_url)
+            SiteGenerator(base_url=base_url).generate_all()
             logger.info("  ✓ Site rebuilt")
         except Exception:
             logger.exception("  ✗ Rebuild failed")

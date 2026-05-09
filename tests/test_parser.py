@@ -15,6 +15,7 @@ from recipe_parser import (
     Step,
     Text,
     Timer,
+    canonical_facet,
     parse_body,
 )
 
@@ -144,6 +145,34 @@ class ParseBodyFrontmatter(unittest.TestCase):
         blocks = _blocks(body)
         self.assertEqual(len(blocks), 1)
         self.assertIsInstance(blocks[0], Step)
+
+
+class CanonicalFacet(unittest.TestCase):
+    def test_alias_collapses_synonyms(self):
+        self.assertEqual(canonical_facet("hurricane glass", "glass"), "hurricane")
+        self.assertEqual(canonical_facet("Hurricane Glass", "glass"), "hurricane")
+        self.assertEqual(canonical_facet("collins glass", "glass"), "collins")
+        self.assertEqual(canonical_facet("old fashioned", "glass"), "old-fashioned")
+
+    def test_diacritic_alias(self):
+        self.assertEqual(canonical_facet("cachaça", "spirit_base"), "cachaca")
+
+    def test_no_alias_falls_back_to_slugify(self):
+        self.assertEqual(canonical_facet("Italian", "cuisine"), "italian")
+        self.assertEqual(canonical_facet("Italian-American", "cuisine"), "italian-american")
+        self.assertEqual(canonical_facet("rum", "spirit_base"), "rum")
+
+    def test_unknown_kind_uses_slugify_only(self):
+        self.assertEqual(canonical_facet("Some Value", "nope"), "some-value")
+
+    def test_empty_returns_empty(self):
+        self.assertEqual(canonical_facet("", "glass"), "")
+        self.assertEqual(canonical_facet(None, "glass"), "")
+
+    def test_idempotent(self):
+        # Already-canonical input should round-trip unchanged.
+        for v, k in [("rum", "spirit_base"), ("italian-american", "cuisine"), ("hurricane", "glass")]:
+            self.assertEqual(canonical_facet(canonical_facet(v, k), k), canonical_facet(v, k))
 
 
 if __name__ == "__main__":
