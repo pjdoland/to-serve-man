@@ -47,6 +47,10 @@ class SiteGenerator:
         self.content_dir = Path(config.CONTENT_DIR)
         # New token each build so CDNs/browsers don't serve a stale copy after a recipe is added.
         self.cache_bust = secrets.token_hex(5)
+        # Tracked across the build so callers can fail-fast under --strict
+        # instead of having broken cross-refs silently warn-and-ship. List of
+        # (recipe_filepath, field_name, missing_slug) tuples.
+        self.cross_ref_failures: list[tuple[Path, str, str]] = []
 
         # Set up Jinja2 environment. Register canonical_facet + display_label
         # alongside slugify so templates can both bucket and humanize the same
@@ -254,7 +258,9 @@ class SiteGenerator:
         return {r.slug: r for r in self.collection.recipes}
 
     def _resolve_cross_refs(self, recipe: Recipe) -> dict[str, list[Recipe]]:
-        """Resolve serve_with/pairs_with/uses slugs to Recipe objects; warn on misses."""
+        """Resolve serve_with/pairs_with/uses slugs to Recipe objects; warn on
+        misses and record them on self.cross_ref_failures so build.py --strict
+        can fail the build."""
         resolved: dict[str, list[Recipe]] = {}
         for field_name in ("serve_with", "pairs_with", "uses"):
             slugs = getattr(recipe, field_name)
@@ -265,6 +271,7 @@ class SiteGenerator:
                     hits.append(target)
                 else:
                     logger.warning(f"{recipe.filepath}: unknown {field_name} slug '{s}'")
+                    self.cross_ref_failures.append((recipe.filepath, field_name, s))
             if hits:
                 resolved[field_name] = hits
         return resolved
@@ -522,15 +529,24 @@ class SiteGenerator:
         self.render_template("listing.html", context, output_path)
 
     def generate_search_data(self):
-        """Generate JSON search data for client-side search."""
+        """Generate JSON search data for client-side search.
+
+        Includes ingredient names so a query for "campari" finds Negroni and
+        Boulevardier even when "campari" isn't in title/description/tags. Only
+        braced ingredients (the canonical list rendered as the ingredients
+        UI) — bare mentions in step prose would inflate the index without
+        clear benefit.
+        """
         search_data = {"recipes": []}
 
         for recipe in self.collection.recipes:
+            ingredients = sorted({i.name for i in recipe.parsed.ingredients if i.from_braces})
             recipe_data = {
                 "title": recipe.title,
                 "slug": recipe.slug,
                 "description": recipe.description or "",
                 "tags": recipe.tags,
+                "ingredients": ingredients,
                 "category": recipe.category,
                 "is_cocktail": recipe.is_cocktail,
                 "url": f"{self.base_url}/recipes/{recipe.slug}/",

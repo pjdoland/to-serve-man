@@ -46,7 +46,9 @@ jobs:
         run: python -m unittest discover -s tests -t . -v
 
       - name: Build site
-        run: python build.py site
+        # --strict so a broken serve_with/pairs_with/uses cross-ref fails the
+        # deploy instead of warn-and-shipping a dangling link.
+        run: python build.py site --strict
 
       - name: Generate LaTeX source
         run: python build.py latex

@@ -95,16 +95,25 @@ def build_assets():
             logger.error(f"  ✗ Error building {label}: {stderr.decode().strip()}")
 
 
-def build_site(base_url: str = None):
+def build_site(base_url: str = None, strict: bool = False):
     """Generate static website. Fails the build on recipe load/validation
     errors so a YAML typo or missing required field can't silently ship a
-    partial corpus to production."""
+    partial corpus to production. Under --strict, also fails on broken
+    serve_with/pairs_with/uses cross-refs that today only warn."""
     try:
         build_assets()
         gen = SiteGenerator(base_url=base_url)
         if not validate_recipes(gen.collection, quiet_on_success=True):
             return False
         gen.generate_all()
+        if gen.cross_ref_failures:
+            n = len(gen.cross_ref_failures)
+            level = logger.error if strict else logger.warning
+            level(f"{'✗' if strict else '⚠'} {n} cross-ref(s) point to unknown recipe slugs:")
+            for filepath, field, slug in gen.cross_ref_failures:
+                level(f"    {filepath}: {field} → '{slug}'")
+            if strict:
+                return False
         return True
     except Exception:
         logger.exception("✗ Error generating site")
@@ -198,12 +207,12 @@ def serve(host: str = "127.0.0.1", port: int = 8000, base_url: str = None):
         httpd.shutdown()
 
 
-def build_all(base_url: str = None):
+def build_all(base_url: str = None, strict: bool = False):
     """Generate both website and PDF."""
     bar = "=" * 60
     logger.info(f"{bar}\nBuilding everything...\n{bar}\n")
 
-    site_success = build_site(base_url)
+    site_success = build_site(base_url, strict=strict)
     logger.info("")
 
     pdf_success = build_pdf()
@@ -270,6 +279,11 @@ Examples:
 
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable debug logging")
     parser.add_argument("-q", "--quiet", action="store_true", help="Only show warnings and errors")
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Fail the build on warnings (broken serve_with/pairs_with/uses cross-refs)",
+    )
 
     args = parser.parse_args()
 
@@ -281,7 +295,7 @@ Examples:
     if args.command == "validate":
         success = validate_recipes()
     elif args.command == "site":
-        success = build_site(base_url)
+        success = build_site(base_url, strict=args.strict)
     elif args.command == "pdf":
         success = build_pdf()
         if success:
@@ -293,7 +307,7 @@ Examples:
         serve(base_url=base_url)
         success = True
     elif args.command == "all":
-        success = build_all(base_url)
+        success = build_all(base_url, strict=args.strict)
     else:
         parser.print_help()
         sys.exit(1)
