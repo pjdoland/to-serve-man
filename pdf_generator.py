@@ -110,10 +110,16 @@ class PDFGenerator:
         `*italic*` markers. Tokenizing keeps `escape_latex` from re-escaping
         the backslashes we inject for `\\textsuperscript` / `\\textit`."""
         out: list[str] = []
-        for kind, payload in tokenize_inline(text):
+        tokens = list(tokenize_inline(text))
+        for i, (kind, payload) in enumerate(tokens):
             if kind == "text":
                 out.append(self.escape_latex(payload))
             elif kind == "ref":
+                # Adjacent refs (e.g. [^2][^3]) print as two superscripted
+                # digits with no separator and visually merge into one number.
+                # A superscripted comma keeps them readable as "2,3".
+                if i > 0 and tokens[i - 1][0] == "ref":
+                    out.append("\\textsuperscript{,}")
                 out.append(f"\\textsuperscript{{{payload}}}")
             else:
                 out.append(f"\\textit{{{self.escape_latex(payload)}}}")

@@ -190,10 +190,16 @@ class SiteGenerator:
         Plain `text` segments are inserted verbatim so authors can drop in raw
         HTML (long-standing callout convention)."""
         out: list[str] = []
-        for kind, payload in tokenize_inline(text):
+        tokens = list(tokenize_inline(text))
+        for i, (kind, payload) in enumerate(tokens):
             if kind == "text":
                 out.append(payload)
             elif kind == "ref":
+                # Adjacent refs (e.g. [^2][^3]) render as a run of superscripts
+                # that visually merges into one number. Insert a superscript
+                # comma so "2,3" reads as two distinct citations.
+                if i > 0 and tokens[i - 1][0] == "ref":
+                    out.append('<sup class="footnote-ref-sep">,</sup>')
                 if payload in defined_nums:
                     out.append(
                         f'<sup class="footnote-ref" id="fnref-{payload}">'

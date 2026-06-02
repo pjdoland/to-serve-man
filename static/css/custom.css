@@ -481,6 +481,14 @@
 .footnote-ref a { text-decoration: none; color: var(--cb-accent); }
 .footnote-ref a:hover { text-decoration: underline; }
 
+/* Comma between adjacent footnote refs (e.g. "²,³"). Same superscript look
+   as .footnote-ref but no left margin so the comma hugs the preceding digit. */
+.footnote-ref-sep {
+  font-size: 0.7em;
+  line-height: 0;
+  vertical-align: super;
+}
+
 /* Sources section at the bottom of a recipe. Lives inside .recipe-instructions
    so it inherits the grid area; just needs the vertical rule + small type. */
 .recipe-footnotes {
