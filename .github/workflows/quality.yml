@@ -28,6 +28,10 @@ jobs:
           # cannot fetch a private cross-repo submodule.
           token: ${{ secrets.TIKI_BOOK_TOKEN }}
 
+      - name: Bump tiki-book to latest main
+        # See deploy.yml for the reasoning — build against HEAD, not the pin.
+        run: git submodule update --remote vendor/tiki-book
+
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"

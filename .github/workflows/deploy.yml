@@ -28,6 +28,13 @@ jobs:
           # cannot fetch a private cross-repo submodule.
           token: ${{ secrets.TIKI_BOOK_TOKEN }}
 
+      - name: Bump tiki-book to latest main
+        # Build against HEAD of the tracked branch (see .gitmodules) instead
+        # of the SHA pinned in this repo. Trades reproducibility for
+        # always-fresh content; the pin moves only when someone runs
+        # `git submodule update --remote` locally and commits the bump.
+        run: git submodule update --remote vendor/tiki-book
+
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
