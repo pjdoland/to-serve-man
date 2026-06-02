@@ -21,20 +21,20 @@ jobs:
       BASE_URL: /to-serve-man
       SITE_URL: https://pjdoland.github.io/to-serve-man
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
           # PAT with read access to pjdoland/tiki-book. Default GITHUB_TOKEN
           # cannot fetch a private cross-repo submodule.
           token: ${{ secrets.TIKI_BOOK_TOKEN }}
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: pyproject.toml
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: "20"
 
@@ -65,7 +65,7 @@ jobs:
         run: rm -f output/cookbook.pdf
 
       - name: Compile PDF
-        uses: xu-cheng/latex-action@v3
+        uses: xu-cheng/latex-action@4.1.0
         with:
           working_directory: output
           root_file: cookbook.tex
@@ -79,7 +79,7 @@ jobs:
       - name: Copy PDF into site
         run: cp output/cookbook.pdf docs/cookbook.pdf
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: docs
 
@@ -91,4 +91,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

@@ -19,6 +19,29 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 
+% Vulgar fractions in recipe prose (½ oz, ¼ tsp, ⅓ jigger, etc.).
+% pdflatex with utf8 inputenc has no default binding for U+2153 and friends,
+% so each one explicitly maps to its xfrac equivalent.
+\usepackage{xfrac}
+\DeclareUnicodeCharacter{00BC}{\sfrac{1}{4}}
+\DeclareUnicodeCharacter{00BD}{\sfrac{1}{2}}
+\DeclareUnicodeCharacter{00BE}{\sfrac{3}{4}}
+\DeclareUnicodeCharacter{2150}{\sfrac{1}{7}}
+\DeclareUnicodeCharacter{2151}{\sfrac{1}{9}}
+\DeclareUnicodeCharacter{2152}{\sfrac{1}{10}}
+\DeclareUnicodeCharacter{2153}{\sfrac{1}{3}}
+\DeclareUnicodeCharacter{2154}{\sfrac{2}{3}}
+\DeclareUnicodeCharacter{2155}{\sfrac{1}{5}}
+\DeclareUnicodeCharacter{2156}{\sfrac{2}{5}}
+\DeclareUnicodeCharacter{2157}{\sfrac{3}{5}}
+\DeclareUnicodeCharacter{2158}{\sfrac{4}{5}}
+\DeclareUnicodeCharacter{2159}{\sfrac{1}{6}}
+\DeclareUnicodeCharacter{215A}{\sfrac{5}{6}}
+\DeclareUnicodeCharacter{215B}{\sfrac{1}{8}}
+\DeclareUnicodeCharacter{215C}{\sfrac{3}{8}}
+\DeclareUnicodeCharacter{215D}{\sfrac{5}{8}}
+\DeclareUnicodeCharacter{215E}{\sfrac{7}{8}}
+
 % Enhanced microtype for professional typography
 \usepackage[
     activate={true,nocompatibility},
@@ -190,17 +213,22 @@
 \renewcommand{\cftsecfont}{\normalfont}
 \renewcommand{\cftsecpagefont}{\normalfont}
 
-% Custom Contents header command (built outside TOC system)
+% Custom Contents header command (built outside TOC system).
+% Uses plain \rule rather than titlesec's \titlerule because the latter
+% expands to \ttl@makeline (a titletoc internal) on newer TeX Live, which
+% is undefined outside titlesec's title-formatting machinery and crashes
+% the build with "Undefined control sequence". Same workaround as
+% \recipenotes below.
 \newcommand{\contentsheader}{%
     \cleardoublepage
     \thispagestyle{plain}
-    \titlerule
+    \noindent\rule{\textwidth}{0.4pt}\par
     \addvspace{0.10\baselineskip}%
     \begin{center}
     \normalfont\Large\scshape\textls[200]{Contents}
     \end{center}
     \vspace{0.20\baselineskip}%
-    \titlerule
+    \noindent\rule{\textwidth}{0.4pt}\par
 }
 
 % Redefine tableofcontents to just generate the TOC list (no title)
