@@ -1,0 +1,3 @@
+[submodule "vendor/tiki-book"]
+	path = vendor/tiki-book
+	url = https://github.com/pjdoland/tiki-book.git

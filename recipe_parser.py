@@ -5,6 +5,7 @@ Handles discovery, parsing, and validation of Cooklang recipe files.
 """
 
 import logging
+import os
 import re
 import struct
 from dataclasses import dataclass, field
@@ -559,7 +560,15 @@ class RecipeCollection:
     def discover_recipes(self) -> list[Path]:
         if not self.recipes_dir.exists():
             raise FileNotFoundError(f"Recipes directory not found: {self.recipes_dir}")
-        return list(self.recipes_dir.rglob("*.cook"))
+        # os.walk(followlinks=True) so a symlinked sub-corpus (e.g.
+        # recipes/cocktails -> vendor/tiki-book/recipes) is traversed.
+        # pathlib.Path.rglob does not descend into directory symlinks.
+        found: list[Path] = []
+        for root, _, files in os.walk(self.recipes_dir, followlinks=True):
+            for name in files:
+                if name.endswith(".cook"):
+                    found.append(Path(root) / name)
+        return sorted(found)
 
     def load_recipes(self, use_cooklang_parser: bool = False):
         """Load and parse all recipes. `use_cooklang_parser` is accepted for backward-compat and ignored."""

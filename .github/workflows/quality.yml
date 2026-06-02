@@ -22,6 +22,11 @@ jobs:
       SITE_URL: ""
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          # PAT with read access to pjdoland/tiki-book. Default GITHUB_TOKEN
+          # cannot fetch a private cross-repo submodule.
+          token: ${{ secrets.TIKI_BOOK_TOKEN }}
 
       - uses: actions/setup-python@v5
         with:
